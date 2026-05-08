@@ -354,7 +354,9 @@ tr:hover td{background:var(--card);}
 .tbl-x::-webkit-scrollbar{width:4px;}
 .tbl-x::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
-/* ══ EXPENSES PAGE ══ */
+/* Hide actions column for cashiers */
+.tx-table .col-actions { display:none; }
+.tx-table.mgr-view .col-actions { display:table-cell; }
 #pg-exp{flex-direction:column;gap:0;overflow:hidden;}
 .exp-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .exp-card-left{display:flex;flex-direction:column;gap:3px;flex:1;}
@@ -714,8 +716,8 @@ tr:hover td{background:var(--card);}
 
       <!-- SCROLLABLE: transaction table only -->
       <div class="tbl-x">
-        <table style="min-width:800px">
-          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Tip 💝</th><th>Staff</th></tr></thead>
+        <table style="min-width:800px" id="txTable" class="tx-table">
+          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
           <tbody id="txBody"></tbody>
         </table>
       </div>
@@ -876,6 +878,51 @@ tr:hover td{background:var(--card);}
     <div class="modal-ft">
       <button class="btn-cancel" onclick="closePay()">Cancel</button>
       <button class="btn-ok" onclick="confirmPay()" id="confirmPayBtn">Confirm Payment ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TRANSACTION MODAL (Manager only) -->
+<div class="overlay" id="editTxModal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Transaction</div>
+    <div class="modal-scroll">
+      <div class="modal-body">
+        <div class="fg"><div class="fl">Date</div><input class="fi" id="etDate" placeholder="e.g. 5/8/2026"></div>
+        <div class="fg"><div class="fl">Plate No.</div><input class="fi" id="etPlate" style="text-transform:uppercase;font-family:'DM Mono',monospace;" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="fg"><div class="fl">Car Model</div><input class="fi" id="etModel"></div>
+        <div class="fg"><div class="fl">Bay</div>
+          <select class="fi" id="etBay" style="cursor:pointer">
+            <option value="1">Bay 1</option>
+            <option value="2">Bay 2</option>
+            <option value="3">Bay 3</option>
+            <option value="4">Bay 4</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Services</div><input class="fi" id="etServices"></div>
+        <div class="fg"><div class="fl">Payment Method</div>
+          <select class="fi" id="etPayment" style="cursor:pointer">
+            <option value="cash">Cash</option>
+            <option value="gcash">GCash</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Total (₱) — service charge only</div><input class="fi" type="number" id="etTotal" min="0"></div>
+        <div class="fg">
+          <div class="fl">Tip (₱) — separate from sales</div>
+          <input class="fi" type="number" id="etTip" min="0" placeholder="0.00"
+            style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
+        </div>
+        <div class="fg"><div class="fl">Time In</div><input class="fi" id="etTimeIn"></div>
+        <div class="fg"><div class="fl">Time Out</div><input class="fi" id="etTimeOut"></div>
+        <div class="fg"><div class="fl">Staff</div><input class="fi" id="etStaff"></div>
+        <div style="padding:8px 10px;background:rgba(252,92,125,.07);border:1px solid rgba(252,92,125,.2);border-radius:8px;font-size:11px;color:var(--danger);">
+          ⚠️ Manager only — changes are saved directly to Firebase and cannot be undone.
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal('editTxModal')">Cancel</button>
+      <button class="btn-ok" onclick="saveEditTx()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1585,7 +1632,88 @@ window.factoryReset=async function(){
   toast('Reset done — locked services restored ✓');
 };
 
-/* ══ EXPENSES ══ */
+/* TRANSACTION EDIT / DELETE — Manager only */
+let editTxKey = null;
+window.openEditTx = function(id){
+  if(!needsMgr()) return;
+  // Find transaction by id field
+  const entry = Object.entries(txs).find(([,t])=>t.id===id);
+  if(!entry){ toast('Transaction not found','var(--danger)'); return; }
+  const [key, t] = entry;
+  editTxKey = key;
+  $('etDate').value    = t.date    || '';
+  $('etPlate').value   = t.plate   || '';
+  $('etModel').value   = t.carModel|| '';
+  $('etBay').value     = t.bay     || '1';
+  $('etServices').value= t.items   || '';
+  $('etPayment').value = t.payment || 'cash';
+  $('etTotal').value   = t.total   || 0;
+  $('etTip').value     = t.tip     || '';
+  $('etTimeIn').value  = t.timeIn  || '';
+  $('etTimeOut').value = t.timeOut || '';
+  $('etStaff').value   = t.staff   || '';
+  $('editTxModal').classList.add('on');
+};
+
+window.saveEditTx = async function(){
+  if(!needsMgr()) return;
+  if(!editTxKey){ toast('No transaction selected','var(--danger)'); return; }
+  const total    = parseFloat($('etTotal').value)  || 0;
+  const tip      = parseFloat($('etTip').value)    || 0;
+  const plate    = $('etPlate').value.trim().toUpperCase();
+  const carModel = $('etModel').value.trim();
+  const bay      = $('etBay').value;
+  const items    = $('etServices').value.trim();
+  const payment  = $('etPayment').value;
+  const date     = $('etDate').value.trim();
+  const timeIn   = $('etTimeIn').value.trim();
+  const timeOut  = $('etTimeOut').value.trim();
+  const staff    = $('etStaff').value.trim();
+
+  const updates = {};
+
+  // Update transaction
+  updates['transactions/'+editTxKey] = {
+    ...txs[editTxKey],
+    date, plate, carModel, bay,
+    items, payment, total, tip,
+    timeIn, timeOut, staff,
+  };
+
+  // Find and update matching job (match by plate + date)
+  const matchingJob = Object.entries(jobs).find(([,j]) =>
+    j.plate === txs[editTxKey]?.plate && j.date === txs[editTxKey]?.date
+  );
+  if(matchingJob){
+    const [jobKey] = matchingJob;
+    updates['jobs/'+jobKey+'/plate']    = plate;
+    updates['jobs/'+jobKey+'/carModel'] = carModel;
+    updates['jobs/'+jobKey+'/bay']      = bay;
+    updates['jobs/'+jobKey+'/services'] = items;
+    updates['jobs/'+jobKey+'/payment']  = payment;
+    updates['jobs/'+jobKey+'/total']    = total;
+    updates['jobs/'+jobKey+'/timeIn']   = timeIn;
+    updates['jobs/'+jobKey+'/timeOut']  = timeOut;
+    updates['jobs/'+jobKey+'/staff']    = staff;
+    updates['jobs/'+jobKey+'/date']     = date;
+  }
+
+  await update(ref(db), updates);
+  closeModal('editTxModal');
+  editTxKey = null;
+  toast('Transaction & Job updated ✓');
+};
+
+window.deleteTx = async function(id){
+  if(!needsMgr()) return;
+  const entry = Object.entries(txs).find(([,t])=>t.id===id);
+  if(!entry){ toast('Transaction not found','var(--danger)'); return; }
+  if(!confirm('Delete this transaction? This cannot be undone.')) return;
+  await remove(ref(db,'transactions/'+entry[0]));
+  toast('Transaction deleted');
+};
+
+/* EXPENSES */
 window.addExpense = async function(){
   const amount = parseFloat($('expAmount').value)||0;
   const desc   = $('expDesc').value.trim();
@@ -1741,6 +1869,10 @@ function renderRep(){
   // Update labels to be clear tips are separate
   const tipLbl = document.querySelector('#dsTips')?.closest('.ds-item')?.querySelector('.ds-lbl');
   if(tipLbl) tipLbl.textContent = '💝 Tips (separate)';
+  const mgr = staffRole==='manager';
+  // Show/hide Actions column via CSS class
+  const tbl = $('txTable');
+  if(tbl){ mgr ? tbl.classList.add('mgr-view') : tbl.classList.remove('mgr-view'); }
   $('txBody').innerHTML=filtered.length
     ?filtered.slice(0,100).map(t=>`
       <tr>
@@ -1758,8 +1890,12 @@ function renderRep(){
           ${(t.tip||0)>0?fmt(t.tip):'—'}
         </td>
         <td>${t.staff||'—'}</td>
+        <td class="col-actions" style="white-space:nowrap">
+          <span class="al" onclick="openEditTx('${t.id}')">Edit</span>
+          <span class="al del" onclick="deleteTx('${t.id}')">Delete</span>
+        </td>
       </tr>`).join('')
-    :'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
+    :`<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>`;
 }
 
 /* SETTINGS */
