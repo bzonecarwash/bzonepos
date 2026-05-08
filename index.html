@@ -354,7 +354,16 @@ tr:hover td{background:var(--card);}
 .tbl-x::-webkit-scrollbar{width:4px;}
 .tbl-x::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
-/* ══ SETTINGS PAGE ══ */
+/* ══ EXPENSES PAGE ══ */
+#pg-exp{flex-direction:column;gap:0;overflow:hidden;}
+.exp-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.exp-card-left{display:flex;flex-direction:column;gap:3px;flex:1;}
+.exp-card-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+.exp-card-desc{font-size:13px;font-weight:600;color:var(--text);}
+.exp-card-meta{font-size:11px;color:var(--muted);}
+.exp-card-amt{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--danger);flex-shrink:0;}
+.exp-del{color:var(--danger);font-size:12px;cursor:pointer;opacity:.7;padding:4px;flex-shrink:0;}
+.exp-del:hover{opacity:1;}
 #pg-set{flex-direction:column;gap:0;overflow:hidden;}
 #pg-set .set-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;}
 #pg-set .set-scroll::-webkit-scrollbar{width:4px;}
@@ -489,6 +498,7 @@ tr:hover td{background:var(--card);}
     <button class="nb on"  onclick="goPage('pos',this)">POS</button>
     <button class="nb"     onclick="goPage('jobs',this)">Jobs</button>
     <button class="nb"     onclick="goPage('inv',this)">Inventory</button>
+    <button class="nb"     onclick="goPage('exp',this)">Expenses</button>
     <button class="nb"     onclick="goPage('rep',this)">Reports</button>
     <button class="nb"     onclick="goPage('set',this)">Settings</button>
   </nav>
@@ -608,6 +618,49 @@ tr:hover td{background:var(--card);}
     </div>
   </div>
 
+  <!-- ════ EXPENSES PAGE ════ -->
+  <div class="page" id="pg-exp">
+    <!-- Header -->
+    <div class="pg-head" style="flex-shrink:0;padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div>
+        <div class="pg-title">Expenses</div>
+        <div class="pg-sub" id="expNote">Record daily expenses</div>
+      </div>
+    </div>
+    <!-- Add expense form -->
+    <div style="flex-shrink:0;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;gap:10px;">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);">+ Add Expense</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="fg">
+          <div class="fl">Amount (₱)</div>
+          <input class="fi" type="number" id="expAmount" placeholder="0.00" min="0">
+        </div>
+        <div class="fg">
+          <div class="fl">Category</div>
+          <select class="fi" id="expCategory" style="cursor:pointer;">
+            <option value="Supplies">Supplies</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Food">Food / Snacks</option>
+            <option value="Fuel">Fuel</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fl">Description</div>
+        <input class="fi" id="expDesc" placeholder="e.g. Bought soap and shampoo">
+      </div>
+      <button class="btn-p" onclick="addExpense()" style="width:100%;padding:12px;font-size:13px;">
+        Save Expense
+      </button>
+    </div>
+    <!-- Expenses list -->
+    <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;" id="expList">
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:30px;">No expenses recorded today.</div>
+    </div>
+  </div>
+
   <!-- ════ REPORTS PAGE ════ -->
   <div class="page" id="pg-rep">
 
@@ -638,16 +691,31 @@ tr:hover td{background:var(--card);}
         </div>
         <div class="date-summary" id="dateSummary">
           <div class="ds-item"><div class="ds-lbl">Transactions</div><div class="ds-val" id="dsCount">0</div></div>
-          <div class="ds-item"><div class="ds-lbl">Revenue</div><div class="ds-val" id="dsRevenue">₱0.00</div></div>
-          <div class="ds-item"><div class="ds-lbl">Cash</div><div class="ds-val" id="dsCash">₱0.00</div></div>
-          <div class="ds-item"><div class="ds-lbl">GCash</div><div class="ds-val" id="dsGcash">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);">
+            <div class="ds-lbl">💰 Sales Revenue</div>
+            <div class="ds-val" id="dsRevenue" style="color:var(--success)">₱0.00</div>
+          </div>
+          <div class="ds-item"><div class="ds-lbl">Cash Sales</div><div class="ds-val" id="dsCash">₱0.00</div></div>
+          <div class="ds-item"><div class="ds-lbl">GCash Sales</div><div class="ds-val" id="dsGcash">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(240,180,41,.3);background:rgba(240,180,41,.05);">
+            <div class="ds-lbl">💝 Tips (not in sales)</div>
+            <div class="ds-val" id="dsTips" style="color:var(--accent)">₱0.00</div>
+          </div>
+          <div class="ds-item" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);">
+            <div class="ds-lbl">🧾 Expenses</div>
+            <div class="ds-val" id="dsExpenses" style="color:var(--danger)">₱0.00</div>
+          </div>
+          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.08);">
+            <div class="ds-lbl">📊 Net (Sales−Exp)</div>
+            <div class="ds-val" id="dsNet" style="color:var(--success)">₱0.00</div>
+          </div>
         </div>
       </div>
 
       <!-- SCROLLABLE: transaction table only -->
       <div class="tbl-x">
         <table style="min-width:800px">
-          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Staff</th></tr></thead>
+          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Tip 💝</th><th>Staff</th></tr></thead>
           <tbody id="txBody"></tbody>
         </table>
       </div>
@@ -762,6 +830,15 @@ tr:hover td{background:var(--card);}
         <div class="fl">Cash Received</div>
         <input class="fi" type="number" id="cashIn" placeholder="0.00" oninput="calcChange()">
         <div class="chg-row" id="chgRow" style="display:none"><span>Change</span><span id="chgAmt">₱0.00</span></div>
+      </div>
+      <!-- TIP SECTION — shown for both cash and gcash -->
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px;">
+        <div class="fl" style="display:flex;align-items:center;gap:6px;">
+          💝 Tip (Optional)
+          <span style="font-size:10px;color:var(--muted);font-weight:400">— encode tip given by customer</span>
+        </div>
+        <input class="fi" type="number" id="tipInput" placeholder="0.00" min="0"
+          style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
       </div>
       <!-- GCASH SECTION -->
       <div id="gcashSec" style="display:none;flex-direction:column;align-items:center;gap:10px;">
@@ -938,7 +1015,7 @@ const STAFF_LIST = [
 
 /* STATE */
 let S = {storeName:'Bzone Carwash',storeAddr:'',currency:'₱',tax:0,maxDisc:50};
-let prods = {}, txs = {}, jobs = {};
+let prods = {}, txs = {}, jobs = {}, expenses = {};
 let cart=[], disc=0, payMethod='cash';
 let staffName='', staffRole='';   // empty — must login first
 let activeCat='All', editId=null;
@@ -1020,12 +1097,14 @@ function updateLoginDots(){
 window.goPage = function(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  $(id === 'jobs' ? 'pg-jobs' : id === 'inv' ? 'pg-inv' : id === 'rep' ? 'pg-rep' : id === 'set' ? 'pg-set' : 'pg-pos').classList.add('on');
+  const pageMap={'pos':'pg-pos','jobs':'pg-jobs','inv':'pg-inv','exp':'pg-exp','rep':'pg-rep','set':'pg-set'};
+  $(pageMap[id]||'pg-pos').classList.add('on');
   btn.classList.add('on');
-  if(id==='inv') renderInv();
-  if(id==='rep') renderRep();
-  if(id==='set') loadSet();
+  if(id==='inv')  renderInv();
+  if(id==='rep')  renderRep();
+  if(id==='set')  loadSet();
   if(id==='jobs') renderJobs();
+  if(id==='exp')  renderExp();
 };
 
 /* PIN */
@@ -1093,6 +1172,12 @@ onValue(ref(db,'jobs'),snap=>{
   jobs=snap.exists()?snap.val():{};
   renderBayStatus(); renderJobs();
 },()=>syncStatus('error'));
+
+onValue(ref(db,'expenses'),snap=>{
+  expenses=snap.exists()?snap.val():{};
+  renderExp();
+  renderRep();
+},()=>{});
 
 /* SEED DEFAULT SERVICES */
 async function seedProds(){
@@ -1291,7 +1376,11 @@ window.openPayForJob = function(key){
   $('cashIn').value=''; $('chgRow').style.display='none';
   $('payModal').classList.add('on');
 };
-window.closePay=function(){$('payModal').classList.remove('on'); activeJobKey=null;};
+window.closePay=function(){
+  $('payModal').classList.remove('on');
+  activeJobKey=null;
+  $('tipInput').value='';
+};
 window.pickMethod=function(m,el){
   payMethod=m;
   document.querySelectorAll('.pm').forEach(e=>e.classList.remove('on'));
@@ -1332,6 +1421,7 @@ window.confirmPay=async function(){
     const recv=parseFloat($('cashIn').value)||0;
     if(recv<j.total){alert('Cash received is not enough!');return;}
   }
+  const tip=parseFloat($('tipInput').value)||0;
   const now=new Date();
   const timeOut=now.toLocaleTimeString();
   const txRef=push(ref(db,'transactions'));
@@ -1348,12 +1438,14 @@ window.confirmPay=async function(){
     items:j.services,
     payment:payMethod,
     total:j.total,
+    tip:tip,
     staff:staffName,
     ts:now.getTime(),
   };
   await update(ref(db),updates);
   closePay();
-  toast('✅ Payment collected! '+j.plate+' checked out');
+  const tipMsg=tip>0?` | Tip: ${fmt(tip)}`:'';
+  toast('✅ Payment collected! '+j.plate+' checked out'+tipMsg);
 };
 
 /* JOBS */
@@ -1493,6 +1585,70 @@ window.factoryReset=async function(){
   toast('Reset done — locked services restored ✓');
 };
 
+/* ══ EXPENSES ══ */
+window.addExpense = async function(){
+  const amount = parseFloat($('expAmount').value)||0;
+  const desc   = $('expDesc').value.trim();
+  const cat    = $('expCategory').value;
+  if(!amount){ toast('Enter an amount','var(--danger)'); return; }
+  if(!desc)  { toast('Enter a description','var(--danger)'); return; }
+  const now = new Date();
+  await push(ref(db,'expenses'),{
+    amount, desc, cat,
+    date:  now.toLocaleDateString(),
+    time:  now.toLocaleTimeString(),
+    staff: staffName,
+    ts:    now.getTime(),
+  });
+  $('expAmount').value=''; $('expDesc').value='';
+  toast('Expense saved ✓');
+};
+
+window.deleteExpense = async function(key){
+  if(!confirm('Delete this expense?')) return;
+  await remove(ref(db,'expenses/'+key));
+  toast('Expense deleted');
+};
+
+function renderExp(){
+  const today = new Date().toLocaleDateString();
+  const list  = Object.entries(expenses)
+    .sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const todayList  = list.filter(([,e])=>e.date===today);
+  const todayTotal = todayList.reduce((s,[,e])=>s+e.amount,0);
+  $('expNote').textContent = `Today: ${fmt(todayTotal)} in ${todayList.length} expense${todayList.length!==1?'s':''}`;
+  if(!list.length){
+    $('expList').innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px;">No expenses recorded yet.</div>';
+    return;
+  }
+  // Group by date
+  const byDate = {};
+  list.forEach(([key,e])=>{
+    if(!byDate[e.date]) byDate[e.date]=[];
+    byDate[e.date].push({key,...e});
+  });
+  $('expList').innerHTML = Object.entries(byDate).map(([date,items])=>{
+    const dayTotal = items.reduce((s,e)=>s+e.amount,0);
+    return `
+      <div style="margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 2px;">
+          <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${date}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--danger);font-weight:700">${fmt(dayTotal)}</span>
+        </div>
+        ${items.map(e=>`
+          <div class="exp-card">
+            <div class="exp-card-left">
+              <div class="exp-card-cat">${e.cat}</div>
+              <div class="exp-card-desc">${e.desc}</div>
+              <div class="exp-card-meta">${e.time} &bull; ${e.staff}</div>
+            </div>
+            <div class="exp-card-amt">${fmt(e.amount)}</div>
+            <div class="exp-del" onclick="deleteExpense('${e.key}')">✕</div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
 /* REPORTS */
 let dateFilter='all';
 window.setDateFilter=function(mode,btn){
@@ -1531,21 +1687,60 @@ function renderRep(){
   const todayTx=list.filter(t=>t.date===today);
   const totalRev=list.reduce((s,t)=>s+t.total,0);
   const todayRev=todayTx.reduce((s,t)=>s+t.total,0);
+  const todayTips = todayTx.reduce((s,t)=>s+(t.tip||0),0);
+  const totalTips = list.reduce((s,t)=>s+(t.tip||0),0);
+  const todayExp  = Object.values(expenses).filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
   $('metricsGrid').innerHTML=[
-    {lbl:"Today's Sales",  val:fmt(todayRev), sub:todayTx.length+' transactions'},
-    {lbl:"Total Revenue",  val:fmt(totalRev), sub:list.length+' total orders'},
-    {lbl:"Avg Order",      val:list.length?fmt(totalRev/list.length):fmt(0),sub:'Per transaction'},
-    {lbl:"Active Jobs",    val:Object.values(jobs).filter(j=>j.status!=='completed').length,sub:'In progress'},
-    {lbl:"Services",       val:Object.keys(prods).length,sub:'In menu'},
+    {lbl:"Today's Sales",    val:fmt(todayRev),  sub:todayTx.length+' transactions'},
+    {lbl:"Total Revenue",    val:fmt(totalRev),  sub:list.length+' total orders'},
+    {lbl:"Avg Order",        val:list.length?fmt(totalRev/list.length):fmt(0), sub:'Per transaction'},
+    {lbl:"Today's Tips 💝",  val:fmt(todayTips), sub:fmt(totalTips)+' all-time'},
+    {lbl:"Today's Expenses", val:fmt(todayExp),  sub:'vs '+fmt(todayRev-todayExp)+' net'},
   ].map(m=>`<div class="mc"><div class="mc-lbl">${m.lbl}</div><div class="mc-val">${m.val}</div><div class="mc-sub">${m.sub}</div></div>`).join('');
   // Filtered summary
   const fRev=filtered.reduce((s,t)=>s+t.total,0);
   const fCash=filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+t.total,0);
   const fGcash=filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+t.total,0);
-  $('dsCount').textContent=filtered.length;
-  $('dsRevenue').textContent=fmt(fRev);
-  $('dsCash').textContent=fmt(fCash);
-  $('dsGcash').textContent=fmt(fGcash);
+  const fTips     = filtered.reduce((s,t)=>s+(t.tip||0),0);
+  // Revenue = service sales only (tip excluded)
+  // Cash/GCash collected = payment amount (service only, tip tracked separately)
+  const fCashTip  = filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+(t.tip||0),0);
+  const fGcashTip = filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+(t.tip||0),0);
+  // Expenses — filter by same date range
+  const allExp    = Object.values(expenses);
+  const now2      = new Date();
+  const today2    = now2.toLocaleDateString();
+  let fExp = allExp;
+  if(dateFilter==='today') fExp=allExp.filter(e=>e.date===today2);
+  else if(dateFilter==='week'){
+    const w=new Date(now2); w.setDate(now2.getDate()-6); w.setHours(0,0,0,0);
+    fExp=allExp.filter(e=>e.ts&&e.ts>=w.getTime());
+  } else if(dateFilter==='month'){
+    const m=new Date(now2.getFullYear(),now2.getMonth(),1).getTime();
+    fExp=allExp.filter(e=>e.ts&&e.ts>=m);
+  } else if(dateFilter==='custom'){
+    const from=$('dateFrom').value, to=$('dateTo').value;
+    fExp=allExp.filter(e=>{
+      if(!e.ts)return true;
+      const ds=new Date(e.ts).toISOString().slice(0,10);
+      return(!from||ds>=from)&&(!to||ds<=to);
+    });
+  }
+  const fExpTotal = fExp.reduce((s,e)=>s+e.amount,0);
+  // Net = Revenue (services only) - Expenses
+  // Tips are separate — not part of sales, not deducted
+  const fNet      = fRev - fExpTotal;
+  $('dsCount').textContent    = filtered.length;
+  $('dsRevenue').textContent  = fmt(fRev);
+  $('dsCash').textContent     = fmt(fCash);
+  $('dsGcash').textContent    = fmt(fGcash);
+  $('dsTips').textContent     = fmt(fTips);
+  $('dsExpenses').textContent = fmt(fExpTotal);
+  $('dsNet').textContent      = fmt(fNet);
+  $('dsNet').style.color      = fNet>=0?'var(--success)':'var(--danger)';
+  // Update labels to be clear tips are separate
+  const tipLbl = document.querySelector('#dsTips')?.closest('.ds-item')?.querySelector('.ds-lbl');
+  if(tipLbl) tipLbl.textContent = '💝 Tips (separate)';
   $('txBody').innerHTML=filtered.length
     ?filtered.slice(0,100).map(t=>`
       <tr>
@@ -1559,9 +1754,12 @@ function renderRep(){
         <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.items||'—'}</td>
         <td><span class="bdg ${t.payment==='gcash'?'by':'bg'}">${(t.payment||'').toUpperCase()}</span></td>
         <td style="font-family:'DM Mono',monospace">${fmt(t.total)}</td>
+        <td style="font-family:'DM Mono',monospace;color:${(t.tip||0)>0?'var(--accent)':'var(--muted)'}">
+          ${(t.tip||0)>0?fmt(t.tip):'—'}
+        </td>
         <td>${t.staff||'—'}</td>
       </tr>`).join('')
-    :'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
+    :'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
 }
 
 /* SETTINGS */
