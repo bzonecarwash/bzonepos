@@ -659,6 +659,14 @@ tr:hover td{background:var(--card);}
         <div class="fl">Description</div>
         <input class="fi" id="expDesc" placeholder="e.g. Bought soap and shampoo">
       </div>
+      <!-- Date field: always visible, only editable by manager -->
+      <div class="fg" id="expDateRow">
+        <div class="fl" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Date</span>
+          <span id="expDateNote" style="font-size:9px;color:var(--muted);font-weight:400;"></span>
+        </div>
+        <input class="fi" type="date" id="expDate" style="color-scheme:dark;">
+      </div>
       <button class="btn-p" onclick="addExpense()" style="width:100%;padding:10px;font-size:13px;">
         Save Expense
       </button>
@@ -886,6 +894,48 @@ tr:hover td{background:var(--card);}
     <div class="modal-ft">
       <button class="btn-cancel" onclick="closePay()">Cancel</button>
       <button class="btn-ok" onclick="confirmPay()" id="confirmPayBtn">Confirm Payment ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SERVICE TO ACTIVE JOB MODAL -->
+<div class="overlay" id="addSvcModal">
+  <div class="modal">
+    <div class="modal-title">➕ Add Service to Job</div>
+    <div class="modal-scroll">
+      <!-- Job info summary -->
+      <div style="background:var(--card);border-radius:10px;padding:11px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;letter-spacing:2px;color:var(--text)" id="asjPlate">—</div>
+          <div style="font-size:11px;color:var(--muted)" id="asjModel">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--muted)" id="asjBay">Bay —</div>
+          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--accent)" id="asjTotal">₱0.00</div>
+        </div>
+      </div>
+      <!-- Service selector -->
+      <div class="fg" style="margin-bottom:8px;">
+        <div class="fl">Select Service</div>
+        <select class="fi" id="asjService" style="cursor:pointer;" onchange="updateAsjPrice()">
+          <option value="">-- Choose a service --</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:8px;">
+        <div class="fl">Qty</div>
+        <input class="fi" type="number" id="asjQty" value="1" min="1" max="10" oninput="updateAsjPrice()">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:var(--card);border-radius:8px;border:1px solid var(--border);">
+        <span style="font-size:12px;color:var(--muted)">Additional charge</span>
+        <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--success);font-weight:700;" id="asjAddCharge">₱0.00</span>
+      </div>
+      <div style="margin-top:8px;padding:8px 10px;background:rgba(79,209,197,.07);border:1px solid rgba(79,209,197,.2);border-radius:8px;font-size:11px;color:var(--accent2);">
+        ℹ️ New service will be added to the current job. Total will update automatically.
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal('addSvcModal')">Cancel</button>
+      <button class="btn-ok" onclick="confirmAddService()">Add Service</button>
     </div>
   </div>
 </div>
@@ -1165,6 +1215,7 @@ window.loginPinKey = function(k){
       // Hide login screen
       $('loginScreen').classList.add('hidden');
       toast('Welcome, '+staffName+'! 👋');
+      renderExp();
     } else {
       $('loginPinErr').textContent='Wrong PIN. Try again.';
       loginPinBuffer=''; updateLoginDots();
@@ -1553,7 +1604,10 @@ function renderJobs(){
       :'<span class="job-status-badge badge-progress">🔧 In Progress</span>';
     const actionBtn=done
       ?`<span style="font-size:11px;color:var(--muted)">Out: ${j.timeOut||'—'}</span>`
-      :`<button class="complete-btn" style="background:var(--accent);color:#0d0f14;" onclick="openPayForJob('${key}')">💰 Collect Payment</button>`;
+      :`<div style="display:flex;gap:6px;flex:1;">
+          <button class="complete-btn" style="flex:1;background:var(--accent);color:#0d0f14;font-size:12px;padding:9px;" onclick="openPayForJob('${key}')">💰 Collect Payment</button>
+          <button class="complete-btn" style="flex:0 0 auto;background:var(--card);color:var(--accent2);border:1px solid var(--accent2);font-size:12px;padding:9px 12px;" onclick="openAddServiceToJob('${key}')">＋ Add Service</button>
+        </div>`;
     return`<div class="job-card ${done?'completed':'in-progress'}">
       <div class="job-head">
         <div class="job-plate">${j.plate||'—'}</div>
@@ -1575,6 +1629,65 @@ function renderJobs(){
     </div>`;
   }).join('');
 }
+/* ADD SERVICE TO ACTIVE JOB */
+let addSvcJobKey = null;
+window.openAddServiceToJob = function(key){
+  const j = jobs[key]; if(!j) return;
+  addSvcJobKey = key;
+  // Populate job info
+  $('asjPlate').textContent = j.plate   || '—';
+  $('asjModel').textContent = j.carModel|| '—';
+  $('asjBay').textContent   = 'Bay '+(j.bay||'—');
+  $('asjTotal').textContent = fmt(j.total);
+  // Populate services dropdown from inventory
+  const sel = $('asjService');
+  sel.innerHTML = '<option value="">-- Choose a service --</option>';
+  Object.entries(prods).forEach(([key,p])=>{
+    const opt = document.createElement('option');
+    opt.value       = key;
+    opt.textContent = `${p.em} ${p.name} — ${fmt(p.price)}`;
+    opt.dataset.price = p.price;
+    sel.appendChild(opt);
+  });
+  $('asjQty').value = '1';
+  $('asjAddCharge').textContent = fmt(0);
+  $('addSvcModal').classList.add('on');
+};
+
+window.updateAsjPrice = function(){
+  const sel   = $('asjService');
+  const qty   = parseInt($('asjQty').value)||1;
+  const price = sel.selectedIndex>0
+    ? parseFloat(sel.options[sel.selectedIndex].dataset.price)||0
+    : 0;
+  $('asjAddCharge').textContent = fmt(price * qty);
+};
+
+window.confirmAddService = async function(){
+  const j   = jobs[addSvcJobKey]; if(!j) return;
+  const sel = $('asjService');
+  const qty = parseInt($('asjQty').value)||1;
+  if(!sel.value){ toast('Please select a service','var(--danger)'); return; }
+  const prodKey  = sel.value;
+  const prod     = prods[prodKey];
+  const addPrice = (parseFloat(sel.options[sel.selectedIndex].dataset.price)||0) * qty;
+  const newTotal = (j.total||0) + addPrice;
+  // Build updated services string
+  const addedStr  = `${prod.em} ${prod.name} x${qty}`;
+  const newSvcs   = j.services ? j.services + ', ' + addedStr : addedStr;
+  // Build updated servicesList
+  const oldList   = j.servicesList || [];
+  const newList   = [...oldList, {key:prodKey, name:prod.name, qty, price:prod.price}];
+  await update(ref(db,'jobs/'+addSvcJobKey),{
+    services:     newSvcs,
+    servicesList: newList,
+    total:        newTotal,
+  });
+  closeModal('addSvcModal');
+  addSvcJobKey = null;
+  toast(`✅ ${addedStr} added — new total: ${fmt(newTotal)}`);
+};
+
 /* end renderJobs */
 
 /* INVENTORY */
@@ -1762,16 +1875,33 @@ window.addExpense = async function(){
   const cat    = $('expCategory').value;
   if(!amount){ toast('Enter an amount','var(--danger)'); return; }
   if(!desc)  { toast('Enter a description','var(--danger)'); return; }
+  const selectedDate = $('expDate').value; // YYYY-MM-DD
   const now = new Date();
+  // Build the date string and timestamp from selected date
+  let dateStr, ts;
+  if(selectedDate){
+    const d = new Date(selectedDate+'T12:00:00'); // noon to avoid timezone issues
+    dateStr = d.toLocaleDateString();
+    ts = d.getTime();
+  } else {
+    dateStr = now.toLocaleDateString();
+    ts = now.getTime();
+  }
   await push(ref(db,'expenses'),{
     amount, desc, cat,
-    date:  now.toLocaleDateString(),
-    time:  now.toLocaleTimeString(),
+    date:  dateStr,
+    time:  selectedDate===now.toISOString().slice(0,10)
+           ? now.toLocaleTimeString()
+           : '(backdated)',
     staff: staffName,
-    ts:    now.getTime(),
+    ts,
   });
   $('expAmount').value=''; $('expDesc').value='';
-  toast('Expense saved ✓');
+  // Reset date back to today
+  $('expDate').value = now.toISOString().slice(0,10);
+  toast(selectedDate===now.toISOString().slice(0,10)
+    ? 'Expense saved ✓'
+    : `Expense backdated to ${dateStr} ✓`);
 };
 
 window.deleteExpense = async function(key){
@@ -1816,12 +1946,32 @@ window.saveEditExp = async function(){
 };
 
 function renderExp(){
-  const today = new Date().toLocaleDateString();
-  const list  = Object.entries(expenses).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const today    = new Date().toLocaleDateString();
+  const todayISO = new Date().toISOString().slice(0,10);
+  const list     = Object.entries(expenses).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
   const todayList  = list.filter(([,e])=>e.date===today);
   const todayTotal = todayList.reduce((s,[,e])=>s+e.amount,0);
   const allTotal   = list.reduce((s,[,e])=>s+e.amount,0);
   $('expNote').textContent = `Today: ${fmt(todayTotal)} | All-time: ${fmt(allTotal)}`;
+
+  // Set date field — default today, lock for cashiers, unlock for manager
+  const dateInput = $('expDate');
+  const dateNote  = $('expDateNote');
+  if(dateInput){
+    if(!dateInput.value) dateInput.value = todayISO;
+    if(staffRole==='manager'){
+      dateInput.readOnly   = false;
+      dateInput.style.opacity = '1';
+      dateInput.style.borderColor = 'rgba(240,180,41,.4)';
+      if(dateNote) dateNote.textContent = '⭐ Manager can backdate';
+    } else {
+      dateInput.readOnly   = true;
+      dateInput.value      = todayISO; // always reset to today for cashiers
+      dateInput.style.opacity = '0.6';
+      dateInput.style.borderColor = '';
+      if(dateNote) dateNote.textContent = 'Today only (cashier)';
+    }
+  }
   if(!list.length){
     $('expList').innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 20px;">No expenses recorded yet.<br><small style="font-size:11px">Use the form above to add an expense.</small></div>';
     return;
