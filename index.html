@@ -135,11 +135,11 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);f
 .grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;align-content:start;}
 .grid::-webkit-scrollbar{width:2px;}
 .grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.pcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 7px;display:flex;flex-direction:column;gap:3px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:rgba(240,180,41,.2);}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:rgba(240,180,41,.2);}
 .pcard:active{border-color:var(--accent);transform:scale(.94);}
-.p-em{font-size:20px;line-height:1;}
-.p-nm{font-size:10px;font-weight:600;line-height:1.3;}
-.p-pr{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);}
+.p-nm{font-size:11px;font-weight:600;line-height:1.3;}
+.p-pr{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
+.pcard.out{opacity:.4;pointer-events:none;}
 
 /* RIGHT order items (46%) */
 .order-col{flex:0 0 46%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden;}
@@ -795,6 +795,30 @@ tr:hover td{background:var(--card);}
 
 </div><!-- end app -->
 
+<!-- EXTRA SERVICE MODAL -->
+<div class="overlay" id="extraSvcModal">
+  <div class="modal">
+    <div class="modal-title">＋ Extra Service</div>
+    <div class="modal-scroll">
+      <div class="modal-body">
+        <div class="fg">
+          <div class="fl">Service Name</div>
+          <input class="fi" id="esvName" placeholder="e.g. Rust Treatment, Headlight Restore...">
+        </div>
+        <div class="fg">
+          <div class="fl">Price (₱)</div>
+          <input class="fi" type="number" id="esvPrice" placeholder="0.00" min="0"
+            style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal('extraSvcModal')">Cancel</button>
+      <button class="btn-ok" onclick="confirmExtraService()">Add to Order</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOG IN CAR MODAL (from POS tab) -->
 <div class="overlay" id="loginCarModal">
   <div class="modal">
@@ -916,21 +940,38 @@ tr:hover td{background:var(--card);}
       </div>
       <!-- Service selector -->
       <div class="fg" style="margin-bottom:8px;">
-        <div class="fl">Select Service</div>
-        <select class="fi" id="asjService" style="cursor:pointer;" onchange="updateAsjPrice()">
+        <div class="fl">Select from Menu (or choose Custom)</div>
+        <select class="fi" id="asjService" style="cursor:pointer;" onchange="onAsjServiceChange()">
           <option value="">-- Choose a service --</option>
+          <option value="__custom__">✏️ Custom (type any name)</option>
         </select>
       </div>
+      <!-- Custom name — shown only when Custom is selected -->
+      <div class="fg" id="asjCustomRow" style="display:none;margin-bottom:8px;">
+        <div class="fl">Custom Service Name</div>
+        <input class="fi" id="asjCustomName" placeholder="e.g. Underbody Rust Treatment">
+      </div>
+      <!-- Qty -->
       <div class="fg" style="margin-bottom:8px;">
         <div class="fl">Qty</div>
-        <input class="fi" type="number" id="asjQty" value="1" min="1" max="10" oninput="updateAsjPrice()">
+        <input class="fi" type="number" id="asjQty" value="1" min="1" max="20" oninput="calcAsjCharge()">
       </div>
+      <!-- Price — always freely editable -->
+      <div class="fg" style="margin-bottom:8px;">
+        <div class="fl" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Price per service (₱)</span>
+          <span style="font-size:9px;color:var(--accent);">✏️ Enter any amount</span>
+        </div>
+        <input class="fi" type="number" id="asjPrice" placeholder="0.00" min="0" oninput="calcAsjCharge()"
+          style="border-color:rgba(240,180,41,.5);background:rgba(240,180,41,.05);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;">
+      </div>
+      <!-- Total charge preview -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:var(--card);border-radius:8px;border:1px solid var(--border);">
         <span style="font-size:12px;color:var(--muted)">Additional charge</span>
-        <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--success);font-weight:700;" id="asjAddCharge">₱0.00</span>
+        <span style="font-family:'DM Mono',monospace;font-size:18px;color:var(--success);font-weight:700;" id="asjAddCharge">₱0.00</span>
       </div>
       <div style="margin-top:8px;padding:8px 10px;background:rgba(79,209,197,.07);border:1px solid rgba(79,209,197,.2);border-radius:8px;font-size:11px;color:var(--accent2);">
-        ℹ️ New service will be added to the current job. Total will update automatically.
+        ℹ️ Service and total will update on this job immediately.
       </div>
     </div>
     <div class="modal-ft">
@@ -1233,6 +1274,28 @@ function updateLoginDots(){
   for(let i=0;i<4;i++) $('lpd'+i).className='pd'+(i<loginPinBuffer.length?' filled':'');
 }
 
+/* EXTRA SERVICE (POS tab — free input, any staff) */
+window.openExtraService = function(){
+  $('esvName').value  = '';
+  $('esvPrice').value = '';
+  $('extraSvcModal').classList.add('on');
+  setTimeout(()=>$('esvName').focus(), 200);
+};
+window.confirmExtraService = function(){
+  const name  = $('esvName').value.trim();
+  const price = parseFloat($('esvPrice').value) || 0;
+  if(!name){  toast('Enter a service name','var(--danger)'); return; }
+  if(!price){ toast('Enter a price','var(--danger)'); return; }
+  // Add to cart as a custom item (key = __extra__ + timestamp to be unique)
+  const key = '__extra__'+Date.now();
+  const existing = cart.find(c=>c.key===key);
+  if(existing){ existing.qty++; }
+  else { cart.push({key, name:'✨ '+name, price, qty:1}); }
+  closeModal('extraSvcModal');
+  renderOrder();
+  toast('✨ '+name+' added to order');
+};
+
 /* PAGE NAV */
 window.goPage = function(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -1350,15 +1413,22 @@ function renderGrid(){
     (activeCat==='All'||p.cat===activeCat)&&
     (p.name.toLowerCase().includes(q)||(p.cat||'').toLowerCase().includes(q))
   );
-  $('productGrid').innerHTML=list.length
-    ?list.map(([key,p])=>`
+  // Extra Service card — always shown at end (only when All or no search filter)
+  const showExtra = activeCat==='All' && !q;
+  const extraCard = showExtra
+    ? `<div class="pcard" onclick="openExtraService()" style="border:1px dashed var(--accent2);background:rgba(79,209,197,.05);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;">
+        <div class="p-em">✏️</div>
+        <div class="p-nm" style="color:var(--accent2);text-align:center;">Extra Service</div>
+        <div class="p-pr" style="color:var(--muted);font-size:9px;">Manual price</div>
+       </div>`
+    : '';
+  $('productGrid').innerHTML = list.length
+    ? list.map(([key,p])=>`
       <div class="pcard${p.stock===0?' out':''}" onclick="addToCart('${key}')">
-        <div class="p-em">${p.em}</div>
         <div class="p-nm">${p.name}</div>
         <div class="p-pr">${fmt(p.price)}</div>
-        <div class="p-st">${p.stock>0?'Avail: '+p.stock:'Unavailable'}</div>
-      </div>`).join('')
-    :'<div style="color:var(--muted);padding:16px;font-size:12px">No services found</div>';
+      </div>`).join('') + extraCard
+    : extraCard || '<div style="color:var(--muted);padding:16px;font-size:12px">No services found</div>';
 }
 window.renderGrid=renderGrid;
 
@@ -1631,53 +1701,71 @@ function renderJobs(){
 }
 /* ADD SERVICE TO ACTIVE JOB */
 let addSvcJobKey = null;
+
 window.openAddServiceToJob = function(key){
   const j = jobs[key]; if(!j) return;
   addSvcJobKey = key;
-  // Populate job info
-  $('asjPlate').textContent = j.plate   || '—';
-  $('asjModel').textContent = j.carModel|| '—';
+  $('asjPlate').textContent = j.plate    || '—';
+  $('asjModel').textContent = j.carModel || '—';
   $('asjBay').textContent   = 'Bay '+(j.bay||'—');
   $('asjTotal').textContent = fmt(j.total);
-  // Populate services dropdown from inventory
   const sel = $('asjService');
-  sel.innerHTML = '<option value="">-- Choose a service --</option>';
-  Object.entries(prods).forEach(([key,p])=>{
+  sel.innerHTML = '<option value="">-- Choose a service --</option><option value="__custom__">✏️ Custom (type any name + price)</option>';
+  Object.entries(prods).forEach(([k,p])=>{
     const opt = document.createElement('option');
-    opt.value       = key;
-    opt.textContent = `${p.em} ${p.name} — ${fmt(p.price)}`;
+    opt.value         = k;
+    opt.textContent   = p.em+' '+p.name+' — '+fmt(p.price);
     opt.dataset.price = p.price;
+    opt.dataset.name  = p.name;
     sel.appendChild(opt);
   });
-  $('asjQty').value = '1';
-  $('asjAddCharge').textContent = fmt(0);
+  $('asjQty').value           = '1';
+  $('asjPrice').value         = '';
+  $('asjCustomName').value    = '';
+  $('asjCustomRow').style.display = 'none';
+  $('asjAddCharge').textContent   = fmt(0);
   $('addSvcModal').classList.add('on');
 };
 
-window.updateAsjPrice = function(){
-  const sel   = $('asjService');
-  const qty   = parseInt($('asjQty').value)||1;
-  const price = sel.selectedIndex>0
-    ? parseFloat(sel.options[sel.selectedIndex].dataset.price)||0
-    : 0;
+window.onAsjServiceChange = function(){
+  const sel      = $('asjService');
+  const isCustom = sel.value === '__custom__';
+  $('asjCustomRow').style.display = isCustom ? 'flex' : 'none';
+  if(!isCustom && sel.selectedIndex > 1){
+    $('asjPrice').value = sel.options[sel.selectedIndex].dataset.price || '';
+  } else if(isCustom){
+    $('asjPrice').value = '';
+  }
+  calcAsjCharge();
+};
+
+window.calcAsjCharge = function(){
+  const price = parseFloat($('asjPrice').value) || 0;
+  const qty   = parseInt($('asjQty').value)     || 1;
   $('asjAddCharge').textContent = fmt(price * qty);
 };
 
 window.confirmAddService = async function(){
-  const j   = jobs[addSvcJobKey]; if(!j) return;
-  const sel = $('asjService');
-  const qty = parseInt($('asjQty').value)||1;
-  if(!sel.value){ toast('Please select a service','var(--danger)'); return; }
-  const prodKey  = sel.value;
-  const prod     = prods[prodKey];
-  const addPrice = (parseFloat(sel.options[sel.selectedIndex].dataset.price)||0) * qty;
-  const newTotal = (j.total||0) + addPrice;
-  // Build updated services string
-  const addedStr  = `${prod.em} ${prod.name} x${qty}`;
-  const newSvcs   = j.services ? j.services + ', ' + addedStr : addedStr;
-  // Build updated servicesList
-  const oldList   = j.servicesList || [];
-  const newList   = [...oldList, {key:prodKey, name:prod.name, qty, price:prod.price}];
+  const j     = jobs[addSvcJobKey]; if(!j) return;
+  const sel   = $('asjService');
+  const qty   = parseInt($('asjQty').value) || 1;
+  const price = parseFloat($('asjPrice').value) || 0;
+  let svcName = '';
+  if(sel.value === '__custom__'){
+    svcName = $('asjCustomName').value.trim();
+    if(!svcName){ toast('Enter a custom service name','var(--danger)'); return; }
+  } else if(sel.value){
+    svcName = sel.options[sel.selectedIndex].dataset.name || sel.options[sel.selectedIndex].text.split(' — ')[0];
+  } else {
+    toast('Please select a service','var(--danger)'); return;
+  }
+  if(!price){ toast('Enter a price','var(--danger)'); return; }
+  const addTotal = price * qty;
+  const newTotal = (j.total||0) + addTotal;
+  const addedStr = svcName+' x'+qty+(price ? ' ('+fmt(price)+' each)' : '');
+  const newSvcs  = j.services ? j.services+', '+addedStr : addedStr;
+  const oldList  = j.servicesList || [];
+  const newList  = [...oldList, {name:svcName, qty, price}];
   await update(ref(db,'jobs/'+addSvcJobKey),{
     services:     newSvcs,
     servicesList: newList,
@@ -1685,7 +1773,7 @@ window.confirmAddService = async function(){
   });
   closeModal('addSvcModal');
   addSvcJobKey = null;
-  toast(`✅ ${addedStr} added — new total: ${fmt(newTotal)}`);
+  toast('✅ '+svcName+' x'+qty+' added — new total: '+fmt(newTotal));
 };
 
 /* end renderJobs */
