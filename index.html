@@ -2256,13 +2256,21 @@ function renderExp(){
     return;
   }
 
-  // Group by date
+  // Group by date — items already sorted newest first
   const byDate = {};
   filtered.forEach(([key,e])=>{
     if(!byDate[e.date]) byDate[e.date]=[];
     byDate[e.date].push({key,...e});
   });
-  $('expList').innerHTML = Object.entries(byDate).map(([date,items])=>{
+  // Sort dates newest first, and items within each date newest first
+  const sortedDates = Object.entries(byDate).sort((a,b)=>{
+    const latestA = Math.max(...a[1].map(e=>e.ts||0));
+    const latestB = Math.max(...b[1].map(e=>e.ts||0));
+    return latestB - latestA;
+  });
+  $('expList').innerHTML = sortedDates.map(([date,items])=>{
+    // Sort items within day newest first
+    items.sort((a,b)=>(b.ts||0)-(a.ts||0));
     const dayTotal = items.reduce((s,e)=>s+e.amount,0);
     const isToday  = date===today;
     return `
