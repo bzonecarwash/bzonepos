@@ -607,12 +607,31 @@ tr:hover td{background:var(--card);}
 
   <!-- ════ JOBS PAGE ════ -->
   <div class="page" id="pg-jobs">
-    <div class="pg-head">
+    <!-- Header -->
+    <div class="pg-head" style="flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);">
       <div>
-        <div class="pg-title">Active Jobs</div>
+        <div class="pg-title">Jobs</div>
         <div class="pg-sub" id="jobsNote">All current vehicles in progress</div>
       </div>
     </div>
+    <!-- Filter bar -->
+    <div style="flex-shrink:0;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:10px;font-weight:700;color:var(--muted);">FILTER:</span>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="dqb on" id="jfActive" onclick="setJobFilter('active',this)">Active</button>
+          <button class="dqb"    id="jfToday"  onclick="setJobFilter('today',this)">Today</button>
+          <button class="dqb"    id="jfAll"    onclick="setJobFilter('all',this)">All</button>
+        </div>
+        <input type="date" id="jobDatePick" onchange="setJobFilter('date',null)"
+          style="padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;color-scheme:dark;margin-left:auto;">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:10px;color:var(--muted);" id="jobFilterNote"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);" id="jobFilterTotal"></span>
+      </div>
+    </div>
+    <!-- Jobs list -->
     <div class="jobs-scroll">
       <div class="jobs-grid" id="jobsGrid"></div>
     </div>
@@ -1718,25 +1737,60 @@ window.confirmPay=async function(){
 };
 
 /* JOBS */
+/* JOBS FILTER */
+let jobFilter = 'active';
+window.setJobFilter = function(mode, btn){
+  jobFilter = mode;
+  if(btn){
+    document.querySelectorAll('#jfActive,#jfToday,#jfAll')
+      .forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  if(mode !== 'date') { const d=$('jobDatePick'); if(d) d.value=''; }
+  renderJobs();
+};
+function getFilteredJobs(){
+  const today = new Date().toLocaleDateString();
+  const list  = Object.entries(jobs);
+  if(jobFilter==='active') return list.filter(([,j])=>j.status!=='completed');
+  if(jobFilter==='today')  return list.filter(([,j])=>j.date===today);
+  if(jobFilter==='date'){
+    const pick=$('jobDatePick')?$('jobDatePick').value:'';
+    if(!pick) return list;
+    return list.filter(([,j])=>{
+      if(j.timeInTs){
+        const d=new Date(j.timeInTs);
+        const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        return ds===pick;
+      }
+      if(j.date){
+        const p=j.date.split('/');
+        if(p.length===3) return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0')===pick;
+      }
+      return false;
+    });
+  }
+  return list;
+}
 function renderJobs(){
-  const now  = Date.now();
-  const list = Object.entries(jobs).sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
-  const active=list.filter(([,j])=>j.status!=='completed');
-  $('jobsNote').textContent=active.length+' vehicle'+(active.length!==1?'s':'')+' in progress';
-  if(!list.length){
-    $('jobsGrid').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px">No active jobs. Log in a car from the POS tab.</div>';
+  const now      = Date.now();
+  const filtered = getFilteredJobs().sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
+  const active   = Object.values(jobs).filter(j=>j.status!=='completed');
+  $('jobsNote').textContent = active.length+' vehicle'+(active.length!==1?'s':'')+' in progress';
+  const fn=$('jobFilterNote'), ft=$('jobFilterTotal');
+  if(fn){ const lbl={active:'Active jobs',today:"Today's jobs",all:'All jobs',date:'Selected date'}; fn.textContent=(lbl[jobFilter]||'')+' — '+filtered.length+' job'+(filtered.length!==1?'s':''); }
+  if(ft){ const tot=filtered.reduce((s,[,j])=>s+(j.total||0),0); ft.textContent=filtered.length?'Total: ₱'+tot.toFixed(2):''; }
+  if(!filtered.length){
+    $('jobsGrid').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;">'+(jobFilter==='active'?'No active jobs. Log in a car from the POS tab.':'No jobs found for this filter.')+'</div>';
     return;
   }
-  $('jobsGrid').innerHTML=list.map(([key,j])=>{
+  $('jobsGrid').innerHTML=filtered.map(([key,j])=>{
     const done=j.status==='completed';
-    // Calculate elapsed time
     const elapsedMs  = j.timeInTs ? now - j.timeInTs : 0;
     const elapsedMin = Math.floor(elapsedMs / 60000);
     const elapsedH   = Math.floor(elapsedMin / 60);
     const elapsedM   = elapsedMin % 60;
-    const elapsedStr = j.timeInTs && !done
-      ? (elapsedH > 0 ? elapsedH+'h '+elapsedM+'m' : elapsedM+'m')
-      : '';
+    const elapsedStr = j.timeInTs && !done ? (elapsedH > 0 ? elapsedH+'h '+elapsedM+'m' : elapsedM+'m') : '';
     const isOverdue  = !done && elapsedMin >= 55;
     const badge = done
       ?'<span class="job-status-badge badge-done">✓ Paid & Done</span>'
@@ -1747,7 +1801,7 @@ function renderJobs(){
       ?`<span style="font-size:11px;color:var(--muted)">Out: ${j.timeOut||'—'}</span>`
       :`<div style="display:flex;gap:6px;flex:1;">
           <button class="complete-btn" style="flex:1;background:var(--accent);color:#0d0f14;font-size:12px;padding:9px;" onclick="openPayForJob('${key}')">💰 Collect Payment</button>
-          <button class="complete-btn" style="flex:0 0 auto;background:var(--card);color:var(--accent2);border:1px solid var(--accent2);font-size:12px;padding:9px 12px;" onclick="openAddServiceToJob('${key}')">＋ Add Service</button>
+          <button class="complete-btn" style="flex:0 0 auto;background:var(--card);color:var(--accent2);border:1px solid var(--accent2);font-size:12px;padding:9px 12px;" onclick="openAddServiceToJob('${key}')">＋ Add</button>
         </div>`;
     return`<div class="job-card ${done?'completed':'in-progress'}${isOverdue?' overdue':''}">
       <div class="job-head">
