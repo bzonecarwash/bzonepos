@@ -2459,44 +2459,62 @@ function formatPlate(plate){
 
 function buildCustomerData(){
   const customers = {};
-  Object.values(txs).forEach(t=>{
-    const raw   = (t.plate||'').trim();
+
+  // Helper to process one record (transaction or job)
+  function processRecord(r){
+    const raw = (r.plate||'').trim();
     if(!raw) return;
-    const key      = normalizePlate(raw);   // merge key — no spaces
-    const display  = formatPlate(raw);      // display — with space e.g. "FAL 6062"
+    const key     = normalizePlate(raw);
+    const display = formatPlate(raw);
+    const date    = r.date||'';
+    const ts      = r.ts||r.timeInTs||0;
+    const model   = r.carModel||r.model||'';
+    const items   = r.items||r.services||'';
+    const spent   = r.total||0;
+
     if(!customers[key]){
       customers[key]={
-        plate: display,
-        model: t.carModel||'',
+        plate: display, model,
         visits: 0, totalSpent: 0,
-        firstVisit: t.date, firstTs: t.ts||0,
-        lastVisit:  t.date, lastTs:  t.ts||0,
+        firstVisit: date, firstTs: ts,
+        lastVisit:  date, lastTs:  ts,
         services: {},
       };
     }
     const c = customers[key];
     c.visits++;
-    c.totalSpent += t.total||0;
-    if((t.ts||0) > 0 && (t.ts||0) < (c.firstTs||Infinity)){
-      c.firstTs=t.ts; c.firstVisit=t.date;
-    }
-    if((t.ts||0) > (c.lastTs||0)){
-      c.lastTs=t.ts; c.lastVisit=t.date;
-      if(t.carModel) c.model=t.carModel;
-      c.plate=display;
-    }
-    (t.items||'').split(',').forEach(s=>{
-      const svc = s.trim().replace(/\s*x\d+.*$/i,'').trim();
+    c.totalSpent += spent;
+    if(ts > 0 && ts < (c.firstTs||Infinity)){ c.firstTs=ts; c.firstVisit=date; }
+    if(ts > (c.lastTs||0)){ c.lastTs=ts; c.lastVisit=date; if(model) c.model=model; c.plate=display; }
+    // Count services
+    items.split(',').forEach(s=>{
+      const svc = s.trim().replace(/\s*x\d+.*$/i,'').replace(/\(.*\)/,'').trim();
       if(svc) c.services[svc]=(c.services[svc]||0)+1;
     });
+  }
+
+  // Process all transactions
+  Object.values(txs).forEach(processRecord);
+
+  // Also process jobs not yet in transactions (in-progress)
+  Object.values(jobs).forEach(j=>{
+    if(j.status==='completed') return; // already in transactions
+    processRecord(j);
   });
+
   return customers;
 }
 
 function getVisitCount(plate){
   if(!plate) return 0;
   const key = normalizePlate(plate);
-  return Object.values(txs).filter(t=>normalizePlate(t.plate||'')===key).length;
+  // Count from transactions (completed+paid)
+  const txCount = Object.values(txs)
+    .filter(t=>normalizePlate(t.plate||'')===key).length;
+  // Also count in-progress jobs not yet in transactions
+  const jobCount = Object.values(jobs)
+    .filter(j=>normalizePlate(j.plate||'')===key && j.status!=='completed').length;
+  return txCount + jobCount;
 }
 
 window.renderCust = function(){
