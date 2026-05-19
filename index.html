@@ -2525,21 +2525,6 @@ window.renderCust = function(){
   const filtered = q ? list.filter(c=>c.plate.toLowerCase().includes(q)||(c.model||'').toLowerCase().includes(q)) : list;
   filtered.sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));
 
-  // DEBUG: log all raw plates to console
-  console.log('=== RAW PLATES IN TRANSACTIONS ===');
-  const rawPlates = {};
-  Object.values(txs).forEach(t=>{
-    const raw = (t.plate||'').trim();
-    const key = normalizePlate(raw);
-    if(!rawPlates[key]) rawPlates[key]=[];
-    rawPlates[key].push(raw);
-  });
-  console.log('Unique keys:', Object.keys(rawPlates).length);
-  Object.entries(rawPlates).forEach(([k,v])=>{
-    if(v.length>1||new Set(v).size>1) console.log('MERGED:', k, '←', v);
-  });
-  console.log('Full map:', rawPlates);
-
   // Update summary cards
   const newCust = list.filter(c=>c.visits===1).length;
   const vipCust = list.filter(c=>c.visits>=5).length;
