@@ -1577,6 +1577,7 @@ onValue(ref(db,'products'),snap=>{
 onValue(ref(db,'transactions'),snap=>{
   txs=snap.exists()?snap.val():{};
   renderRep();
+  if($('pg-cust')&&$('pg-cust').classList.contains('on')) renderCust();
 },()=>syncStatus('error'));
 
 onValue(ref(db,'jobs'),snap=>{
@@ -2440,29 +2441,52 @@ function renderExp(){
 }
 
 /* ══ CUSTOMERS ══ */
+function normalizePlate(plate){
+  // Remove all spaces, uppercase — used as merge KEY only
+  return (plate||'').replace(/\s+/g,'').toUpperCase();
+}
+
+function formatPlate(plate){
+  // Display format: uppercase, ensure space before last 4 digits
+  // e.g. "fal6062" → "FAL 6062", "FAL6062" → "FAL 6062", "FAL 6062" → "FAL 6062"
+  const p = (plate||'').replace(/\s+/g,'').toUpperCase();
+  // Match pattern: letters/numbers then digits at end
+  const m = p.match(/^([A-Z0-9]+?)(\d{3,4})$/);
+  if(m) return m[1]+' '+m[2];
+  // Motorcycle plates like "6010974752" — no space needed
+  return p;
+}
+
 function buildCustomerData(){
-  // Build per-plate stats from transactions
   const customers = {};
   Object.values(txs).forEach(t=>{
-    const plate = (t.plate||'').trim().toUpperCase();
-    if(!plate) return;
-    if(!customers[plate]){
-      customers[plate]={
-        plate, model:t.carModel||'',
-        visits:0, totalSpent:0,
-        firstVisit:t.date, firstTs:t.ts||0,
-        lastVisit:t.date,  lastTs:t.ts||0,
-        services:{},
+    const raw   = (t.plate||'').trim();
+    if(!raw) return;
+    const key      = normalizePlate(raw);   // merge key — no spaces
+    const display  = formatPlate(raw);      // display — with space e.g. "FAL 6062"
+    if(!customers[key]){
+      customers[key]={
+        plate: display,
+        model: t.carModel||'',
+        visits: 0, totalSpent: 0,
+        firstVisit: t.date, firstTs: t.ts||0,
+        lastVisit:  t.date, lastTs:  t.ts||0,
+        services: {},
       };
     }
-    const c = customers[plate];
+    const c = customers[key];
     c.visits++;
     c.totalSpent += t.total||0;
-    if((t.ts||0) < (c.firstTs||Infinity)) { c.firstTs=t.ts; c.firstVisit=t.date; }
-    if((t.ts||0) > (c.lastTs||0))          { c.lastTs=t.ts;  c.lastVisit=t.date; c.model=t.carModel||c.model; }
-    // Count services
+    if((t.ts||0) > 0 && (t.ts||0) < (c.firstTs||Infinity)){
+      c.firstTs=t.ts; c.firstVisit=t.date;
+    }
+    if((t.ts||0) > (c.lastTs||0)){
+      c.lastTs=t.ts; c.lastVisit=t.date;
+      if(t.carModel) c.model=t.carModel;
+      c.plate=display;
+    }
     (t.items||'').split(',').forEach(s=>{
-      const svc = s.trim().replace(/\s*x\d+.*$/,'').trim();
+      const svc = s.trim().replace(/\s*x\d+.*$/i,'').trim();
       if(svc) c.services[svc]=(c.services[svc]||0)+1;
     });
   });
@@ -2471,7 +2495,8 @@ function buildCustomerData(){
 
 function getVisitCount(plate){
   if(!plate) return 0;
-  return Object.values(txs).filter(t=>(t.plate||'').trim().toUpperCase()===(plate||'').trim().toUpperCase()).length;
+  const key = normalizePlate(plate);
+  return Object.values(txs).filter(t=>normalizePlate(t.plate||'')===key).length;
 }
 
 window.renderCust = function(){
@@ -2480,8 +2505,8 @@ window.renderCust = function(){
   const list = Object.values(customers);
   const q = ($('custSearch')?$('custSearch').value:'').toLowerCase();
   const filtered = q ? list.filter(c=>c.plate.toLowerCase().includes(q)||c.model.toLowerCase().includes(q)) : list;
-  // Sort by most visits desc
-  filtered.sort((a,b)=>b.visits-a.visits);
+  // Sort by most recent visit first (lastTs descending)
+  filtered.sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));
 
   // Update summary cards
   const newCust = list.filter(c=>c.visits===1).length;
