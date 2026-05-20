@@ -1665,16 +1665,44 @@ function renderRep(){
     {lbl:"Active Jobs",    val:Object.values(jobs).filter(j=>j.status!=='completed').length,sub:'In progress'},
     {lbl:"Services",       val:Object.keys(prods).length,sub:'In menu'},
   ].map(m=>`<div class="mc"><div class="mc-lbl">${m.lbl}</div><div class="mc-val">${m.val}</div><div class="mc-sub">${m.sub}</div></div>`).join('');
-  // Filtered summary
+  // Filtered summary including Tips + Expenses + Net
   const fRev=filtered.reduce((s,t)=>s+t.total,0);
   const fCash=filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+t.total,0);
   const fGcash=filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+t.total,0);
+  const fTips=filtered.reduce((s,t)=>s+(t.tip||0),0);
+  // Expenses filtered by same date range
+  const allExp=Object.values(expenses||{});
+  const now2=new Date();
+  const today2=now2.toLocaleDateString();
+  let fExp=allExp;
+  const df=window.dateFilter||'all';
+  if(df==='today') fExp=allExp.filter(e=>e.date===today2);
+  else if(df==='week'){const w=new Date(now2);w.setDate(now2.getDate()-6);w.setHours(0,0,0,0);fExp=allExp.filter(e=>e.ts&&e.ts>=w.getTime());}
+  else if(df==='month'){const m=new Date(now2.getFullYear(),now2.getMonth(),1).getTime();fExp=allExp.filter(e=>e.ts&&e.ts>=m);}
+  else if(df==='custom'){
+    const from=$('dateFrom')?.value, to=$('dateTo')?.value;
+    fExp=allExp.filter(e=>{
+      if(!e.ts)return true;
+      const ds=new Date(e.ts).toISOString().slice(0,10);
+      return(!from||ds>=from)&&(!to||ds<=to);
+    });
+  }
+  const fExpTotal=fExp.reduce((s,e)=>s+e.amount,0);
+  const fNet=fRev-fExpTotal;
   $('dsCount').textContent=filtered.length;
   $('dsRevenue').textContent=fmt(fRev);
   $('dsCash').textContent=fmt(fCash);
   $('dsGcash').textContent=fmt(fGcash);
+  if($('dsTips')) $('dsTips').textContent=fmt(fTips);
+  if($('dsExpenses')) $('dsExpenses').textContent=fmt(fExpTotal);
+  if($('dsNet')){ $('dsNet').textContent=fmt(fNet); $('dsNet').style.color=fNet>=0?'var(--success)':'var(--danger)'; }
+  // Show/hide Actions column based on role
+  const mgr=staffRole==='manager';
+  const tbl=$('txTable');
+  if(tbl){ mgr?tbl.classList.add('mgr-view'):tbl.classList.remove('mgr-view'); }
+  // Render table rows with Tip + Actions
   $('txBody').innerHTML=filtered.length
-    ?filtered.slice(0,100).map(t=>`
+    ?filtered.slice(0,200).map(t=>`
       <tr>
         <td style="font-family:'DM Mono',monospace;font-size:10px">${(t.id||'').slice(-6)}</td>
         <td style="font-size:11px;color:var(--muted);white-space:nowrap">${t.date||'—'}</td>
@@ -1686,9 +1714,16 @@ function renderRep(){
         <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.items||'—'}</td>
         <td><span class="bdg ${t.payment==='gcash'?'by':'bg'}">${(t.payment||'').toUpperCase()}</span></td>
         <td style="font-family:'DM Mono',monospace">${fmt(t.total)}</td>
+        <td style="font-family:'DM Mono',monospace;color:${(t.tip||0)>0?'var(--accent)':'var(--muted)'}">
+          ${(t.tip||0)>0?fmt(t.tip):'—'}
+        </td>
         <td>${t.staff||'—'}</td>
+        <td class="col-actions" style="white-space:nowrap">
+          <span class="al" onclick="openEditTx('${t.id}')" style="color:var(--accent2);cursor:pointer;font-weight:600;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(79,209,197,.1);">Edit</span>
+          <span class="al del" onclick="deleteTx('${t.id}')" style="color:var(--danger);cursor:pointer;font-weight:600;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(252,92,125,.1);margin-left:4px;">Del</span>
+        </td>
       </tr>`).join('')
-    :'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
+    :'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
 }
 
 /* SETTINGS */
@@ -2025,39 +2060,7 @@ onValue(ref(db,'transactions'),snap=>{
   try{if($('pg-cust')&&$('pg-cust').classList.contains('on'))window.renderCust();}catch(e){}
 },()=>{});
 
-/* ══ REPORTS: override renderRep to add tip/expense columns ══ */
-const _baseRenderRep = window.renderRep;
-window.renderRep = function(){
-  if(typeof _baseRenderRep==='function') _baseRenderRep();
-  // Tip + Expenses + Net in summary
-  try{
-    const list=Object.values(txs);
-    const filt = typeof getFilteredTx==='function' ? getFilteredTx() : list;
-    const fTips=filt.reduce((s,t)=>s+(t.tip||0),0);
-    const allExp=Object.values(expenses);
-    const now=new Date(); const today=now.toLocaleDateString();
-    let fExp=allExp;
-    const df=window.dateFilter||'all';
-    if(df==='today') fExp=allExp.filter(e=>e.date===today);
-    else if(df==='week'){const w=new Date(now);w.setDate(now.getDate()-6);w.setHours(0,0,0,0);fExp=allExp.filter(e=>e.ts&&e.ts>=w.getTime());}
-    else if(df==='month'){const m=new Date(now.getFullYear(),now.getMonth(),1).getTime();fExp=allExp.filter(e=>e.ts&&e.ts>=m);}
-    const fExpTotal=fExp.reduce((s,e)=>s+e.amount,0);
-    const fRev=filt.reduce((s,t)=>s+(t.total||0),0);
-    const fNet=fRev-fExpTotal;
-    try{$('dsTips').textContent=fmt(fTips);}catch(e){}
-    try{$('dsExpenses').textContent=fmt(fExpTotal);}catch(e){}
-    try{$('dsNet').textContent=fmt(fNet);$('dsNet').style.color=fNet>=0?'var(--success)':'var(--danger)';}catch(e){}
-  }catch(e){}
-  // Tip column in table + actions
-  try{
-    const mgr=staffRole==='manager';
-    const tbl=$('txTable');
-    if(tbl){mgr?tbl.classList.add('mgr-view'):tbl.classList.remove('mgr-view');}
-    const tb=$('txBody'); if(!tb)return;
-    const filt2=typeof getFilteredTx==='function'?getFilteredTx():Object.values(txs);
-    tb.innerHTML=filt2.length?filt2.slice(0,200).map(t=>'<tr><td style="font-family:\'DM Mono\',monospace;font-size:10px">'+((t.id||'').slice(-6))+'</td><td style="font-size:11px;color:var(--muted);white-space:nowrap">'+(t.date||'—')+'</td><td style="font-size:12px;font-weight:600">'+(t.carModel||'—')+'</td><td style="font-family:\'DM Mono\',monospace;font-weight:700;letter-spacing:1px">'+(t.plate||'—')+'</td><td>Bay '+(t.bay||'—')+'</td><td style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--accent2)">'+(t.timeIn||'—')+'</td><td style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--success)">'+(t.timeOut||'—')+'</td><td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(t.items||'—')+'</td><td><span class="bdg '+(t.payment==='gcash'?'by':'bg')+'">'+(t.payment||'').toUpperCase()+'</span></td><td style="font-family:\'DM Mono\',monospace">'+fmt(t.total)+'</td><td style="font-family:\'DM Mono\',monospace;color:'+((t.tip||0)>0?'var(--accent)':'var(--muted)')+'">'+(((t.tip||0)>0)?fmt(t.tip):'—')+'</td><td>'+(t.staff||'—')+'</td><td class="col-actions" style="white-space:nowrap"><span class="al" onclick="openEditTx(\''+t.id+'\')">Edit</span> <span class="al del" onclick="deleteTx(\''+t.id+'\')">Del</span></td></tr>').join(''):'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
-  }catch(e){}
-};
+/* renderRep override removed — base function handles everything */
 
 /* ══ goPage UPDATE ══ */
 window.goPage = function(id,btn){
