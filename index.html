@@ -1475,8 +1475,10 @@ window.confirmPay=async function(){
 
 /* JOBS */
 function renderJobs(){
-  const list=Object.entries(jobs).sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
-  const active=list.filter(([,j])=>j.status!=='completed');
+  // Use the new filtered version
+  if(typeof window._newRenderJobs==='function'){ return window._newRenderJobs(); }
+  const list=Object.entries(jobs).filter(([,j])=>j.status!=='completed').sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
+  const active=list;
   $('jobsNote').textContent=active.length+' vehicle'+(active.length!==1?'s':'')+' in progress';
   if(!list.length){
     $('jobsGrid').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px">No active jobs. Log in a car from the POS tab.</div>';
@@ -1957,8 +1959,7 @@ function getFilteredJobs(){
 }
 
 /* Override renderJobs */
-const _origRenderJobs = window.renderJobs || function(){};
-window.renderJobs = function(){
+window._newRenderJobs = function(){
   const now=Date.now();
   const filtered=getFilteredJobs().sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
   const active=Object.values(jobs).filter(j=>j.status!=='completed');
@@ -1989,7 +1990,7 @@ window.renderJobs = function(){
 /* ══ OVERDUE INTERVAL ══ */
 const _overdueAlerted=new Set();
 setInterval(()=>{
-  if(Object.keys(jobs).length) window.renderJobs();
+  if(Object.keys(jobs).length) renderJobs();
   if(staffRole==='manager')return;
   const now=Date.now();
   Object.entries(jobs).forEach(([key,j])=>{
