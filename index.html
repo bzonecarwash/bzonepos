@@ -576,6 +576,10 @@ tr:hover td{background:var(--card);}
   .login-staff-item{padding:14px 18px;}
   .login-staff-name{font-size:16px;}
 }
+/* ══ PROFITABILITY DASHBOARD PAGE ══ */
+#pg-dash{flex-direction:column;overflow:hidden;background:var(--bg);}
+#pg-dash .dash-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
 </style>
 </head>
 <body>
@@ -615,6 +619,7 @@ tr:hover td{background:var(--card);}
     <button class="nb"     onclick="goPage('exp',this)">Expenses</button>
     <button class="nb"     onclick="goPage('rep',this)">Reports</button>
     <button class="nb"     id="nbCust" onclick="goPage('cust',this)" style="display:none">Customers</button>
+    <button class="nb"     id="nbDash" onclick="goPage('dash',this)" style="display:none">Dashboard</button>
     <button class="nb"     onclick="goPage('set',this)">Settings</button>
   </nav>
 </header>
@@ -917,6 +922,106 @@ tr:hover td{background:var(--card);}
     <!-- Scrollable card list -->
     <div class="cust-scroll" id="custList">
       <div style="color:var(--muted);text-align:center;padding:30px;font-size:13px">Loading...</div>
+    </div>
+  </div>
+
+
+  <!-- ════ DASHBOARD PAGE (Manager only) ════ -->
+  <div class="page" id="pg-dash">
+    <div style="flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
+      <div>
+        <div class="pg-title">Profitability Dashboard</div>
+        <div class="pg-sub">Manager only — financial analysis</div>
+      </div>
+      <span style="font-size:10px;color:var(--accent);background:rgba(240,180,41,.1);padding:3px 9px;border-radius:8px;font-weight:700;">🔒 Manager</span>
+    </div>
+    <div class="dash-scroll">
+      <div style="font-family:'Fraunces',Georgia,serif;background:#0f1117;min-height:100%;padding:0;">
+        <div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="eyebrow">Interactive Dashboard</div>
+      <h1>Car Wash <em>Profitability</em><br>Calculator</h1>
+      <p class="subtitle">Enter your sales and expenses. The dashboard will calculate everything, draw charts, and give you a custom analysis with suggestions tailored to your numbers.</p>
+    </header>
+
+    <div class="storage-notice" id="storageNotice" style="display:none;">
+      ✓ Your data is automatically saved in this browser. It stays private — nothing is uploaded.
+    </div>
+
+    <!-- ===== STEP 1: EXPENSE ASSUMPTIONS ===== -->
+    <section class="section">
+      <h2 class="section-title">Step 1 · Your <em>expenses</em></h2>
+      <div class="section-sub">Set these once — they apply to every month</div>
+
+      <div class="panel">
+        <div class="input-grid">
+          <div class="input-group">
+            <label class="input-label">Rent / Month (₱)</label>
+            <input type="number" id="exp_rent" value="17500" step="500" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Electricity / Month (₱)</label>
+            <input type="number" id="exp_elec" value="4500" step="100" />
+            <div class="input-hint">use average</div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Number of Crews</label>
+            <input type="number" id="exp_crews" value="5" step="1" min="1" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Salary / Crew / Day (₱)</label>
+            <input type="number" id="exp_salary" value="450" step="10" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Working Days / Week</label>
+            <input type="number" id="exp_days" value="6" step="1" min="1" max="7" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Chemicals / Month (₱)</label>
+            <input type="number" id="exp_chem" value="6000" step="100" />
+            <div class="input-hint">use average</div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Food per Day (₱)</label>
+            <input type="number" id="exp_food" value="450" step="10" />
+            <div class="input-hint">total crew meals</div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Other / Month (₱)</label>
+            <input type="number" id="exp_other" value="0" step="100" />
+            <div class="input-hint">optional</div>
+          </div>
+        </div>
+        <div class="actions-bar">
+          <button class="btn-ghost btn" onclick="resetExpenses()">Reset Defaults</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STEP 2: MONTHLY SALES ===== -->
+    <section class="section">
+      <h2 class="section-title">Step 2 · Your <em>sales</em> per month</h2>
+      <div class="section-sub">Add a row for each month you want to track</div>
+
+      <div class="panel">
+        <div id="monthsList" class="months-list"></div>
+        <div class="actions-bar">
+          <button class="btn" onclick="addMonth()">+ Add Month</button>
+          <button class="btn-ghost btn" onclick="loadSampleData()">Load My Q1 Data</button>
+          <button class="btn-ghost btn" onclick="clearAllData()">Clear All</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RESULTS ===== -->
+    <div id="resultsContainer">
+      <!-- Auto-generated content goes here -->
+    </div>
+
+  
+      </div>
     </div>
   </div>
 
@@ -1347,6 +1452,9 @@ tr:hover td{background:var(--card);}
 
 <div class="toast" id="toastEl"></div>
 
+<!-- Chart.js for Dashboard -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -1503,7 +1611,7 @@ window.goPage = function(id,btn){
   if(id==='cust' && staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const pageMap={'pos':'pg-pos','jobs':'pg-jobs','inv':'pg-inv','exp':'pg-exp','rep':'pg-rep','cust':'pg-cust','set':'pg-set'};
+  const pageMap={'pos':'pg-pos','jobs':'pg-jobs','inv':'pg-inv','exp':'pg-exp','rep':'pg-rep','cust':'pg-cust','dash':'pg-dash','set':'pg-set'};
   $(pageMap[id]||'pg-pos').classList.add('on');
   btn.classList.add('on');
   if(id==='inv')  renderInv();
@@ -1512,6 +1620,7 @@ window.goPage = function(id,btn){
   if(id==='jobs') renderJobs();
   if(id==='exp')  renderExp();
   if(id==='cust') renderCust();
+  if(id==='dash') initDashboard();
   // Show/hide Customers tab based on role
   const nb=$('nbCust');
   if(nb) nb.style.display=staffRole==='manager'?'':'none';
@@ -1544,6 +1653,7 @@ window.pinKey = function(k){
       $('dataCardMgr').style.display=mgr?'flex':'none';
       $('dataCardLock').style.display=mgr?'none':'flex';
       const nb=$('nbCust'); if(nb) nb.style.display=mgr?'':'none';
+      const nd=$('nbDash'); if(nd) nd.style.display=mgr?'':'none';
     } else {
       $('pinErr').textContent='Wrong PIN. Try again.';
       pinBuffer=''; updateDots();
