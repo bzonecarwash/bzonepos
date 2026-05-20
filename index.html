@@ -2859,6 +2859,850 @@ renderOrder();
 window.closeModal = function(id){
   document.getElementById(id).classList.remove('on');
 };
+
+
+
+
+/* ══ PROFITABILITY DASHBOARD ══ */
+window.initDashboard = (function(){
+  let _did = false;
+  return function(){
+    if(_did){ try{renderAll();}catch(e){} return; }
+    _did = true;
+// ============================================================
+//   STATE
+// ============================================================
+const DASH_KEY = 'bzone_dash_v1';
+
+let dashSt = {
+  expenses: {
+    rent: 17500, elec: 4500, crews: 5, salary: 450,
+    days: 6, chem: 6000, food: 450, other: 0
+  },
+  months: []
+};
+
+let chartInstances = {};
+
+// ============================================================
+//   STORAGE (graceful — works even if blocked)
+// ============================================================
+function saveState() {
+  try {
+    localStorage.setItem(DASH_KEY, JSON.stringify(dashSt));
+    document.getElementById('storageNotice').style.display = 'block';
+  } catch(e) {
+    console.log('Storage not available — that\'s fine, just won\'t persist.');
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(DASH_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.expenses) dashSt.expenses = { ...dashSt.expenses, ...parsed.expenses };
+      if (parsed.months && Array.isArray(parsed.months)) dashSt.months = parsed.months;
+      document.getElementById('storageNotice').style.display = 'block';
+      return true;
+    }
+  } catch(e) {
+    console.log('Could not load dashSt.');
+  }
+  return false;
+}
+
+// ============================================================
+//   COMPUTATION
+// ============================================================
+function computeMonthlyExpenses() {
+  const e = dashSt.expenses;
+  const weeksPerMonth = 4.333;
+  return {
+    rent: Number(e.rent) || 0,
+    elec: Number(e.elec) || 0,
+    salary: (Number(e.salary) || 0) * (Number(e.crews) || 0) * (Number(e.days) || 0) * weeksPerMonth,
+    chem: Number(e.chem) || 0,
+    food: (Number(e.food) || 0) * (Number(e.days) || 0) * weeksPerMonth,
+    other: Number(e.other) || 0
+  };
+}
+
+function computeMonthMetrics(month) {
+  const sales = Number(month.sales) || 0;
+  const txn = Number(month.txn) || 0;
+  const opDays = Number(month.opDays) || 0;
+  const exp = computeMonthlyExpenses();
+  const totalExp = exp.rent + exp.elec + exp.salary + exp.chem + exp.food + exp.other;
+  const profit = sales - totalExp;
+  const margin = sales > 0 ? profit / sales : 0;
+  const avgTicket = txn > 0 ? sales / txn : 0;
+  const carsPerDay = opDays > 0 ? txn / opDays : 0;
+  const dailySales = opDays > 0 ? sales / opDays : 0;
+  const breakEvenCars = avgTicket > 0 ? totalExp / avgTicket : 0;
+  const breakEvenPerDay = breakEvenCars / 26;  // assume 26 work days
+  const cushion = carsPerDay - breakEvenPerDay;
+  return { sales, txn, opDays, exp, totalExp, profit, margin, avgTicket,
+           carsPerDay, dailySales, breakEvenCars, breakEvenPerDay, cushion };
+}
+
+// ============================================================
+//   FORMATTERS
+// ============================================================
+const peso = v => '₱' + Math.round(v).toLocaleString();
+const pesoSign = v => (v >= 0 ? '+' : '') + '₱' + Math.round(v).toLocaleString();
+const pct = v => (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+const pctAbs = v => (v * 100).toFixed(1) + '%';
+
+// ============================================================
+//   RENDER: EXPENSES INPUTS
+// ============================================================
+function bindExpenseInputs() {
+  const keys = ['rent','elec','crews','salary','days','chem','food','other'];
+  keys.forEach(k => {
+    const el = document.getElementById('exp_' + k);
+    if (!el) return;
+    el.value = dashSt.expenses[k];
+    el.addEventListener('input', () => {
+      dashSt.expenses[k] = Number(el.value);
+      saveState();
+      renderAll();
+    });
+  });
+}
+
+function resetExpenses() {
+  dashSt.expenses = { rent: 17500, elec: 4500, crews: 5, salary: 450, days: 6, chem: 6000, food: 450, other: 0 };
+  bindExpenseInputs();
+  saveState();
+  renderAll();
+}
+
+// ============================================================
+//   RENDER: MONTHS LIST
+// ============================================================
+function renderMonthsList() {
+  const list = document.getElementById('monthsList');
+  if (dashSt.months.length === 0) {
+    list.innerHTML = '<div class="empty">No months yet — click "+ Add Month" or "Load My Q1 Data" to start.</div>';
+    return;
+  }
+  list.innerHTML = dashSt.months.map((m, idx) => `
+    <div class="month-row">
+      <div class="input-group">
+        <label class="input-label">Month Label</label>
+        <input type="text" value="${m.label || ''}" placeholder="e.g. January 2026"
+               oninput="updateMonth(${idx}, 'label', this.value)" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Gross Sales (₱)</label>
+        <input type="number" value="${m.sales ?? ''}" placeholder="0"
+               oninput="updateMonth(${idx}, 'sales', this.value)" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Transactions</label>
+        <input type="number" value="${m.txn ?? ''}" placeholder="0"
+               oninput="updateMonth(${idx}, 'txn', this.value)" />
+        <div class="input-hint">cars washed</div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Operating Days</label>
+        <input type="number" value="${m.opDays ?? ''}" placeholder="0" max="31"
+               oninput="updateMonth(${idx}, 'opDays', this.value)" />
+        <div class="input-hint">days open</div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Tips (₱)</label>
+        <input type="number" value="${m.tips ?? 0}" placeholder="0"
+               oninput="updateMonth(${idx}, 'tips', this.value)" />
+        <div class="input-hint">optional</div>
+      </div>
+      <div>
+        <button class="btn btn-danger" onclick="removeMonth(${idx})">✕ Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addMonth() {
+  dashSt.months.push({ label: '', sales: '', txn: '', opDays: '', tips: 0 });
+  saveState();
+  renderAll();
+}
+
+function updateMonth(idx, field, value) {
+  if (!dashSt.months[idx]) return;
+  dashSt.months[idx][field] = field === 'label' ? value : (value === '' ? '' : Number(value));
+  saveState();
+  // Skip full re-render of months list (would lose input focus) — just update charts
+  renderResults();
+}
+
+function removeMonth(idx) {
+  dashSt.months.splice(idx, 1);
+  saveState();
+  renderAll();
+}
+
+function loadSampleData() {
+  dashSt.months = [
+    { label: 'January 2026',  sales: 127445, txn: 487, opDays: 25, tips: 9030 },
+    { label: 'February 2026', sales: 142760, txn: 516, opDays: 28, tips: 0 },
+    { label: 'March 2026',    sales: 131630, txn: 440, opDays: 31, tips: 0 }
+  ];
+  saveState();
+  renderAll();
+}
+
+function clearAllData() {
+  if (!confirm('Clear all months? Expenses will stay.')) return;
+  dashSt.months = [];
+  saveState();
+  renderAll();
+}
+
+// ============================================================
+//   RENDER: RESULTS (KPIs, charts, P&L, insights, suggestions)
+// ============================================================
+function renderResults() {
+  const container = document.getElementById('resultsContainer');
+
+  // No data → show empty state
+  const validMonths = dashSt.months.filter(m => Number(m.sales) > 0);
+  if (validMonths.length === 0) {
+    container.innerHTML = `
+      <section class="section">
+        <div class="panel" style="text-align:center; padding: 60px 20px;">
+          <p style="color: var(--ink-muted); font-style: italic; font-size: 16px;">
+            Add at least one month with sales to see your analysis.
+          </p>
+        </div>
+      </section>
+    `;
+    destroyCharts();
+    return;
+  }
+
+  // Compute metrics for each month
+  const metrics = validMonths.map(m => ({ label: m.label || 'Untitled', tips: Number(m.tips) || 0, ...computeMonthMetrics(m) }));
+
+  // Build HTML for results
+  container.innerHTML = `
+    ${renderVerdict(metrics)}
+    ${renderKPIs(metrics)}
+    ${renderCharts(metrics)}
+    ${renderPnLTable(metrics)}
+    ${renderInsights(metrics)}
+    ${renderSuggestions(metrics)}
+    ${renderBreakEven(metrics)}
+  `;
+
+  // After DOM is in place, draw charts
+  setTimeout(() => drawCharts(metrics), 50);
+}
+
+// ============================================================
+//   VERDICT
+// ============================================================
+function renderVerdict(metrics) {
+  const latest = metrics[metrics.length - 1];
+  let cls, badge, text;
+
+  if (latest.profit < 0) {
+    cls = 'bad'; badge = 'Warning';
+    text = `Your latest month (<strong>${latest.label}</strong>) is <strong>losing ₱${Math.abs(Math.round(latest.profit)).toLocaleString()}</strong>. The business is not profitable right now — see the suggestions below.`;
+  } else if (latest.margin < 0.10) {
+    cls = 'warn'; badge = 'Caution';
+    text = `<strong>${latest.label}</strong> made <strong>${peso(latest.profit)}</strong> profit — but the margin is thin (<strong>${pctAbs(latest.margin)}</strong>). One bad month could push you into a loss.`;
+  } else if (latest.margin < 0.20) {
+    cls = 'warn'; badge = 'Okay';
+    text = `<strong>${latest.label}</strong> is profitable at <strong>${peso(latest.profit)}</strong> (<strong>${pctAbs(latest.margin)}</strong> margin). Healthy but with room to improve.`;
+  } else {
+    cls = 'good'; badge = 'Profitable';
+    text = `<strong>${latest.label}</strong> is solidly profitable — <strong>${peso(latest.profit)}</strong> net profit at <strong>${pctAbs(latest.margin)}</strong> margin.`;
+  }
+
+  return `
+    <section class="section">
+      <h2 class="section-title">The <em>verdict</em></h2>
+      <div class="section-sub">Based on your latest month</div>
+      <div class="verdict ${cls}">
+        <div class="verdict-badge">${badge}</div>
+        <div class="verdict-text">${text}</div>
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+//   KPIs
+// ============================================================
+function renderKPIs(metrics) {
+  const latest = metrics[metrics.length - 1];
+  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
+
+  const profitClass = latest.profit < 0 ? 'negative' : (latest.margin < 0.10 ? 'warn' : 'positive');
+  const cushionClass = latest.cushion < 0 ? 'negative' : (latest.cushion < 2 ? 'warn' : 'positive');
+
+  let salesChange = '';
+  if (prev) {
+    const chg = (latest.sales - prev.sales) / prev.sales;
+    const cls = chg >= 0 ? 'var(--good)' : 'var(--bad)';
+    salesChange = `<span style="color:${cls}">${pct(chg)}</span> vs prev`;
+  } else {
+    salesChange = `${latest.txn} transactions`;
+  }
+
+  return `
+    <section class="section">
+      <h2 class="section-title">Key <em>numbers</em></h2>
+      <div class="section-sub">${latest.label}</div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Net Profit</div>
+          <div class="kpi-value ${profitClass}">${peso(latest.profit)}</div>
+          <div class="kpi-sub">${pctAbs(latest.margin)} margin</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Gross Sales</div>
+          <div class="kpi-value">${peso(latest.sales)}</div>
+          <div class="kpi-sub">${salesChange}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Avg Ticket</div>
+          <div class="kpi-value">${peso(latest.avgTicket)}</div>
+          <div class="kpi-sub">per customer</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Cars / Day</div>
+          <div class="kpi-value">${latest.carsPerDay.toFixed(1)}</div>
+          <div class="kpi-sub">${latest.opDays} operating days</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Break-Even</div>
+          <div class="kpi-value">${latest.breakEvenPerDay.toFixed(1)}</div>
+          <div class="kpi-sub">cars/day needed</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Safety Cushion</div>
+          <div class="kpi-value ${cushionClass}">${latest.cushion >= 0 ? '+' : ''}${latest.cushion.toFixed(1)}</div>
+          <div class="kpi-sub">cars/day above break-even</div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+//   CHARTS SECTION
+// ============================================================
+function renderCharts(metrics) {
+  return `
+    <section class="section">
+      <h2 class="section-title">The <em>charts</em></h2>
+      <div class="section-sub">Trends across your tracked months</div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Revenue vs Profit</div>
+          <div class="chart-sub">Monthly totals</div>
+          <div class="chart-container"><canvas id="chart1"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Price vs Volume</div>
+          <div class="chart-sub">Avg ticket and cars/day</div>
+          <div class="chart-container"><canvas id="chart2"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Profit Margin Trend</div>
+          <div class="chart-sub">% of sales</div>
+          <div class="chart-container"><canvas id="chart3"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Expense Breakdown</div>
+          <div class="chart-sub">Where the money goes</div>
+          <div class="chart-container"><canvas id="chart4"></canvas></div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function destroyCharts() {
+  Object.values(chartInstances).forEach(c => { if (c) c.destroy(); });
+  chartInstances = {};
+}
+
+function drawCharts(metrics) {
+  destroyCharts();
+  Chart.defaults.font.family = "'JetBrains Mono', monospace";
+  Chart.defaults.color = '#a8a294';
+
+  const labels = metrics.map(m => m.label);
+  const sales = metrics.map(m => m.sales);
+  const profits = metrics.map(m => m.profit);
+  const tickets = metrics.map(m => Math.round(m.avgTicket));
+  const cars = metrics.map(m => +m.carsPerDay.toFixed(1));
+  const margins = metrics.map(m => +(m.margin * 100).toFixed(1));
+
+  const tooltipCfg = { backgroundColor: '#0f1117', borderColor: '#ffb800', borderWidth: 1, padding: 12 };
+
+  // Chart 1: Revenue vs Profit
+  if (document.getElementById('chart1')) {
+    chartInstances.c1 = new Chart(document.getElementById('chart1'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Revenue', data: sales, backgroundColor: '#2a2e3c', borderRadius: 4 },
+          { label: 'Net Profit', data: profits, backgroundColor: '#ffb800', borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 14, font: { size: 11 } } },
+          tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.dataset.label + ': ' + peso(ctx.parsed.y) } }
+        },
+        scales: {
+          y: { grid: { color: '#2a2e3c' }, ticks: { callback: v => '₱' + (v/1000).toFixed(0) + 'k', font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Chart 2: Price vs Volume (dual axis)
+  if (document.getElementById('chart2')) {
+    chartInstances.c2 = new Chart(document.getElementById('chart2'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Avg Ticket (₱)', data: tickets, borderColor: '#ffb800', backgroundColor: '#ffb800',
+            tension: 0.3, yAxisID: 'y', borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#ffb800' },
+          { label: 'Cars/Day', data: cars, borderColor: '#ff5e3a', backgroundColor: '#ff5e3a',
+            tension: 0.3, yAxisID: 'y1', borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#ff5e3a',
+            borderDash: [4, 4] }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 14, font: { size: 11 } } },
+          tooltip: tooltipCfg
+        },
+        scales: {
+          y: { type: 'linear', position: 'left', grid: { color: '#2a2e3c' },
+               ticks: { color: '#ffb800', callback: v => '₱' + v, font: { size: 10 } } },
+          y1: { type: 'linear', position: 'right', grid: { display: false },
+                ticks: { color: '#ff5e3a', font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Chart 3: Margin trend
+  if (document.getElementById('chart3')) {
+    chartInstances.c3 = new Chart(document.getElementById('chart3'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Margin %', data: margins,
+          borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.1)',
+          tension: 0.4, fill: true, borderWidth: 3,
+          pointRadius: 7, pointBackgroundColor: '#4ade80', pointBorderColor: '#0f1117', pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { ...tooltipCfg, callbacks: { label: ctx => 'Margin: ' + ctx.parsed.y + '%' } }
+        },
+        scales: {
+          y: { grid: { color: '#2a2e3c' }, ticks: { callback: v => v + '%', font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Chart 4: Expense Breakdown (most recent month)
+  if (document.getElementById('chart4')) {
+    const latest = metrics[metrics.length - 1];
+    chartInstances.c4 = new Chart(document.getElementById('chart4'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Salary', 'Rent', 'Meals', 'Chemicals', 'Electricity', 'Other'].filter((_, i) => {
+          const vals = [latest.exp.salary, latest.exp.rent, latest.exp.food, latest.exp.chem, latest.exp.elec, latest.exp.other];
+          return vals[i] > 0;
+        }),
+        datasets: [{
+          data: [latest.exp.salary, latest.exp.rent, latest.exp.food, latest.exp.chem, latest.exp.elec, latest.exp.other].filter(v => v > 0),
+          backgroundColor: ['#ffb800','#ff5e3a','#60a5fa','#4ade80','#a78bfa','#f87171'],
+          borderColor: '#181b24', borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
+          tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.label + ': ' + peso(ctx.parsed) } }
+        }
+      }
+    });
+  }
+}
+
+// ============================================================
+//   P&L TABLE
+// ============================================================
+function renderPnLTable(metrics) {
+  const cols = metrics.map(m => `<th>${m.label}</th>`).join('');
+  const row = (label, fn, opts = {}) => {
+    const cls = opts.cls || '';
+    const cells = metrics.map(m => {
+      const v = fn(m);
+      const negative = v < 0 && opts.checkNeg;
+      return `<td class="${negative ? 'is-negative' : ''}">${typeof v === 'string' ? v : peso(v)}</td>`;
+    }).join('');
+    return `<tr class="${cls}"><td>${label}</td>${cells}</tr>`;
+  };
+
+  return `
+    <section class="section">
+      <h2 class="section-title">P&amp;L <em>breakdown</em></h2>
+      <div class="section-sub">Line-by-line for every month</div>
+      <div class="panel" style="padding:0; overflow-x:auto;">
+        <table class="pnl-table">
+          <thead><tr><th>Line Item</th>${cols}</tr></thead>
+          <tbody>
+            <tr class="section-row"><td colspan="${metrics.length + 1}">Revenue</td></tr>
+            ${row('Gross Sales', m => m.sales)}
+            <tr class="section-row"><td colspan="${metrics.length + 1}">Expenses</td></tr>
+            ${row('Rent', m => m.exp.rent)}
+            ${row('Electricity', m => m.exp.elec)}
+            ${row('Crew Salary', m => m.exp.salary)}
+            ${row('Chemicals', m => m.exp.chem)}
+            ${row('Crew Meals', m => m.exp.food)}
+            ${dashSt.expenses.other > 0 ? row('Other', m => m.exp.other) : ''}
+            ${row('Total Expenses', m => m.totalExp, { cls: 'total-row' })}
+            ${row('Net Profit', m => m.profit, { cls: 'profit-row', checkNeg: true })}
+            ${row('Margin', m => pctAbs(m.margin))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+//   SMART INSIGHTS — adapts to actual data
+// ============================================================
+function renderInsights(metrics) {
+  const insights = [];
+  const latest = metrics[metrics.length - 1];
+  const first = metrics[0];
+  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
+
+  // --- Insight 1: Overall profitability ---
+  if (latest.profit > 0) {
+    insights.push({
+      cls: 'good',
+      title: 'You\'re making money',
+      body: `<strong>${latest.label}</strong> generated <strong>${peso(latest.profit)}</strong> in net profit on <strong>${peso(latest.sales)}</strong> in sales — a margin of <span class="stat">${pctAbs(latest.margin)}</span>. Fixed expenses each month run about ${peso(latest.totalExp)}.`
+    });
+  } else {
+    insights.push({
+      cls: 'bad',
+      title: 'You\'re losing money right now',
+      body: `<strong>${latest.label}</strong> brought in <strong>${peso(latest.sales)}</strong> but expenses were <strong>${peso(latest.totalExp)}</strong> — a loss of <span class="stat">${peso(Math.abs(latest.profit))}</span>. Action needed urgently.`
+    });
+  }
+
+  // --- Insight 2: Price trend (if 2+ months) ---
+  if (prev) {
+    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
+    if (Math.abs(ticketChange) >= 0.03) {
+      if (ticketChange > 0) {
+        insights.push({
+          cls: 'good',
+          title: 'Your average ticket went up',
+          body: `Customers are paying more per visit. Avg ticket moved from <span class="stat">${peso(prev.avgTicket)}</span> (${prev.label}) to <span class="stat">${peso(latest.avgTicket)}</span> (${latest.label}) — that's <strong>${pct(ticketChange)}</strong>. Either you raised prices or customers are buying more services.`
+        });
+      } else {
+        insights.push({
+          cls: 'warn',
+          title: 'Avg ticket dropped',
+          body: `Each customer paid less on average — <span class="stat">${peso(prev.avgTicket)}</span> → <span class="stat">${peso(latest.avgTicket)}</span> (<strong>${pct(ticketChange)}</strong>). Either you lowered prices, gave more discounts, or customers picked cheaper services.`
+        });
+      }
+    }
+
+    // --- Insight 3: Volume trend ---
+    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
+    if (Math.abs(volumeChange) >= 0.05) {
+      if (volumeChange > 0) {
+        insights.push({
+          cls: 'good',
+          title: 'More cars came in',
+          body: `Daily volume rose from <span class="stat">${prev.carsPerDay.toFixed(1)} cars/day</span> to <span class="stat">${latest.carsPerDay.toFixed(1)} cars/day</span> (<strong>${pct(volumeChange)}</strong>). Whatever you're doing for customer traffic is working.`
+        });
+      } else {
+        insights.push({
+          cls: 'warn',
+          title: 'Volume is dropping',
+          body: `Cars per day fell from <span class="stat">${prev.carsPerDay.toFixed(1)}</span> to <span class="stat">${latest.carsPerDay.toFixed(1)}</span> (<strong>${pct(volumeChange)}</strong>). Find out why — pricing, competition, season, or just one-time slow month?`
+        });
+      }
+    }
+  }
+
+  // --- Insight 4: Price-volume trade-off detection ---
+  if (prev) {
+    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
+    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
+    if (ticketChange > 0.03 && volumeChange < -0.05) {
+      const salesChange = (latest.sales - prev.sales) / prev.sales;
+      insights.push({
+        cls: 'info',
+        title: 'Classic price-vs-volume trade-off',
+        body: `Prices went up <strong>${pct(ticketChange)}</strong>, but volume dropped <strong>${pct(volumeChange)}</strong>. Net effect on total sales: <strong>${pct(salesChange)}</strong>. ${salesChange >= 0 ? 'The higher prices more than compensated.' : 'The volume loss outweighed the price gain.'}`
+      });
+    }
+  }
+
+  // --- Insight 5: Break-even cushion ---
+  if (latest.cushion < 0) {
+    insights.push({
+      cls: 'bad',
+      title: 'You\'re below break-even',
+      body: `You need <span class="stat">${latest.breakEvenPerDay.toFixed(1)} cars/day</span> to cover costs at the current avg ticket of ${peso(latest.avgTicket)}. You averaged only <span class="stat">${latest.carsPerDay.toFixed(1)}</span>. Either prices must rise, costs must drop, or volume must increase.`
+    });
+  } else if (latest.cushion < 2) {
+    insights.push({
+      cls: 'warn',
+      title: 'Thin safety margin',
+      body: `Your break-even is <span class="stat">${latest.breakEvenPerDay.toFixed(1)} cars/day</span> and you ran <span class="stat">${latest.carsPerDay.toFixed(1)}</span> — only <strong>${latest.cushion.toFixed(1)} cars/day above the line</strong>. A slow week could wipe out profit.`
+    });
+  } else {
+    insights.push({
+      cls: 'good',
+      title: 'Comfortable break-even cushion',
+      body: `You're <strong>${latest.cushion.toFixed(1)} cars/day</strong> above your break-even of ${latest.breakEvenPerDay.toFixed(1)} cars/day. Plenty of room to absorb a slow patch.`
+    });
+  }
+
+  // --- Insight 6: Closed days ---
+  const expectedDays = 30; // rough avg
+  if (latest.opDays < 22) {
+    insights.push({
+      cls: 'warn',
+      title: 'You had several closed days',
+      body: `Only <span class="stat">${latest.opDays} operating days</span> in ${latest.label}. Each closed day means rent and salaries (if paid daily, only food + crew) still tick, but no revenue. Check if those closures were necessary.`
+    });
+  }
+
+  // --- Insight 7: Tips tracking ---
+  const tipsThisMonth = dashSt.months[dashSt.months.length - 1]?.tips || 0;
+  const tipsPrevMonth = dashSt.months.length > 1 ? (dashSt.months[dashSt.months.length - 2]?.tips || 0) : null;
+  if (tipsPrevMonth !== null && tipsPrevMonth > 1000 && tipsThisMonth === 0) {
+    insights.push({
+      cls: 'warn',
+      title: 'Tips stopped getting logged',
+      body: `${dashSt.months[dashSt.months.length - 2].label} had <strong>${peso(tipsPrevMonth)}</strong> in tips but ${latest.label} shows zero. Either tracking stopped or customers actually stopped tipping. Worth confirming with crew.`
+    });
+  }
+
+  // Build HTML
+  return `
+    <section class="section">
+      <h2 class="section-title">What the data is <em>telling you</em></h2>
+      <div class="section-sub">Auto-generated from your numbers</div>
+      <div class="insights-grid">
+        ${insights.map(i => `
+          <div class="insight ${i.cls}">
+            <h3>${i.title}</h3>
+            <p>${i.body}</p>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+//   SMART SUGGESTIONS — also adapts
+// ============================================================
+function renderSuggestions(metrics) {
+  const sugs = [];
+  const latest = metrics[metrics.length - 1];
+  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
+
+  // --- Critical: losing money ---
+  if (latest.profit < 0) {
+    sugs.push({
+      title: 'Stop the bleeding first',
+      body: `You're losing ${peso(Math.abs(latest.profit))}/month. Quickest levers: (1) check if you really need ${dashSt.expenses.crews} crews — could you run with fewer on slow days? (2) audit chemicals usage; (3) consider raising prices ₱20–30 per service.`
+    });
+  }
+
+  // --- Volume dropping ---
+  if (prev) {
+    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
+    if (volumeChange < -0.10) {
+      sugs.push({
+        title: 'Investigate why customers stopped coming',
+        body: `Volume dropped ${pct(volumeChange)} vs ${prev.label}. Talk to 5 regular customers this week — ask if pricing, service, or competitor is the reason. Cheapest market research you can do.`
+      });
+      sugs.push({
+        title: 'Try a weekday loyalty promo',
+        body: `Offer a discount on your slowest weekdays (not weekends — those are already busy). Goal: refill the volume without lowering your premium pricing on prime days.`
+      });
+    }
+  }
+
+  // --- Price worked, hold it ---
+  if (prev) {
+    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
+    if (ticketChange > 0.05 && latest.profit > 0) {
+      sugs.push({
+        title: 'Keep the new prices',
+        body: `Your avg ticket is up ${pct(ticketChange)} and you're still profitable. Don't reverse the increase — focus on bringing volume back at the new pricing.`
+      });
+    }
+  }
+
+  // --- Thin margin ---
+  if (latest.margin > 0 && latest.margin < 0.15) {
+    sugs.push({
+      title: 'Build a bigger cushion',
+      body: `${pctAbs(latest.margin)} margin is too thin. Look at the expense breakdown: your biggest cost is likely crew salary (${peso(latest.exp.salary)}/month). Could one less crew handle peak hours? Could anyone shift to commission?`
+    });
+  }
+
+  // --- Always-on: track cars/day ---
+  sugs.push({
+    title: 'Track cars per day religiously',
+    body: `This is the single number that determines if you make money. At your current avg ticket of ${peso(latest.avgTicket)}, break-even is ${latest.breakEvenPerDay.toFixed(1)} cars/day. If you ever drop below that, you're paying to be open.`
+  });
+
+  // --- Tips ---
+  if (latest.profit > 0 && (dashSt.months[dashSt.months.length - 1]?.tips || 0) === 0 && metrics.length > 1) {
+    const anyTips = dashSt.months.some(m => (m.tips || 0) > 0);
+    if (anyTips) {
+      sugs.push({
+        title: 'Fix the tips tracking',
+        body: `Earlier months had tips logged but recent months don't. Either ask the crew to record tips again, or confirm customers stopped tipping. Tips affect crew morale and retention.`
+      });
+    }
+  }
+
+  // --- Healthy and growing ---
+  if (latest.margin >= 0.20 && prev && latest.profit > prev.profit) {
+    sugs.push({
+      title: 'You\'re in a good spot — think about growth',
+      body: `Healthy margin (${pctAbs(latest.margin)}) and rising profit. Could you add a service (interior detailing, premium wax)? A second location? Save a few months of profit as a cushion first, then think expansion.`
+    });
+  }
+
+  // --- Operating days ---
+  if (latest.opDays < 25) {
+    sugs.push({
+      title: 'Open more days if you can',
+      body: `You operated ${latest.opDays} days. Rent (${peso(latest.exp.rent)}) is paid for the whole month either way. Each extra day open could add roughly ${peso(latest.dailySales)} in revenue at current pace.`
+    });
+  }
+
+  return `
+    <section class="section">
+      <h2 class="section-title">What to <em>do</em> next</h2>
+      <div class="section-sub">Tailored to your current numbers</div>
+      <div class="suggestions">
+        ${sugs.map((s, i) => `
+          <div class="sug-item">
+            <div class="sug-num">0${i + 1}</div>
+            <div class="sug-body">
+              <h4>${s.title}</h4>
+              <p>${s.body}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+//   BREAK-EVEN
+// ============================================================
+function renderBreakEven(metrics) {
+  const latest = metrics[metrics.length - 1];
+  const exp = computeMonthlyExpenses();
+  const totalExp = exp.rent + exp.elec + exp.salary + exp.chem + exp.food + exp.other;
+
+  // Generate sensitivity table at different avg tickets
+  const tickets = [200, 250, 300, 350, 400];
+  const rows = tickets.map(t => {
+    const carsMonth = totalExp / t;
+    const carsDay = carsMonth / 26;
+    return `<tr>
+      <td>${peso(t)}</td>
+      <td>${Math.ceil(carsMonth)}</td>
+      <td>${carsDay.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <section class="section">
+      <h2 class="section-title">Break-even <em>sensitivity</em></h2>
+      <div class="section-sub">At different price points</div>
+      <div class="panel" style="padding:0; overflow-x:auto;">
+        <table class="pnl-table">
+          <thead><tr>
+            <th>Avg Ticket</th><th>Cars / Month</th><th>Cars / Day (26 work days)</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p style="margin-top: 16px; color: var(--ink-dim); font-size: 14px;">
+        At your current avg ticket of <strong style="color:var(--accent);">${peso(latest.avgTicket)}</strong>,
+        you need <strong style="color:var(--accent);">${latest.breakEvenPerDay.toFixed(1)} cars/day</strong> to break even.
+        Your actual: <strong style="color:${latest.carsPerDay >= latest.breakEvenPerDay ? 'var(--good)' : 'var(--bad)'};">${latest.carsPerDay.toFixed(1)} cars/day</strong>.
+      </p>
+    </section>
+  `;
+}
+
+// ============================================================
+//   ORCHESTRATION
+// ============================================================
+function renderAll() {
+  renderMonthsList();
+  renderResults();
+}
+
+// ============================================================
+//   INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const hadSavedData = loadState();
+  if (!hadSavedData) {
+    // First-time visitor — preload with sample data so they see something working
+    dashSt.months = [
+      { label: 'January 2026',  sales: 127445, txn: 487, opDays: 25, tips: 9030 },
+      { label: 'February 2026', sales: 142760, txn: 516, opDays: 28, tips: 0 },
+      { label: 'March 2026',    sales: 131630, txn: 440, opDays: 31, tips: 0 }
+    ];
+  }
+  bindExpenseInputs();
+  renderAll();
+});
+    try{ if(!loadState()) renderAll(); else renderAll(); bindExpenseInputs(); }catch(e){console.error("Dashboard init error:",e);}
+  };
+})();
 </script>
 </body>
 </html>
