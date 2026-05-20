@@ -16,22 +16,6 @@ button,input,select,textarea{font-family:inherit;}
 html,body{height:100%;overflow:hidden;}
 body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;}
 
-/* ══ MANDATORY LOGIN SCREEN ══ */
-.login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
-.login-screen.hidden{display:none;}
-.login-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 24px;width:100%;max-width:360px;text-align:center;}
-.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--accent);margin-bottom:4px;}
-.login-logo b{color:var(--text);}
-.login-sub{font-size:12px;color:var(--muted);margin-bottom:22px;}
-.login-staff-list{display:flex;flex-direction:column;gap:10px;margin-bottom:4px;}
-.login-staff-item{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--card);border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;text-align:left;-webkit-tap-highlight-color:transparent;}
-.login-staff-item:hover,.login-staff-item:active{border-color:var(--accent);background:rgba(240,180,41,.07);}
-.login-staff-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.login-staff-name{font-size:15px;font-weight:700;color:var(--text);}
-.login-staff-role{font-size:11px;color:var(--muted);margin-top:2px;}
-.login-pin-section{display:flex;flex-direction:column;align-items:center;width:100%;}
-.login-pin-for{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
-
 /* SYNC BAR */
 .sync-bar{flex-shrink:0;height:24px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;font-weight:600;background:#131620;border-bottom:1px solid var(--border);}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s;}
@@ -73,8 +57,8 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);f
 /* Row 2: nav tabs — full width, scrollable */
 .nav{
   display:flex;
-  gap:1px;
-  padding:3px 4px;
+  gap:2px;
+  padding:4px 8px;
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
   background:var(--surface);
@@ -83,11 +67,11 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);f
 .nb{
   flex:1;
   min-width:0;
-  padding:5px 2px;
-  border:none;border-radius:6px;
+  padding:6px 4px;
+  border:none;border-radius:7px;
   background:transparent;
   color:var(--muted);
-  font-size:9.5px;font-weight:600;
+  font-size:11px;font-weight:600;
   cursor:pointer;transition:all .15s;
   white-space:nowrap;text-align:center;
 }
@@ -135,11 +119,11 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);f
 .grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;align-content:start;}
 .grid::-webkit-scrollbar{width:2px;}
 .grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.pcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:rgba(240,180,41,.2);}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 7px;display:flex;flex-direction:column;gap:3px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:rgba(240,180,41,.2);}
 .pcard:active{border-color:var(--accent);transform:scale(.94);}
-.p-nm{font-size:11px;font-weight:600;line-height:1.3;}
-.p-pr{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
-.pcard.out{opacity:.4;pointer-events:none;}
+.p-em{font-size:20px;line-height:1;}
+.p-nm{font-size:10px;font-weight:600;line-height:1.3;}
+.p-pr{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);}
 
 /* RIGHT order items (46%) */
 .order-col{flex:0 0 46%;display:flex;flex-direction:column;background:var(--surface);overflow:hidden;}
@@ -264,22 +248,12 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);f
 .ds-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);}
 
 /* ══ ACTIVE JOBS PAGE ══ */
-#pg-jobs{flex-direction:column;overflow:hidden;}
-#pg-jobs .pg-head{flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);}
-.jobs-scroll{
-  flex:1;
-  min-height:0;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:10px;
-}
+#pg-jobs{flex-direction:column;gap:0;overflow:hidden;}
+#pg-jobs .pg-head{flex-shrink:0;padding:14px 16px;border-bottom:1px solid var(--border);}
+.jobs-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
 .jobs-scroll::-webkit-scrollbar{width:4px;}
 .jobs-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
-.jobs-grid{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
 .job-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;}
 .job-card.in-progress{border-color:var(--warn);}
 .job-card.paid-waiting{border-color:var(--accent2);}
@@ -364,43 +338,7 @@ tr:hover td{background:var(--card);}
 .tbl-x::-webkit-scrollbar{width:4px;}
 .tbl-x::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
-/* Hide actions column for cashiers */
-.tx-table .col-actions { display:none; }
-.tx-table.mgr-view .col-actions { display:table-cell; }
-#pg-exp{flex-direction:column;overflow:hidden;}
-.exp-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.exp-card-left{display:flex;flex-direction:column;gap:3px;flex:1;}
-.exp-cat-badge{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:8px;background:rgba(240,180,41,.15);color:var(--accent);margin-bottom:2px;width:fit-content;}
-.exp-card-desc{font-size:13px;font-weight:600;color:var(--text);}
-.exp-card-meta{font-size:10px;color:var(--muted);}
-.exp-card-amt{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--danger);flex-shrink:0;}
-.exp-del{color:var(--danger);font-size:12px;cursor:pointer;opacity:.6;padding:4px 6px;flex-shrink:0;border-radius:5px;}
-.exp-del:hover,.exp-del:active{opacity:1;background:rgba(252,92,125,.1);}
-.exp-day-block{display:flex;flex-direction:column;gap:7px;padding:12px 14px;border-bottom:1px solid var(--border);}
-.exp-day-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--border);}
-.exp-day-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
-.exp-day-total{font-family:'DM Mono',monospace;font-size:14px;color:var(--danger);font-weight:700;}
-/* ══ CUSTOMERS PAGE ══ */
-#pg-cust{flex-direction:column;overflow:hidden;}
-#pg-cust .cust-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column;gap:8px;}
-#pg-cust .cust-scroll::-webkit-scrollbar{width:4px;}
-#pg-cust .cust-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
-.cust-search{display:flex;align-items:center;gap:7px;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;}
-.cust-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:12px;}
-.cust-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;}
-.cust-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.cust-plate{font-family:'DM Mono',monospace;font-weight:700;font-size:16px;letter-spacing:1px;color:var(--text);}
-.cust-model{font-size:12px;color:var(--muted);}
-.cust-card-mid{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.cust-card-bot{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-.cust-stat{display:flex;flex-direction:column;gap:1px;}
-.cust-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.cust-stat-val{font-size:12px;font-weight:600;color:var(--text);}
-.visit-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:8px;font-size:11px;font-weight:700;}
-.visit-new{background:rgba(72,187,120,.15);color:var(--success);}
-.visit-ret{background:rgba(79,209,197,.15);color:var(--accent2);}
-.visit-vip{background:rgba(240,180,41,.2);color:var(--accent);}
-
+/* ══ SETTINGS PAGE ══ */
 #pg-set{flex-direction:column;gap:0;overflow:hidden;}
 #pg-set .set-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;}
 #pg-set .set-scroll::-webkit-scrollbar{width:4px;}
@@ -492,610 +430,13 @@ tr:hover td{background:var(--card);}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--success);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;transition:transform .3s ease;white-space:nowrap;}
 .toast.on{transform:translateX(-50%) translateY(0);}
 
-/* ══ OVERDUE JOB ALERT ══ */
-@keyframes blink-red{
-  0%,100%{border-color:var(--danger);background:rgba(252,92,125,.08);}
-  50%{border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.03);}
-}
-.job-card.overdue{
-  animation:blink-red 1.2s ease-in-out infinite;
-  border-color:var(--danger)!important;
-}
-.job-overdue-badge{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 9px;border-radius:8px;
-  background:rgba(252,92,125,.15);
-  color:var(--danger);
-  font-size:10px;font-weight:700;
-  animation:blink-red 1.2s ease-in-out infinite;
-}
+/* ══ RESPONSIVE ══ */
 @media (max-width: 640px) {
   .set-grid{grid-template-columns:1fr;}
   .metrics{grid-template-columns:repeat(2,1fr);}
+  .jobs-grid{grid-template-columns:1fr;}
   .modal{padding:18px;}
 }
-
-/* ══ DESKTOP (≥ 768px) ══ */
-@media (min-width: 768px) {
-
-  /* Header — bigger on desktop */
-  .hdr-top{padding:8px 20px;}
-  .login-logo{font-size:20px;}
-  .dt-time{font-size:14px;}
-  .dt-date{font-size:11px;}
-  .staff-pill select{max-width:140px;font-size:13px;}
-  .rbadge{font-size:10px;padding:2px 8px;}
-
-  /* Nav tabs — bigger font on desktop */
-  .nb{font-size:13px;padding:7px 10px;border-radius:8px;}
-
-  /* POS — wider columns on desktop */
-  .car-info-bar{grid-template-columns:1.2fr 1.8fr 1fr;}
-  .prod-col{flex:0 0 55%;}
-  .order-col{flex:1;}
-  .grid{grid-template-columns:repeat(3,1fr);}
-  .pcard{padding:12px 10px;}
-  .p-nm{font-size:13px;}
-  .p-pr{font-size:12px;}
-
-  /* Order footer — larger text */
-  .srow{font-size:13px;}
-  .tamt{font-size:24px;}
-  .pay-btn{font-size:15px;padding:14px;}
-
-  /* Jobs — multi-column grid on desktop */
-  .jobs-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
-  .job-plate{font-size:22px;}
-  .job-card{padding:18px;}
-
-  /* Inventory table */
-  .tbl-wrap table{min-width:600px;}
-
-  /* Reports metrics — 5 columns */
-  .metrics{grid-template-columns:repeat(5,1fr);}
-  .mc-val{font-size:20px;}
-
-  /* Expenses summary */
-  .date-summary{grid-template-columns:repeat(7,1fr);}
-
-  /* Customers cards — 2 columns on desktop */
-  #pg-cust .cust-scroll{
-    display:grid!important;
-    grid-template-columns:repeat(2,1fr);
-    align-content:start;
-  }
-
-  /* Modals — wider on desktop */
-  .modal{max-width:480px;padding:26px;}
-
-  /* Settings grid */
-  .set-grid{grid-template-columns:repeat(2,1fr);}
-
-  /* Login box */
-  .login-box{max-width:400px;padding:36px 32px;}
-  .login-staff-item{padding:14px 18px;}
-  .login-staff-name{font-size:16px;}
-}
-/* ══ PROFITABILITY DASHBOARD PAGE ══ */
-#pg-dash{flex-direction:column;overflow:hidden;}
-#pg-dash .dash-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-#pg-dash {
-  --dash-bg: #0f1117;
-  --dash-bg-card: #181b24;
-  --dash-bg-card-2: #1f2330;
-  --dash-ink: #f5f1e8;
-  --dash-ink-dim: #a8a294;
-  --dash-ink-muted: #6b6557;
-  --dash-accent: #ffb800;
-  --dash-accent-2: #ff5e3a;
-  --dash-good: #4ade80;
-  --dash-bad: #f87171;
-  --dash-warn: #fbbf24;
-  --dash-line: #2a2e3c;
-  font-family: 'Fraunces', Georgia, serif;
-  background: #0f1117;
-  color: #f5f1e8;
-}
-
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Fraunces', Georgia, serif;
-    background: var(--dash-bg);
-    color: var(--dash-ink);
-    line-height: 1.55;
-    min-height: 100vh;
-    overflow-x: hidden;
-    background-image:
-      radial-gradient(circle at 15% 10%, rgba(255,184,0,0.06) 0%, transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(255,94,58,0.05) 0%, transparent 45%);
-  }
-
-  .mono { font-family: 'JetBrains Mono', monospace; }
-
-  .container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 40px 32px 80px;
-  }
-
-  /* ===== HEADER ===== */
-  .header {
-    border-bottom: 1px solid var(--dash-line);
-    padding-bottom: 32px;
-    margin-bottom: 40px;
-  }
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--dash-accent);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .eyebrow::before {
-    content: '';
-    width: 32px;
-    height: 1px;
-    background: var(--dash-accent);
-  }
-  h1 {
-    font-size: clamp(36px, 5vw, 56px);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-    margin-bottom: 16px;
-  }
-  h1 em {
-    font-style: italic;
-    color: var(--dash-accent);
-    font-weight: 400;
-  }
-  .subtitle {
-    font-size: 16px;
-    color: var(--dash-ink-dim);
-    max-width: 720px;
-  }
-
-  /* ===== SECTION ===== */
-  .section { margin-bottom: 56px; }
-  .section-title {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
-  }
-  .section-title em {
-    font-style: italic;
-    color: var(--dash-accent);
-    font-weight: 400;
-  }
-  .section-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--dash-ink-muted);
-    text-transform: uppercase;
-    margin-bottom: 24px;
-  }
-
-  /* ===== PANEL ===== */
-  .panel {
-    background: var(--dash-bg-card);
-    border: 1px solid var(--dash-line);
-    border-radius: 4px;
-    padding: 28px;
-    margin-bottom: 16px;
-  }
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .panel-title {
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  /* ===== INPUTS ===== */
-  .input-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-  }
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .input-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--dash-ink-dim);
-  }
-  .input-hint {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--dash-ink-muted);
-    margin-top: 2px;
-  }
-  input[type="text"], input[type="number"] {
-    background: var(--bg-input);
-    border: 1px solid var(--dash-line);
-    color: var(--dash-ink);
-    padding: 12px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    border-radius: 3px;
-    transition: border 0.2s, background 0.2s;
-    width: 100%;
-  }
-  input[type="text"]:focus, input[type="number"]:focus {
-    outline: none;
-    border-color: var(--dash-accent);
-    background: #14161d;
-  }
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  input[type=number] { -moz-appearance: textfield; }
-
-  /* ===== BUTTON ===== */
-  .btn {
-    background: var(--dash-accent);
-    color: #0f1117;
-    border: none;
-    padding: 12px 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: transform 0.15s, background 0.2s;
-  }
-  .btn:hover { background: #ffc833; transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
-  .btn-ghost {
-    background: transparent;
-    color: var(--dash-ink-dim);
-    border: 1px solid var(--dash-line);
-  }
-  .btn-ghost:hover { background: var(--dash-bg-card-2); color: var(--dash-ink); border-color: var(--dash-ink-dim); }
-  .btn-danger {
-    background: transparent;
-    color: var(--dash-bad);
-    border: 1px solid rgba(248,113,113,0.3);
-    padding: 8px 14px;
-    font-size: 11px;
-  }
-  .btn-danger:hover { background: rgba(248,113,113,0.1); border-color: var(--dash-bad); }
-
-  /* ===== MONTHS LIST ===== */
-  .months-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .month-row {
-    background: var(--dash-bg-card-2);
-    border: 1px solid var(--dash-line);
-    border-radius: 3px;
-    padding: 20px;
-    display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr auto;
-    gap: 16px;
-    align-items: end;
-    transition: border 0.2s;
-  }
-  .month-row:hover { border-color: var(--dash-ink-muted); }
-  .month-row .input-group { gap: 4px; }
-  .month-row input { padding: 10px 12px; font-size: 13px; }
-
-  /* ===== KPI GRID ===== */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1px;
-    background: var(--dash-line);
-    border: 1px solid var(--dash-line);
-    margin-bottom: 40px;
-  }
-  .kpi {
-    background: var(--dash-bg-card);
-    padding: 28px;
-    position: relative;
-  }
-  .kpi-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--dash-ink-muted);
-    margin-bottom: 10px;
-  }
-  .kpi-value {
-    font-size: 32px;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
-  }
-  .kpi-value.positive { color: var(--dash-good); }
-  .kpi-value.negative { color: var(--dash-bad); }
-  .kpi-value.warn { color: var(--dash-warn); }
-  .kpi-sub {
-    font-size: 13px;
-    color: var(--dash-ink-dim);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  /* ===== CHARTS ===== */
-  .chart-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .chart-card {
-    background: var(--dash-bg-card);
-    border: 1px solid var(--dash-line);
-    border-radius: 4px;
-    padding: 24px;
-  }
-  .chart-card.full { grid-column: 1 / -1; }
-  .chart-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .chart-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--dash-ink-muted);
-    letter-spacing: 0.1em;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-  .chart-container {
-    position: relative;
-    height: 280px;
-  }
-
-  /* ===== VERDICT ===== */
-  .verdict {
-    padding: 24px 28px;
-    border-radius: 4px;
-    border-left: 4px solid;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-  .verdict.good {
-    background: linear-gradient(135deg, rgba(74,222,128,0.08), rgba(74,222,128,0.02));
-    border-color: var(--dash-good);
-  }
-  .verdict.warn {
-    background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.02));
-    border-color: var(--dash-warn);
-  }
-  .verdict.bad {
-    background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.02));
-    border-color: var(--dash-bad);
-  }
-  .verdict-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    padding: 6px 12px;
-    border: 1px solid;
-    border-radius: 2px;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-  .verdict.good .verdict-badge { color: var(--dash-good); border-color: var(--dash-good); }
-  .verdict.warn .verdict-badge { color: var(--dash-warn); border-color: var(--dash-warn); }
-  .verdict.bad .verdict-badge { color: var(--dash-bad); border-color: var(--dash-bad); }
-  .verdict-text {
-    font-size: 18px;
-    flex: 1;
-    min-width: 280px;
-  }
-
-  /* ===== INSIGHTS ===== */
-  .insights-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 16px;
-  }
-  .insight {
-    background: var(--dash-bg-card);
-    border: 1px solid var(--dash-line);
-    border-radius: 4px;
-    padding: 24px;
-    position: relative;
-    overflow: hidden;
-    border-left: 3px solid var(--dash-ink-muted);
-  }
-  .insight.good { border-left-color: var(--dash-good); }
-  .insight.warn { border-left-color: var(--dash-warn); }
-  .insight.bad { border-left-color: var(--dash-bad); }
-  .insight.info { border-left-color: #60a5fa; }
-  .insight h3 {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    letter-spacing: -0.01em;
-  }
-  .insight p {
-    color: var(--dash-ink-dim);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .insight .stat {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--dash-accent);
-    background: rgba(255,184,0,0.08);
-    padding: 1px 6px;
-    border-radius: 2px;
-  }
-  .insight strong { color: var(--dash-ink); }
-
-  /* ===== SUGGESTIONS ===== */
-  .suggestions {
-    background: var(--dash-bg-card);
-    border: 1px solid var(--dash-line);
-    border-radius: 4px;
-    padding: 28px;
-  }
-  .sug-item {
-    display: flex;
-    gap: 18px;
-    padding: 18px 0;
-    border-bottom: 1px solid var(--dash-line);
-  }
-  .sug-item:last-child { border-bottom: none; }
-  .sug-item:first-child { padding-top: 0; }
-  .sug-num {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 24px;
-    color: var(--dash-accent);
-    font-weight: 800;
-    min-width: 36px;
-    line-height: 1.2;
-  }
-  .sug-body h4 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .sug-body p {
-    color: var(--dash-ink-dim);
-    font-size: 14px;
-    line-height: 1.55;
-  }
-
-  /* ===== TABLE ===== */
-  .pnl-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .pnl-table th, .pnl-table td {
-    padding: 12px 16px;
-    text-align: right;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    border-bottom: 1px solid var(--dash-line);
-  }
-  .pnl-table th:first-child, .pnl-table td:first-child {
-    text-align: left;
-    font-family: 'Fraunces', serif;
-    font-size: 14px;
-  }
-  .pnl-table thead th {
-    background: var(--dash-bg-card-2);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--dash-ink-muted);
-    font-weight: 500;
-  }
-  .pnl-table .section-row td {
-    background: var(--dash-bg-card-2);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px !important;
-    letter-spacing: 0.2em;
-    color: var(--dash-accent);
-    text-transform: uppercase;
-  }
-  .pnl-table .total-row td {
-    border-top: 2px solid var(--dash-ink-dim);
-    font-weight: 700;
-  }
-  .pnl-table .profit-row td {
-    background: rgba(74,222,128,0.06);
-    color: var(--dash-good);
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .pnl-table .profit-row td.is-negative {
-    background: rgba(248,113,113,0.06);
-    color: var(--dash-bad);
-  }
-
-  /* ===== EMPTY STATE ===== */
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--dash-ink-muted);
-    font-style: italic;
-  }
-
-  /* ===== ACTIONS BAR ===== */
-  .actions-bar {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    .chart-grid { grid-template-columns: 1fr; }
-    .month-row { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 600px) {
-    .container { padding: 24px 16px 60px; }
-    .month-row { grid-template-columns: 1fr; }
-    h1 { font-size: 32px; }
-    .kpi-value { font-size: 26px; }
-    .panel { padding: 20px; }
-  }
-
-  /* Floating action */
-  .floating-help {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--dash-bg-card);
-    border: 1px solid var(--dash-line);
-    color: var(--dash-ink-dim);
-    padding: 10px 14px;
-    border-radius: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .floating-help:hover { color: var(--dash-accent); border-color: var(--dash-accent); }
-
-  /* Storage notice */
-  .storage-notice {
-    background: rgba(96,165,250,0.06);
-    border: 1px solid rgba(96,165,250,0.2);
-    color: #60a5fa;
-    padding: 12px 16px;
-    border-radius: 3px;
-    font-size: 13px;
-    font-family: 'JetBrains Mono', monospace;
-    margin-bottom: 24px;
-  }
-
 
 /* ══ DASHBOARD PAGE ══ */
 #pg-dash{flex-direction:column;overflow:hidden;}
@@ -1135,10 +476,7 @@ tr:hover td{background:var(--card);}
     <button class="nb on"  onclick="goPage('pos',this)">POS</button>
     <button class="nb"     onclick="goPage('jobs',this)">Jobs</button>
     <button class="nb"     onclick="goPage('inv',this)">Inventory</button>
-    <button class="nb"     onclick="goPage('exp',this)">Expenses</button>
     <button class="nb"     onclick="goPage('rep',this)">Reports</button>
-    <button class="nb"     id="nbCust" onclick="goPage('cust',this)" style="display:none">Customers</button>
-    <button class="nb"     id="nbDash" onclick="goPage('dash',this)" style="display:none">Dashboard</button>
     <button class="nb"     id="nbDash" onclick="goPage('dash',this)" style="display:none">Dashboard</button>
     <button class="nb"     onclick="goPage('set',this)">Settings</button>
   </nav>
@@ -1225,31 +563,12 @@ tr:hover td{background:var(--card);}
 
   <!-- ════ JOBS PAGE ════ -->
   <div class="page" id="pg-jobs">
-    <!-- Header -->
-    <div class="pg-head" style="flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);">
+    <div class="pg-head">
       <div>
-        <div class="pg-title">Jobs</div>
+        <div class="pg-title">Active Jobs</div>
         <div class="pg-sub" id="jobsNote">All current vehicles in progress</div>
       </div>
     </div>
-    <!-- Filter bar -->
-    <div style="flex-shrink:0;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="font-size:10px;font-weight:700;color:var(--muted);">FILTER:</span>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          <button class="dqb on" id="jfActive" onclick="setJobFilter('active',this)">Active</button>
-          <button class="dqb"    id="jfToday"  onclick="setJobFilter('today',this)">Today</button>
-          <button class="dqb"    id="jfAll"    onclick="setJobFilter('all',this)">All</button>
-        </div>
-        <input type="date" id="jobDatePick" onchange="setJobFilter('date',null)"
-          style="padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;color-scheme:dark;margin-left:auto;">
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:10px;color:var(--muted);" id="jobFilterNote"></span>
-        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);" id="jobFilterTotal"></span>
-      </div>
-    </div>
-    <!-- Jobs list -->
     <div class="jobs-scroll">
       <div class="jobs-grid" id="jobsGrid"></div>
     </div>
@@ -1277,84 +596,6 @@ tr:hover td{background:var(--card);}
     </div>
   </div>
 
-  <!-- ════ EXPENSES PAGE ════ -->
-  <div class="page" id="pg-exp">
-
-    <!-- Header row -->
-    <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);">
-      <div>
-        <div class="pg-title">Expenses</div>
-        <div class="pg-sub" id="expNote">Record daily expenses</div>
-      </div>
-    </div>
-
-    <!-- Add expense form — compact, fixed -->
-    <div style="flex-shrink:0;padding:10px 14px;border-bottom:2px solid var(--border);background:var(--card);display:flex;flex-direction:column;gap:8px;">
-      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent);">+ Add New Expense</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
-        <div class="fg">
-          <div class="fl">Amount (₱)</div>
-          <input class="fi" type="number" id="expAmount" placeholder="0.00" min="0">
-        </div>
-        <div class="fg">
-          <div class="fl">Category</div>
-          <select class="fi" id="expCategory" style="cursor:pointer;">
-            <option value="Supplies">Supplies</option>
-            <option value="Utilities">Utilities</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Food">Food / Snacks</option>
-            <option value="Fuel">Fuel</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg">
-        <div class="fl">Description</div>
-        <input class="fi" id="expDesc" placeholder="e.g. Bought soap and shampoo">
-      </div>
-      <!-- Date field: always visible, only editable by manager -->
-      <div class="fg" id="expDateRow">
-        <div class="fl" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>Date</span>
-          <span id="expDateNote" style="font-size:9px;color:var(--muted);font-weight:400;"></span>
-        </div>
-        <input class="fi" type="date" id="expDate" style="color-scheme:dark;">
-      </div>
-      <button class="btn-p" onclick="addExpense()" style="width:100%;padding:10px;font-size:13px;">
-        Save Expense
-      </button>
-    </div>
-
-    <!-- Expenses filter bar — fixed -->
-    <div style="flex-shrink:0;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="font-size:10px;font-weight:700;color:var(--muted);">FILTER:</span>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          <button class="dqb on" id="efAll"   onclick="setExpFilter('all',this)">All</button>
-          <button class="dqb"    id="efToday" onclick="setExpFilter('today',this)">Today</button>
-          <button class="dqb"    id="efWeek"  onclick="setExpFilter('week',this)">This Week</button>
-          <button class="dqb"    id="efMonth" onclick="setExpFilter('month',this)">This Month</button>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <input type="date" id="expFrom" onchange="setExpFilter('custom',null)" style="flex:1;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;color-scheme:dark;">
-        <span style="font-size:10px;color:var(--muted);">–</span>
-        <input type="date" id="expTo"   onchange="setExpFilter('custom',null)" style="flex:1;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;color-scheme:dark;">
-      </div>
-      <!-- Filtered total -->
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:10px;color:var(--muted);" id="expFilterNote">Showing all expenses</span>
-        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--danger);" id="expFilterTotal">₱0.00</span>
-      </div>
-    </div>
-
-    <!-- Expenses list — takes all remaining space, scrollable -->
-    <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;" id="expList">
-      <div style="color:var(--muted);font-size:13px;text-align:center;padding:40px;">No expenses recorded yet.</div>
-    </div>
-
-  </div>
-
   <!-- ════ REPORTS PAGE ════ -->
   <div class="page" id="pg-rep">
 
@@ -1379,37 +620,22 @@ tr:hover td{background:var(--card);}
             <button class="dqb" onclick="setDateFilter('week',this)">This Week</button>
             <button class="dqb" onclick="setDateFilter('month',this)">This Month</button>
           </div>
-          <input type="date" id="dateFrom" onchange="activateCustomFilter()" title="From">
+          <input type="date" id="dateFrom" onchange="setDateFilter('custom',null)" title="From">
           <span style="font-size:10px;color:var(--muted)">–</span>
-          <input type="date" id="dateTo" onchange="activateCustomFilter()" title="To">
+          <input type="date" id="dateTo" onchange="setDateFilter('custom',null)" title="To">
         </div>
         <div class="date-summary" id="dateSummary">
           <div class="ds-item"><div class="ds-lbl">Transactions</div><div class="ds-val" id="dsCount">0</div></div>
-          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);">
-            <div class="ds-lbl">💰 Sales Revenue</div>
-            <div class="ds-val" id="dsRevenue" style="color:var(--success)">₱0.00</div>
-          </div>
-          <div class="ds-item"><div class="ds-lbl">Cash Sales</div><div class="ds-val" id="dsCash">₱0.00</div></div>
-          <div class="ds-item"><div class="ds-lbl">GCash Sales</div><div class="ds-val" id="dsGcash">₱0.00</div></div>
-          <div class="ds-item" style="border-color:rgba(240,180,41,.3);background:rgba(240,180,41,.05);">
-            <div class="ds-lbl">💝 Tips (not in sales)</div>
-            <div class="ds-val" id="dsTips" style="color:var(--accent)">₱0.00</div>
-          </div>
-          <div class="ds-item" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);">
-            <div class="ds-lbl">🧾 Expenses</div>
-            <div class="ds-val" id="dsExpenses" style="color:var(--danger)">₱0.00</div>
-          </div>
-          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.08);">
-            <div class="ds-lbl">📊 Net (Sales−Exp)</div>
-            <div class="ds-val" id="dsNet" style="color:var(--success)">₱0.00</div>
-          </div>
+          <div class="ds-item"><div class="ds-lbl">Revenue</div><div class="ds-val" id="dsRevenue">₱0.00</div></div>
+          <div class="ds-item"><div class="ds-lbl">Cash</div><div class="ds-val" id="dsCash">₱0.00</div></div>
+          <div class="ds-item"><div class="ds-lbl">GCash</div><div class="ds-val" id="dsGcash">₱0.00</div></div>
         </div>
       </div>
 
       <!-- SCROLLABLE: transaction table only -->
       <div class="tbl-x">
-        <table style="min-width:800px" id="txTable" class="tx-table">
-          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
+        <table style="min-width:800px">
+          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Staff</th></tr></thead>
           <tbody id="txBody"></tbody>
         </table>
       </div>
@@ -1417,34 +643,57 @@ tr:hover td{background:var(--card);}
     </div><!-- end rep-sec -->
   </div>
 
-  <!-- ════ CUSTOMERS PAGE (Manager only) ════ -->
-  <div class="page" id="pg-cust">
-    <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div class="pg-title">Customer Records</div>
-        <div class="pg-sub" id="custNote">Manager only — all vehicle visits</div>
+  <!-- ════ SETTINGS PAGE ════ -->
+  <div class="page" id="pg-set">
+    <div class="set-scroll">
+      <div class="pg-title">Settings</div>
+      <div class="set-grid">
+      <div class="sc">
+        <div class="sc-title">Store Info</div>
+        <div class="fg"><div class="fl">Store Name</div><input class="fi" id="sName" oninput="saveSetting('storeName',this.value)"></div>
+        <div class="fg"><div class="fl">Address</div><input class="fi" id="sAddr" oninput="saveSetting('storeAddr',this.value)"></div>
+        <div class="fg"><div class="fl">Currency Symbol</div><input class="fi" id="sCur" oninput="saveSetting('currency',this.value)"></div>
       </div>
-      <span style="font-size:10px;color:var(--accent);background:rgba(240,180,41,.1);padding:3px 9px;border-radius:8px;font-weight:700;">🔒 Manager</span>
-    </div>
-    <!-- Summary cards -->
-    <div style="flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);">
-      <div class="mc"><div class="mc-lbl">Total Plates</div><div class="mc-val" id="custTotal">0</div><div class="mc-sub">Unique vehicles</div></div>
-      <div class="mc"><div class="mc-lbl">🆕 New (1 visit)</div><div class="mc-val" id="custNew">0</div><div class="mc-sub">First timers</div></div>
-      <div class="mc"><div class="mc-lbl">⭐ VIP (5+ visits)</div><div class="mc-val" id="custVip">0</div><div class="mc-sub">Loyal customers</div></div>
-    </div>
-    <!-- Search -->
-    <div style="flex-shrink:0;padding:8px 14px;border-bottom:1px solid var(--border);">
-      <div class="cust-search">
-        <span style="color:var(--muted)">⌕</span>
-        <input type="text" id="custSearch" placeholder="Search plate number..." oninput="renderCust()">
+      <div class="sc">
+        <div class="sc-title">Tax &amp; Discount</div>
+        <div class="fg"><div class="fl">Tax Rate (%)</div><input class="fi" type="number" id="sTax" oninput="saveSetting('tax',this.value)"></div>
+        <div class="fg"><div class="fl">Max Discount (%)</div><input class="fi" type="number" id="sMaxDisc" oninput="saveSetting('maxDisc',this.value)"></div>
       </div>
-    </div>
-    <!-- Scrollable card list -->
-    <div class="cust-scroll" id="custList">
-      <div style="color:var(--muted);text-align:center;padding:30px;font-size:13px">Loading...</div>
-    </div>
-  </div>
-
+      <div class="sc">
+        <div class="sc-title">Staff &amp; Roles</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
+            <span><span class="rbadge rmgr" style="margin-right:6px">MGR</span>Boss B</span>
+            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
+            <span><span class="rbadge rcash" style="margin-right:6px">STAFF</span>Julius</span>
+            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
+            <span><span class="rbadge rcash" style="margin-right:6px">STAFF</span>Angelo</span>
+            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
+          </div>
+          <div style="padding:8px 10px;background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.2);border-radius:7px;font-size:10px;color:var(--muted)">
+            🔒 PINs are hidden for security.<br>To change PINs, edit <b>STAFF_LIST</b> in the source file.
+          </div>
+        </div>
+      </div>
+      <div class="sc" id="dataCard">
+        <div class="sc-title">Data</div>
+        <!-- Manager view -->
+        <div id="dataCardMgr" style="display:none;flex-direction:column;gap:6px;">
+          <button class="btn-dng" onclick="if(confirm('Clear all transactions?')){clearTxs();}">Clear Transactions</button>
+          <button class="btn-dng" onclick="if(confirm('Factory reset? ALL data will be deleted!')){factoryReset();}">Factory Reset</button>
+        </div>
+        <!-- Cashier view -->
+        <div id="dataCardLock" style="display:flex;align-items:center;gap:8px;padding:10px;background:rgba(252,92,125,.07);border:1px solid rgba(252,92,125,.2);border-radius:8px;font-size:12px;color:var(--muted);">
+          🔒 Manager access only
+        </div>
+      </div>
+    </div><!-- end set-grid -->
+    </div><!-- end set-scroll -->
+  </div><!-- end pg-set -->
 
   <!-- ════ DASHBOARD PAGE (Manager only) ════ -->
   <div class="page" id="pg-dash">
@@ -1616,30 +865,6 @@ tr:hover td{background:var(--card);}
 
 </div><!-- end app -->
 
-<!-- EXTRA SERVICE MODAL -->
-<div class="overlay" id="extraSvcModal">
-  <div class="modal">
-    <div class="modal-title">＋ Extra Service</div>
-    <div class="modal-scroll">
-      <div class="modal-body">
-        <div class="fg">
-          <div class="fl">Service Name</div>
-          <input class="fi" id="esvName" placeholder="e.g. Rust Treatment, Headlight Restore...">
-        </div>
-        <div class="fg">
-          <div class="fl">Price (₱)</div>
-          <input class="fi" type="number" id="esvPrice" placeholder="0.00" min="0"
-            style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
-        </div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-cancel" onclick="closeModal('extraSvcModal')">Cancel</button>
-      <button class="btn-ok" onclick="confirmExtraService()">Add to Order</button>
-    </div>
-  </div>
-</div>
-
 <!-- LOG IN CAR MODAL (from POS tab) -->
 <div class="overlay" id="loginCarModal">
   <div class="modal">
@@ -1694,15 +919,6 @@ tr:hover td{background:var(--card);}
         <input class="fi" type="number" id="cashIn" placeholder="0.00" oninput="calcChange()">
         <div class="chg-row" id="chgRow" style="display:none"><span>Change</span><span id="chgAmt">₱0.00</span></div>
       </div>
-      <!-- TIP SECTION — shown for both cash and gcash -->
-      <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px;">
-        <div class="fl" style="display:flex;align-items:center;gap:6px;">
-          💝 Tip (Optional)
-          <span style="font-size:10px;color:var(--muted);font-weight:400">— encode tip given by customer</span>
-        </div>
-        <input class="fi" type="number" id="tipInput" placeholder="0.00" min="0"
-          style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
-      </div>
       <!-- GCASH SECTION -->
       <div id="gcashSec" style="display:none;flex-direction:column;align-items:center;gap:10px;">
         <div style="width:100%;background:linear-gradient(135deg,#0070c9,#00c2ff);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
@@ -1743,144 +959,6 @@ tr:hover td{background:var(--card);}
   </div>
 </div>
 
-<!-- ADD SERVICE TO ACTIVE JOB MODAL -->
-<div class="overlay" id="addSvcModal">
-  <div class="modal">
-    <div class="modal-title">➕ Add Service to Job</div>
-    <div class="modal-scroll">
-      <!-- Job info summary -->
-      <div style="background:var(--card);border-radius:10px;padding:11px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;letter-spacing:2px;color:var(--text)" id="asjPlate">—</div>
-          <div style="font-size:11px;color:var(--muted)" id="asjModel">—</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:11px;color:var(--muted)" id="asjBay">Bay —</div>
-          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--accent)" id="asjTotal">₱0.00</div>
-        </div>
-      </div>
-      <!-- Service selector -->
-      <div class="fg" style="margin-bottom:8px;">
-        <div class="fl">Select from Menu (or choose Custom)</div>
-        <select class="fi" id="asjService" style="cursor:pointer;" onchange="onAsjServiceChange()">
-          <option value="">-- Choose a service --</option>
-          <option value="__custom__">✏️ Custom (type any name)</option>
-        </select>
-      </div>
-      <!-- Custom name — shown only when Custom is selected -->
-      <div class="fg" id="asjCustomRow" style="display:none;margin-bottom:8px;">
-        <div class="fl">Custom Service Name</div>
-        <input class="fi" id="asjCustomName" placeholder="e.g. Underbody Rust Treatment">
-      </div>
-      <!-- Qty -->
-      <div class="fg" style="margin-bottom:8px;">
-        <div class="fl">Qty</div>
-        <input class="fi" type="number" id="asjQty" value="1" min="1" max="20" oninput="calcAsjCharge()">
-      </div>
-      <!-- Price — always freely editable -->
-      <div class="fg" style="margin-bottom:8px;">
-        <div class="fl" style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Price per service (₱)</span>
-          <span style="font-size:9px;color:var(--accent);">✏️ Enter any amount</span>
-        </div>
-        <input class="fi" type="number" id="asjPrice" placeholder="0.00" min="0" oninput="calcAsjCharge()"
-          style="border-color:rgba(240,180,41,.5);background:rgba(240,180,41,.05);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;">
-      </div>
-      <!-- Total charge preview -->
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:var(--card);border-radius:8px;border:1px solid var(--border);">
-        <span style="font-size:12px;color:var(--muted)">Additional charge</span>
-        <span style="font-family:'DM Mono',monospace;font-size:18px;color:var(--success);font-weight:700;" id="asjAddCharge">₱0.00</span>
-      </div>
-      <div style="margin-top:8px;padding:8px 10px;background:rgba(79,209,197,.07);border:1px solid rgba(79,209,197,.2);border-radius:8px;font-size:11px;color:var(--accent2);">
-        ℹ️ Service and total will update on this job immediately.
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-cancel" onclick="closeModal('addSvcModal')">Cancel</button>
-      <button class="btn-ok" onclick="confirmAddService()">Add Service</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT EXPENSE MODAL (Manager only) -->
-<div class="overlay" id="editExpModal">
-  <div class="modal">
-    <div class="modal-title">✏️ Edit Expense</div>
-    <div class="modal-scroll">
-      <div class="modal-body">
-        <div class="fg"><div class="fl">Amount (₱)</div><input class="fi" type="number" id="eeAmount" placeholder="0.00" min="0"></div>
-        <div class="fg">
-          <div class="fl">Category</div>
-          <select class="fi" id="eeCategory" style="cursor:pointer;">
-            <option value="Supplies">Supplies</option>
-            <option value="Utilities">Utilities</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Food">Food / Snacks</option>
-            <option value="Fuel">Fuel</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
-        <div class="fg"><div class="fl">Description</div><input class="fi" id="eeDesc" placeholder="e.g. Bought soap"></div>
-        <div class="fg"><div class="fl">Date</div><input class="fi" id="eeDate" placeholder="e.g. 5/8/2026"></div>
-        <div class="fg"><div class="fl">Time</div><input class="fi" id="eeTime" placeholder="e.g. 9:00:00 AM"></div>
-        <div class="fg"><div class="fl">Staff</div><input class="fi" id="eeStaff"></div>
-        <div style="padding:8px 10px;background:rgba(252,92,125,.07);border:1px solid rgba(252,92,125,.2);border-radius:8px;font-size:11px;color:var(--danger);">
-          ⚠️ Manager only — changes saved directly to Firebase.
-        </div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-cancel" onclick="closeModal('editExpModal')">Cancel</button>
-      <button class="btn-ok" onclick="saveEditExp()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT TRANSACTION MODAL (Manager only) -->
-<div class="overlay" id="editTxModal">
-  <div class="modal">
-    <div class="modal-title">✏️ Edit Transaction</div>
-    <div class="modal-scroll">
-      <div class="modal-body">
-        <div class="fg"><div class="fl">Date</div><input class="fi" id="etDate" placeholder="e.g. 5/8/2026"></div>
-        <div class="fg"><div class="fl">Plate No.</div><input class="fi" id="etPlate" style="text-transform:uppercase;font-family:'DM Mono',monospace;" oninput="this.value=this.value.toUpperCase()"></div>
-        <div class="fg"><div class="fl">Car Model</div><input class="fi" id="etModel"></div>
-        <div class="fg"><div class="fl">Bay</div>
-          <select class="fi" id="etBay" style="cursor:pointer">
-            <option value="1">Bay 1</option>
-            <option value="2">Bay 2</option>
-            <option value="3">Bay 3</option>
-            <option value="4">Bay 4</option>
-          </select>
-        </div>
-        <div class="fg"><div class="fl">Services</div><input class="fi" id="etServices"></div>
-        <div class="fg"><div class="fl">Payment Method</div>
-          <select class="fi" id="etPayment" style="cursor:pointer">
-            <option value="cash">Cash</option>
-            <option value="gcash">GCash</option>
-          </select>
-        </div>
-        <div class="fg"><div class="fl">Total (₱) — service charge only</div><input class="fi" type="number" id="etTotal" min="0"></div>
-        <div class="fg">
-          <div class="fl">Tip (₱) — separate from sales</div>
-          <input class="fi" type="number" id="etTip" min="0" placeholder="0.00"
-            style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
-        </div>
-        <div class="fg"><div class="fl">Time In</div><input class="fi" id="etTimeIn"></div>
-        <div class="fg"><div class="fl">Time Out</div><input class="fi" id="etTimeOut"></div>
-        <div class="fg"><div class="fl">Staff</div><input class="fi" id="etStaff"></div>
-        <div style="padding:8px 10px;background:rgba(252,92,125,.07);border:1px solid rgba(252,92,125,.2);border-radius:8px;font-size:11px;color:var(--danger);">
-          ⚠️ Manager only — changes are saved directly to Firebase and cannot be undone.
-        </div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-cancel" onclick="closeModal('editTxModal')">Cancel</button>
-      <button class="btn-ok" onclick="saveEditTx()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
 <!-- PRODUCT MODAL -->
 <div class="overlay" id="prodModal">
   <div class="modal">
@@ -1901,65 +979,7 @@ tr:hover td{background:var(--card);}
   </div>
 </div>
 
-<!-- MANDATORY LOGIN SCREEN — shows on every page load -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">Bzone<b>POS</b></div>
-    <div class="login-sub">Select your account and enter PIN</div>
-    <!-- Staff selection -->
-    <div class="login-staff-list" id="loginStaffList">
-      <div class="login-staff-item" onclick="selectLoginStaff(this,'Julius','cashier','2283')">
-        <div class="login-staff-avatar" style="background:rgba(79,209,197,.15)">👤</div>
-        <div class="login-staff-info">
-          <div class="login-staff-name">Julius</div>
-          <div class="login-staff-role">Cashier</div>
-        </div>
-      </div>
-      <div class="login-staff-item" onclick="selectLoginStaff(this,'Boss B','manager','1007')">
-        <div class="login-staff-avatar" style="background:rgba(240,180,41,.15)">⭐</div>
-        <div class="login-staff-info">
-          <div class="login-staff-name">Boss B</div>
-          <div class="login-staff-role">Manager</div>
-        </div>
-      </div>
-      <div class="login-staff-item" onclick="selectLoginStaff(this,'Angelo','cashier','3382')">
-        <div class="login-staff-avatar" style="background:rgba(72,187,120,.15)">👤</div>
-        <div class="login-staff-info">
-          <div class="login-staff-name">Angelo</div>
-          <div class="login-staff-role">Cashier</div>
-        </div>
-      </div>
-    </div>
-    <!-- PIN entry -->
-    <div class="login-pin-section" id="loginPinSection" style="display:none">
-      <div class="login-pin-for" id="loginPinFor">Enter PIN for Julius</div>
-      <div class="pin-dots" style="justify-content:center;margin:12px 0;">
-        <div class="pd" id="lpd0"></div>
-        <div class="pd" id="lpd1"></div>
-        <div class="pd" id="lpd2"></div>
-        <div class="pd" id="lpd3"></div>
-      </div>
-      <div class="numpad">
-        <button class="npb" onclick="loginPinKey('1')">1</button>
-        <button class="npb" onclick="loginPinKey('2')">2</button>
-        <button class="npb" onclick="loginPinKey('3')">3</button>
-        <button class="npb" onclick="loginPinKey('4')">4</button>
-        <button class="npb" onclick="loginPinKey('5')">5</button>
-        <button class="npb" onclick="loginPinKey('6')">6</button>
-        <button class="npb" onclick="loginPinKey('7')">7</button>
-        <button class="npb" onclick="loginPinKey('8')">8</button>
-        <button class="npb" onclick="loginPinKey('9')">9</button>
-        <button class="npb" onclick="loginPinKey('clr')" style="font-size:11px;font-weight:700">CLR</button>
-        <button class="npb" onclick="loginPinKey('0')">0</button>
-        <button class="npb ok" onclick="loginPinKey('ok')">OK</button>
-      </div>
-      <div class="pin-err" id="loginPinErr"></div>
-      <div class="pin-cancel" onclick="backToStaffSelect()">← Back</div>
-    </div>
-  </div>
-</div>
-
-<!-- PIN SCREEN (for switching staff while logged in) -->
+<!-- PIN SCREEN -->
 <div class="pin-screen" id="pinScreen">
   <div class="pin-box">
     <div class="pin-box-t" id="pinTitle">Enter PIN</div>
@@ -1989,14 +1009,11 @@ tr:hover td{background:var(--card);}
 
 <div class="toast" id="toastEl"></div>
 
-<!-- Chart.js for Dashboard -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
 <!-- FIREBASE -->
 <script type="module">
-import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getDatabase, ref, set, push, onValue, remove, update, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbBaA03er6Yi0yhU2WL-I5eTzReElg9dI",
@@ -2019,20 +1036,19 @@ const STAFF_LIST = [
 
 /* STATE */
 let S = {storeName:'Bzone Carwash',storeAddr:'',currency:'₱',tax:0,maxDisc:50};
-let prods = {}, txs = {}, jobs = {}, expenses = {};
+let prods = {}, txs = {}, jobs = {};
 let cart=[], disc=0, payMethod='cash';
-let staffName='', staffRole='';   // empty — must login first
+let staffName='Julius', staffRole='cashier';
 let activeCat='All', editId=null;
 let pendingStaff=null, pinBuffer='';
-let loginPendingStaff=null, loginPinBuffer='';
 
 const $   = id => document.getElementById(id);
 const fmt = n  => S.currency + parseFloat(n||0).toFixed(2);
 
 /* TOAST */
-function toast(msg, col, duration) {
+function toast(msg, col) {
   const el=$('toastEl'); el.textContent=msg; el.style.background=col||'var(--success)';
-  el.classList.add('on'); setTimeout(()=>el.classList.remove('on'), duration||2500);
+  el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),2500);
 }
 
 /* SYNC STATUS */
@@ -2043,26 +1059,6 @@ function syncStatus(s){
   else{dot.className='sync-dot';txt.textContent='Connecting...';txt.style.color='var(--muted)';}
 }
 
-/* OVERDUE JOB ALERT — checks every 60 seconds */
-const _overdueAlerted = new Set(); // track which jobs already vibrated this session
-setInterval(()=>{
-  // Always re-render jobs to update elapsed time
-  if(Object.keys(jobs).length) renderJobs();
-  // Only vibrate for cashiers, not manager
-  if(staffRole==='manager') return;
-  const now = Date.now();
-  Object.entries(jobs).forEach(([key,j])=>{
-    if(j.status==='completed') return;
-    const elapsedMin = j.timeInTs ? Math.floor((now - j.timeInTs)/60000) : 0;
-    if(elapsedMin >= 55 && !_overdueAlerted.has(key)){
-      _overdueAlerted.add(key);
-      // Vibrate phone: 3 pulses
-      if(navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
-      toast(`⚠️ ${j.plate||'A car'} in Bay ${j.bay} has been here ${elapsedMin} mins!`,'var(--danger)',6000);
-    }
-  });
-}, 60000);
-
 /* CLOCK + DATE */
 function updateClock(){
   const now=new Date();
@@ -2072,96 +1068,16 @@ function updateClock(){
 updateClock();
 setInterval(updateClock,1000);
 
-/* ══ MANDATORY LOGIN SCREEN ══ */
-window.selectLoginStaff = function(el, name, role, pin){
-  loginPendingStaff = {name, role, pin};
-  loginPinBuffer = '';
-  updateLoginDots();
-  $('loginPinFor').textContent = 'Enter PIN for ' + name;
-  $('loginPinErr').textContent = '';
-  $('loginStaffList').style.display = 'none';
-  $('loginPinSection').style.display = 'flex';
-};
-window.loginPinKey = function(k){
-  if(k==='clr'){loginPinBuffer='';updateLoginDots();return;}
-  if(k==='ok'){
-    if(!loginPendingStaff)return;
-    if(loginPinBuffer===loginPendingStaff.pin){
-      // Login success
-      staffName = loginPendingStaff.name;
-      staffRole = loginPendingStaff.role;
-      // Update header badge
-      const rb=$('rbadge');
-      rb.textContent = staffRole==='manager'?'Manager':'Cashier';
-      rb.className   = 'rbadge '+(staffRole==='manager'?'rmgr':'rcash');
-      // Update dropdown to match
-      const cur=STAFF_LIST.find(s=>s.name===staffName);
-      if(cur) $('staffSel').value=cur.value;
-      // Hide login screen
-      $('loginScreen').classList.add('hidden');
-      toast('Welcome, '+staffName+'! 👋');
-      const _nd2=$('nbDash');if(_nd2)_nd2.style.display=(staffRole==='manager'?'':'none');
-      renderExp();
-      // Show Customers tab only for manager
-      const nb=$('nbCust');
-      if(nb) nb.style.display=staffRole==='manager'?'':'none';
-    } else {
-      $('loginPinErr').textContent='Wrong PIN. Try again.';
-      loginPinBuffer=''; updateLoginDots();
-    }
-    return;
-  }
-  if(loginPinBuffer.length<4){loginPinBuffer+=k;updateLoginDots();$('loginPinErr').textContent='';}
-};
-window.backToStaffSelect = function(){
-  loginPinBuffer=''; updateLoginDots();
-  $('loginPinSection').style.display='none';
-  $('loginStaffList').style.display='flex';
-};
-function updateLoginDots(){
-  for(let i=0;i<4;i++) $('lpd'+i).className='pd'+(i<loginPinBuffer.length?' filled':'');
-}
-
-/* EXTRA SERVICE (POS tab — free input, any staff) */
-window.openExtraService = function(){
-  $('esvName').value  = '';
-  $('esvPrice').value = '';
-  $('extraSvcModal').classList.add('on');
-  setTimeout(()=>$('esvName').focus(), 200);
-};
-window.confirmExtraService = function(){
-  const name  = $('esvName').value.trim();
-  const price = parseFloat($('esvPrice').value) || 0;
-  if(!name){  toast('Enter a service name','var(--danger)'); return; }
-  if(!price){ toast('Enter a price','var(--danger)'); return; }
-  // Add to cart as a custom item (key = __extra__ + timestamp to be unique)
-  const key = '__extra__'+Date.now();
-  const existing = cart.find(c=>c.key===key);
-  if(existing){ existing.qty++; }
-  else { cart.push({key, name:'✨ '+name, price, qty:1}); }
-  closeModal('extraSvcModal');
-  renderOrder();
-  toast('✨ '+name+' added to order');
-};
-
 /* PAGE NAV */
 window.goPage = function(id,btn){
-  if(id==='cust' && staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const pageMap={'pos':'pg-pos','jobs':'pg-jobs','inv':'pg-inv','exp':'pg-exp','rep':'pg-rep','cust':'pg-cust','dash':'pg-dash','set':'pg-set'};
-  $(pageMap[id]||'pg-pos').classList.add('on');
+  $(id==='jobs'?'pg-jobs':id==='inv'?'pg-inv':id==='rep'?'pg-rep':id==='set'?'pg-set':id==='dash'?'pg-dash':'pg-pos').classList.add('on');
   btn.classList.add('on');
-  if(id==='inv')  renderInv();
-  if(id==='rep')  renderRep();
-  if(id==='set')  loadSet();
+  if(id==='inv') renderInv();
+  if(id==='rep') renderRep();
+  if(id==='set') loadSet();
   if(id==='jobs') renderJobs();
-  if(id==='exp')  renderExp();
-  if(id==='cust') renderCust();
-  if(id==='dash') initDashboard();
-  // Show/hide Customers tab based on role
-  const nb=$('nbCust');
-  if(nb) nb.style.display=staffRole==='manager'?'':'none';
 };
 
 /* PIN */
@@ -2191,8 +1107,6 @@ window.pinKey = function(k){
       const mgr=staffRole==='manager';
       $('dataCardMgr').style.display=mgr?'flex':'none';
       $('dataCardLock').style.display=mgr?'none':'flex';
-      const nb=$('nbCust'); if(nb) nb.style.display=mgr?'':'none';
-      const nd=$('nbDash'); if(nd) nd.style.display=mgr?'':'none';
     } else {
       $('pinErr').textContent='Wrong PIN. Try again.';
       pinBuffer=''; updateDots();
@@ -2226,19 +1140,12 @@ onValue(ref(db,'products'),snap=>{
 onValue(ref(db,'transactions'),snap=>{
   txs=snap.exists()?snap.val():{};
   renderRep();
-  if($('pg-cust')&&$('pg-cust').classList.contains('on')) renderCust();
 },()=>syncStatus('error'));
 
 onValue(ref(db,'jobs'),snap=>{
   jobs=snap.exists()?snap.val():{};
   renderBayStatus(); renderJobs();
 },()=>syncStatus('error'));
-
-onValue(ref(db,'expenses'),snap=>{
-  expenses=snap.exists()?snap.val():{};
-  renderExp();
-  renderRep();
-},()=>{});
 
 /* SEED DEFAULT SERVICES */
 async function seedProds(){
@@ -2271,22 +1178,15 @@ function renderGrid(){
     (activeCat==='All'||p.cat===activeCat)&&
     (p.name.toLowerCase().includes(q)||(p.cat||'').toLowerCase().includes(q))
   );
-  // Extra Service card — always shown at end (only when All or no search filter)
-  const showExtra = activeCat==='All' && !q;
-  const extraCard = showExtra
-    ? `<div class="pcard" onclick="openExtraService()" style="border:1px dashed var(--accent2);background:rgba(79,209,197,.05);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;">
-        <div class="p-em">✏️</div>
-        <div class="p-nm" style="color:var(--accent2);text-align:center;">Extra Service</div>
-        <div class="p-pr" style="color:var(--muted);font-size:9px;">Manual price</div>
-       </div>`
-    : '';
-  $('productGrid').innerHTML = list.length
-    ? list.map(([key,p])=>`
+  $('productGrid').innerHTML=list.length
+    ?list.map(([key,p])=>`
       <div class="pcard${p.stock===0?' out':''}" onclick="addToCart('${key}')">
+        <div class="p-em">${p.em}</div>
         <div class="p-nm">${p.name}</div>
         <div class="p-pr">${fmt(p.price)}</div>
-      </div>`).join('') + extraCard
-    : extraCard || '<div style="color:var(--muted);padding:16px;font-size:12px">No services found</div>';
+        <div class="p-st">${p.stock>0?'Avail: '+p.stock:'Unavailable'}</div>
+      </div>`).join('')
+    :'<div style="color:var(--muted);padding:16px;font-size:12px">No services found</div>';
 }
 window.renderGrid=renderGrid;
 
@@ -2444,11 +1344,7 @@ window.openPayForJob = function(key){
   $('cashIn').value=''; $('chgRow').style.display='none';
   $('payModal').classList.add('on');
 };
-window.closePay=function(){
-  $('payModal').classList.remove('on');
-  activeJobKey=null;
-  $('tipInput').value='';
-};
+window.closePay=function(){$('payModal').classList.remove('on'); activeJobKey=null;};
 window.pickMethod=function(m,el){
   payMethod=m;
   document.querySelectorAll('.pm').forEach(e=>e.classList.remove('on'));
@@ -2489,7 +1385,6 @@ window.confirmPay=async function(){
     const recv=parseFloat($('cashIn').value)||0;
     if(recv<j.total){alert('Cash received is not enough!');return;}
   }
-  const tip=parseFloat($('tipInput').value)||0;
   const now=new Date();
   const timeOut=now.toLocaleTimeString();
   const txRef=push(ref(db,'transactions'));
@@ -2506,97 +1401,37 @@ window.confirmPay=async function(){
     items:j.services,
     payment:payMethod,
     total:j.total,
-    tip:tip,
     staff:staffName,
     ts:now.getTime(),
   };
   await update(ref(db),updates);
   closePay();
-  const tipMsg=tip>0?` | Tip: ${fmt(tip)}`:'';
-  toast('✅ Payment collected! '+j.plate+' checked out'+tipMsg);
+  toast('✅ Payment collected! '+j.plate+' checked out');
 };
 
 /* JOBS */
-/* JOBS FILTER */
-let jobFilter = 'active';
-window.setJobFilter = function(mode, btn){
-  jobFilter = mode;
-  if(btn){
-    document.querySelectorAll('#jfActive,#jfToday,#jfAll')
-      .forEach(b=>b.classList.remove('on'));
-    btn.classList.add('on');
-  }
-  if(mode !== 'date') { const d=$('jobDatePick'); if(d) d.value=''; }
-  renderJobs();
-};
-function getFilteredJobs(){
-  const today = new Date().toLocaleDateString();
-  const list  = Object.entries(jobs);
-  if(jobFilter==='active') return list.filter(([,j])=>j.status!=='completed');
-  if(jobFilter==='today')  return list.filter(([,j])=>j.date===today);
-  if(jobFilter==='date'){
-    const pick=$('jobDatePick')?$('jobDatePick').value:'';
-    if(!pick) return list;
-    return list.filter(([,j])=>{
-      if(j.timeInTs){
-        const d=new Date(j.timeInTs);
-        const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-        return ds===pick;
-      }
-      if(j.date){
-        const p=j.date.split('/');
-        if(p.length===3) return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0')===pick;
-      }
-      return false;
-    });
-  }
-  return list;
-}
 function renderJobs(){
-  const now      = Date.now();
-  const filtered = getFilteredJobs().sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
-  const active   = Object.values(jobs).filter(j=>j.status!=='completed');
-  $('jobsNote').textContent = active.length+' vehicle'+(active.length!==1?'s':'')+' in progress';
-  const fn=$('jobFilterNote'), ft=$('jobFilterTotal');
-  if(fn){ const lbl={active:'Active jobs',today:"Today's jobs",all:'All jobs',date:'Selected date'}; fn.textContent=(lbl[jobFilter]||'')+' — '+filtered.length+' job'+(filtered.length!==1?'s':''); }
-  if(ft){ const tot=filtered.reduce((s,[,j])=>s+(j.total||0),0); ft.textContent=filtered.length?'Total: ₱'+tot.toFixed(2):''; }
-  if(!filtered.length){
-    $('jobsGrid').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;">'+(jobFilter==='active'?'No active jobs. Log in a car from the POS tab.':'No jobs found for this filter.')+'</div>';
+  const list=Object.entries(jobs).sort((a,b)=>(b[1].timeInTs||0)-(a[1].timeInTs||0));
+  const active=list.filter(([,j])=>j.status!=='completed');
+  $('jobsNote').textContent=active.length+' vehicle'+(active.length!==1?'s':'')+' in progress';
+  if(!list.length){
+    $('jobsGrid').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px">No active jobs. Log in a car from the POS tab.</div>';
     return;
   }
-  $('jobsGrid').innerHTML=filtered.map(([key,j])=>{
+  $('jobsGrid').innerHTML=list.map(([key,j])=>{
     const done=j.status==='completed';
-    // Visit count from transaction history
-    const visitCount = getVisitCount(j.plate);
-    const visitBadge = visitCount<=1
-      ? '<span style="font-size:10px;background:rgba(72,187,120,.12);color:var(--success);padding:1px 7px;border-radius:6px;font-weight:600;">🆕 New customer</span>'
-      : visitCount>=5
-        ? `<span style="font-size:10px;background:rgba(240,180,41,.12);color:var(--accent);padding:1px 7px;border-radius:6px;font-weight:600;">⭐ ${visitCount} visits</span>`
-        : `<span style="font-size:10px;background:rgba(79,209,197,.1);color:var(--accent2);padding:1px 7px;border-radius:6px;font-weight:600;">🔁 ${visitCount} visits</span>`;
-    const elapsedMs  = j.timeInTs ? now - j.timeInTs : 0;
-    const elapsedMin = Math.floor(elapsedMs / 60000);
-    const elapsedH   = Math.floor(elapsedMin / 60);
-    const elapsedM   = elapsedMin % 60;
-    const elapsedStr = j.timeInTs && !done ? (elapsedH > 0 ? elapsedH+'h '+elapsedM+'m' : elapsedM+'m') : '';
-    const isOverdue  = !done && elapsedMin >= 55;
-    const badge = done
+    const badge=done
       ?'<span class="job-status-badge badge-done">✓ Paid & Done</span>'
-      : isOverdue
-        ?`<span class="job-overdue-badge">⚠️ ${elapsedStr} — OVERDUE</span>`
-        :`<span class="job-status-badge badge-progress">🔧 ${elapsedStr ? elapsedStr+' elapsed' : 'In Progress'}</span>`;
+      :'<span class="job-status-badge badge-progress">🔧 In Progress</span>';
     const actionBtn=done
       ?`<span style="font-size:11px;color:var(--muted)">Out: ${j.timeOut||'—'}</span>`
-      :`<div style="display:flex;gap:6px;flex:1;">
-          <button class="complete-btn" style="flex:1;background:var(--accent);color:#0d0f14;font-size:12px;padding:9px;" onclick="openPayForJob('${key}')">💰 Collect Payment</button>
-          <button class="complete-btn" style="flex:0 0 auto;background:var(--card);color:var(--accent2);border:1px solid var(--accent2);font-size:12px;padding:9px 12px;" onclick="openAddServiceToJob('${key}')">＋ Add</button>
-        </div>`;
-    return`<div class="job-card ${done?'completed':'in-progress'}${isOverdue?' overdue':''}">
+      :`<button class="complete-btn" style="background:var(--accent);color:#0d0f14;" onclick="openPayForJob('${key}')">💰 Collect Payment</button>`;
+    return`<div class="job-card ${done?'completed':'in-progress'}">
       <div class="job-head">
         <div class="job-plate">${j.plate||'—'}</div>
         <div class="job-bay">Bay ${j.bay||'—'}</div>
       </div>
       ${j.carModel?`<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${j.carModel}</div>`:''}
-      <div style="margin-bottom:4px;">${visitBadge}</div>
       <div class="job-services">${j.services||'—'}</div>
       <div class="job-times">
         <span class="job-time-in">⏱ In: ${j.timeIn||'—'}</span>
@@ -2612,83 +1447,6 @@ function renderJobs(){
     </div>`;
   }).join('');
 }
-/* ADD SERVICE TO ACTIVE JOB */
-let addSvcJobKey = null;
-
-window.openAddServiceToJob = function(key){
-  const j = jobs[key]; if(!j) return;
-  addSvcJobKey = key;
-  $('asjPlate').textContent = j.plate    || '—';
-  $('asjModel').textContent = j.carModel || '—';
-  $('asjBay').textContent   = 'Bay '+(j.bay||'—');
-  $('asjTotal').textContent = fmt(j.total);
-  const sel = $('asjService');
-  sel.innerHTML = '<option value="">-- Choose a service --</option><option value="__custom__">✏️ Custom (type any name + price)</option>';
-  Object.entries(prods).forEach(([k,p])=>{
-    const opt = document.createElement('option');
-    opt.value         = k;
-    opt.textContent   = p.em+' '+p.name+' — '+fmt(p.price);
-    opt.dataset.price = p.price;
-    opt.dataset.name  = p.name;
-    sel.appendChild(opt);
-  });
-  $('asjQty').value           = '1';
-  $('asjPrice').value         = '';
-  $('asjCustomName').value    = '';
-  $('asjCustomRow').style.display = 'none';
-  $('asjAddCharge').textContent   = fmt(0);
-  $('addSvcModal').classList.add('on');
-};
-
-window.onAsjServiceChange = function(){
-  const sel      = $('asjService');
-  const isCustom = sel.value === '__custom__';
-  $('asjCustomRow').style.display = isCustom ? 'flex' : 'none';
-  if(!isCustom && sel.selectedIndex > 1){
-    $('asjPrice').value = sel.options[sel.selectedIndex].dataset.price || '';
-  } else if(isCustom){
-    $('asjPrice').value = '';
-  }
-  calcAsjCharge();
-};
-
-window.calcAsjCharge = function(){
-  const price = parseFloat($('asjPrice').value) || 0;
-  const qty   = parseInt($('asjQty').value)     || 1;
-  $('asjAddCharge').textContent = fmt(price * qty);
-};
-
-window.confirmAddService = async function(){
-  const j     = jobs[addSvcJobKey]; if(!j) return;
-  const sel   = $('asjService');
-  const qty   = parseInt($('asjQty').value) || 1;
-  const price = parseFloat($('asjPrice').value) || 0;
-  let svcName = '';
-  if(sel.value === '__custom__'){
-    svcName = $('asjCustomName').value.trim();
-    if(!svcName){ toast('Enter a custom service name','var(--danger)'); return; }
-  } else if(sel.value){
-    svcName = sel.options[sel.selectedIndex].dataset.name || sel.options[sel.selectedIndex].text.split(' — ')[0];
-  } else {
-    toast('Please select a service','var(--danger)'); return;
-  }
-  if(!price){ toast('Enter a price','var(--danger)'); return; }
-  const addTotal = price * qty;
-  const newTotal = (j.total||0) + addTotal;
-  const addedStr = svcName+' x'+qty+(price ? ' ('+fmt(price)+' each)' : '');
-  const newSvcs  = j.services ? j.services+', '+addedStr : addedStr;
-  const oldList  = j.servicesList || [];
-  const newList  = [...oldList, {name:svcName, qty, price}];
-  await update(ref(db,'jobs/'+addSvcJobKey),{
-    services:     newSvcs,
-    servicesList: newList,
-    total:        newTotal,
-  });
-  closeModal('addSvcModal');
-  addSvcJobKey = null;
-  toast('✅ '+svcName+' x'+qty+' added — new total: '+fmt(newTotal));
-};
-
 /* end renderJobs */
 
 /* INVENTORY */
@@ -2788,459 +1546,11 @@ window.factoryReset=async function(){
   toast('Reset done — locked services restored ✓');
 };
 
-/* TRANSACTION EDIT / DELETE — Manager only */
-let editTxKey = null;
-window.openEditTx = function(id){
-  if(!needsMgr()) return;
-  // Find transaction by id field
-  const entry = Object.entries(txs).find(([,t])=>t.id===id);
-  if(!entry){ toast('Transaction not found','var(--danger)'); return; }
-  const [key, t] = entry;
-  editTxKey = key;
-  $('etDate').value    = t.date    || '';
-  $('etPlate').value   = t.plate   || '';
-  $('etModel').value   = t.carModel|| '';
-  $('etBay').value     = t.bay     || '1';
-  $('etServices').value= t.items   || '';
-  $('etPayment').value = t.payment || 'cash';
-  $('etTotal').value   = t.total   || 0;
-  $('etTip').value     = t.tip     || '';
-  $('etTimeIn').value  = t.timeIn  || '';
-  $('etTimeOut').value = t.timeOut || '';
-  $('etStaff').value   = t.staff   || '';
-  $('editTxModal').classList.add('on');
-};
-
-window.saveEditTx = async function(){
-  if(!needsMgr()) return;
-  if(!editTxKey){ toast('No transaction selected','var(--danger)'); return; }
-  const total    = parseFloat($('etTotal').value)  || 0;
-  const tip      = parseFloat($('etTip').value)    || 0;
-  const plate    = $('etPlate').value.trim().toUpperCase();
-  const carModel = $('etModel').value.trim();
-  const bay      = $('etBay').value;
-  const items    = $('etServices').value.trim();
-  const payment  = $('etPayment').value;
-  const date     = $('etDate').value.trim();
-  const timeIn   = $('etTimeIn').value.trim();
-  const timeOut  = $('etTimeOut').value.trim();
-  const staff    = $('etStaff').value.trim();
-
-  const updates = {};
-
-  // Update transaction
-  updates['transactions/'+editTxKey] = {
-    ...txs[editTxKey],
-    date, plate, carModel, bay,
-    items, payment, total, tip,
-    timeIn, timeOut, staff,
-  };
-
-  // Find and update matching job (match by plate + date)
-  const matchingJob = Object.entries(jobs).find(([,j]) =>
-    j.plate === txs[editTxKey]?.plate && j.date === txs[editTxKey]?.date
-  );
-  if(matchingJob){
-    const [jobKey] = matchingJob;
-    updates['jobs/'+jobKey+'/plate']    = plate;
-    updates['jobs/'+jobKey+'/carModel'] = carModel;
-    updates['jobs/'+jobKey+'/bay']      = bay;
-    updates['jobs/'+jobKey+'/services'] = items;
-    updates['jobs/'+jobKey+'/payment']  = payment;
-    updates['jobs/'+jobKey+'/total']    = total;
-    updates['jobs/'+jobKey+'/timeIn']   = timeIn;
-    updates['jobs/'+jobKey+'/timeOut']  = timeOut;
-    updates['jobs/'+jobKey+'/staff']    = staff;
-    updates['jobs/'+jobKey+'/date']     = date;
-  }
-
-  await update(ref(db), updates);
-  closeModal('editTxModal');
-  editTxKey = null;
-  toast('Transaction & Job updated ✓');
-};
-
-window.deleteTx = async function(id){
-  if(!needsMgr()) return;
-  const entry = Object.entries(txs).find(([,t])=>t.id===id);
-  if(!entry){ toast('Transaction not found','var(--danger)'); return; }
-  if(!confirm('Delete this transaction? This cannot be undone.')) return;
-  await remove(ref(db,'transactions/'+entry[0]));
-  toast('Transaction deleted');
-};
-
-/* EXPENSES */
-window.addExpense = async function(){
-  const amount = parseFloat($('expAmount').value)||0;
-  const desc   = $('expDesc').value.trim();
-  const cat    = $('expCategory').value;
-  if(!amount){ toast('Enter an amount','var(--danger)'); return; }
-  if(!desc)  { toast('Enter a description','var(--danger)'); return; }
-  const selectedDate = $('expDate').value; // YYYY-MM-DD
-  const now = new Date();
-  // Build the date string and timestamp from selected date
-  let dateStr, ts;
-  if(selectedDate){
-    const d = new Date(selectedDate+'T12:00:00'); // noon to avoid timezone issues
-    dateStr = d.toLocaleDateString();
-    ts = d.getTime();
-  } else {
-    dateStr = now.toLocaleDateString();
-    ts = now.getTime();
-  }
-  await push(ref(db,'expenses'),{
-    amount, desc, cat,
-    date:  dateStr,
-    time:  selectedDate===now.toISOString().slice(0,10)
-           ? now.toLocaleTimeString()
-           : '(backdated)',
-    staff: staffName,
-    ts,
-  });
-  $('expAmount').value=''; $('expDesc').value='';
-  // Reset date back to today
-  $('expDate').value = now.toISOString().slice(0,10);
-  toast(selectedDate===now.toISOString().slice(0,10)
-    ? 'Expense saved ✓'
-    : `Expense backdated to ${dateStr} ✓`);
-};
-
-window.deleteExpense = async function(key){
-  if(!needsMgr()) return;
-  if(!confirm('Delete this expense?')) return;
-  await remove(ref(db,'expenses/'+key));
-  toast('Expense deleted');
-};
-
-let editExpKey = null;
-window.openEditExp = function(key){
-  if(!needsMgr()) return;
-  const e = expenses[key]; if(!e) return;
-  editExpKey = key;
-  $('eeAmount').value   = e.amount  || '';
-  $('eeCategory').value = e.cat     || 'Supplies';
-  $('eeDesc').value     = e.desc    || '';
-  $('eeDate').value     = e.date    || '';
-  $('eeTime').value     = e.time    || '';
-  $('eeStaff').value    = e.staff   || '';
-  $('editExpModal').classList.add('on');
-};
-
-window.saveEditExp = async function(){
-  if(!needsMgr()) return;
-  if(!editExpKey){ toast('No expense selected','var(--danger)'); return; }
-  const amount = parseFloat($('eeAmount').value)||0;
-  const desc   = $('eeDesc').value.trim();
-  if(!amount){ alert('Amount is required'); return; }
-  if(!desc)  { alert('Description is required'); return; }
-  await update(ref(db,'expenses/'+editExpKey),{
-    amount,
-    cat:   $('eeCategory').value,
-    desc,
-    date:  $('eeDate').value.trim(),
-    time:  $('eeTime').value.trim(),
-    staff: $('eeStaff').value.trim(),
-  });
-  closeModal('editExpModal');
-  editExpKey = null;
-  toast('Expense updated ✓');
-};
-
-/* ══ EXPENSES ══ */
-let expFilter = 'all';
-
-window.setExpFilter = function(mode, btn){
-  expFilter = mode;
-  if(btn){
-    document.querySelectorAll('#efAll,#efToday,#efWeek,#efMonth')
-      .forEach(b=>b.classList.remove('on'));
-    btn.classList.add('on');
-  }
-  if(mode!=='custom'){
-    if($('expFrom')) $('expFrom').value='';
-    if($('expTo'))   $('expTo').value='';
-  }
-  renderExp();
-};
-
-function getFilteredExp(){
-  const list = Object.entries(expenses).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
-  const now  = new Date();
-  const today= now.toLocaleDateString();
-  function toISO(e){
-    if(e.ts){
-      const d=new Date(e.ts);
-      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    }
-    if(e.date){
-      const p=e.date.split('/');
-      if(p.length===3) return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
-    }
-    return '';
-  }
-  if(expFilter==='today')  return list.filter(([,e])=>e.date===today);
-  if(expFilter==='week'){
-    const w=new Date(now); w.setDate(now.getDate()-6); w.setHours(0,0,0,0);
-    return list.filter(([,e])=>e.ts&&e.ts>=w.getTime());
-  }
-  if(expFilter==='month'){
-    const m=new Date(now.getFullYear(),now.getMonth(),1).getTime();
-    return list.filter(([,e])=>e.ts&&e.ts>=m);
-  }
-  if(expFilter==='custom'){
-    const from=$('expFrom').value, to=$('expTo').value;
-    if(!from&&!to) return list;
-    return list.filter(([,e])=>{
-      const ds=toISO(e); if(!ds) return true;
-      return(!from||ds>=from)&&(!to||ds<=to);
-    });
-  }
-  return list;
-}
-
-function renderExp(){
-  const today    = new Date().toLocaleDateString();
-  const todayISO = new Date().toISOString().slice(0,10);
-  const list     = Object.entries(expenses).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
-  const todayList  = list.filter(([,e])=>e.date===today);
-  const todayTotal = todayList.reduce((s,[,e])=>s+e.amount,0);
-  const allTotal   = list.reduce((s,[,e])=>s+e.amount,0);
-  $('expNote').textContent = `Today: ${fmt(todayTotal)} | All-time: ${fmt(allTotal)}`;
-
-  // Set date field lock
-  const dateInput = $('expDate');
-  const dateNote  = $('expDateNote');
-  if(dateInput){
-    if(!dateInput.value) dateInput.value = todayISO;
-    if(staffRole==='manager'){
-      dateInput.readOnly = false;
-      dateInput.style.opacity = '1';
-      dateInput.style.borderColor = 'rgba(240,180,41,.4)';
-      if(dateNote) dateNote.textContent = '⭐ Manager can backdate';
-    } else {
-      dateInput.readOnly = true;
-      dateInput.value    = todayISO;
-      dateInput.style.opacity = '0.6';
-      dateInput.style.borderColor = '';
-      if(dateNote) dateNote.textContent = 'Today only (cashier)';
-    }
-  }
-
-  // Get filtered list
-  const filtered = getFilteredExp();
-  const filteredTotal = filtered.reduce((s,[,e])=>s+e.amount,0);
-
-  // Update filter summary
-  const filterNote = $('expFilterNote');
-  const filterTot  = $('expFilterTotal');
-  if(filterNote){
-    const labels = {all:'Showing all expenses',today:"Today's expenses",week:'This week',month:'This month',custom:'Custom range'};
-    filterNote.textContent = (labels[expFilter]||'Filtered')+' — '+filtered.length+' item'+(filtered.length!==1?'s':'');
-  }
-  if(filterTot) filterTot.textContent = '-'+fmt(filteredTotal);
-
-  if(!filtered.length){
-    $('expList').innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 20px;">No expenses for this period.<br><small style="font-size:11px">Try a different filter.</small></div>';
-    return;
-  }
-
-  // Group by date — items already sorted newest first
-  const byDate = {};
-  filtered.forEach(([key,e])=>{
-    if(!byDate[e.date]) byDate[e.date]=[];
-    byDate[e.date].push({key,...e});
-  });
-  // Sort dates newest first, and items within each date newest first
-  const sortedDates = Object.entries(byDate).sort((a,b)=>{
-    const latestA = Math.max(...a[1].map(e=>e.ts||0));
-    const latestB = Math.max(...b[1].map(e=>e.ts||0));
-    return latestB - latestA;
-  });
-  $('expList').innerHTML = sortedDates.map(([date,items])=>{
-    // Sort items within day newest first
-    items.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    const dayTotal = items.reduce((s,e)=>s+e.amount,0);
-    const isToday  = date===today;
-    return `
-      <div class="exp-day-block">
-        <div class="exp-day-header">
-          <span class="exp-day-label">
-            ${isToday?'📅 Today — ':''}${date}
-            <span style="color:var(--muted);font-weight:500;font-size:10px;margin-left:6px">${items.length} item${items.length!==1?'s':''}</span>
-          </span>
-          <span class="exp-day-total">-${fmt(dayTotal)}</span>
-        </div>
-        ${items.map(e=>`
-          <div class="exp-card">
-            <div class="exp-card-left">
-              <span class="exp-cat-badge">${e.cat}</span>
-              <div class="exp-card-desc">${e.desc}</div>
-              <div class="exp-card-meta">🕐 ${e.time} &nbsp;•&nbsp; 👤 ${e.staff}</div>
-            </div>
-            <div class="exp-card-amt">-${fmt(e.amount)}</div>
-            ${staffRole==='manager'?`
-              <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
-                <div class="exp-del" style="color:var(--accent2);background:rgba(79,209,197,.1);" onclick="openEditExp('${e.key}')">✏️</div>
-                <div class="exp-del" onclick="deleteExpense('${e.key}')">✕</div>
-              </div>`
-            :''}
-          </div>`).join('')}
-      </div>`;
-  }).join('');
-}
-
-/* ══ CUSTOMERS ══ */
-function normalizePlate(plate){
-  // Remove all spaces, uppercase — used as merge KEY only
-  return (plate||'').replace(/\s+/g,'').toUpperCase();
-}
-
-function formatPlate(plate){
-  // Display format: uppercase, ensure space before last 4 digits
-  // e.g. "fal6062" → "FAL 6062", "FAL6062" → "FAL 6062", "FAL 6062" → "FAL 6062"
-  const p = (plate||'').replace(/\s+/g,'').toUpperCase();
-  // Match pattern: letters/numbers then digits at end
-  const m = p.match(/^([A-Z0-9]+?)(\d{3,4})$/);
-  if(m) return m[1]+' '+m[2];
-  // Motorcycle plates like "6010974752" — no space needed
-  return p;
-}
-
-function buildCustomerData(){
-  const customers = {};
-
-  // Helper to process one record (transaction or job)
-  function processRecord(r){
-    const raw = (r.plate||'').trim();
-    if(!raw) return;
-    const key     = normalizePlate(raw);
-    const display = formatPlate(raw);
-    const date    = r.date||'';
-    const ts      = r.ts||r.timeInTs||0;
-    const model   = r.carModel||r.model||'';
-    const items   = r.items||r.services||'';
-    const spent   = r.total||0;
-
-    if(!customers[key]){
-      customers[key]={
-        plate: display, model,
-        visits: 0, totalSpent: 0,
-        firstVisit: date, firstTs: ts,
-        lastVisit:  date, lastTs:  ts,
-        services: {},
-      };
-    }
-    const c = customers[key];
-    c.visits++;
-    c.totalSpent += spent;
-    if(ts > 0 && ts < (c.firstTs||Infinity)){ c.firstTs=ts; c.firstVisit=date; }
-    if(ts > (c.lastTs||0)){ c.lastTs=ts; c.lastVisit=date; if(model) c.model=model; c.plate=display; }
-    // Count services
-    items.split(',').forEach(s=>{
-      const svc = s.trim().replace(/\s*x\d+.*$/i,'').replace(/\(.*\)/,'').trim();
-      if(svc) c.services[svc]=(c.services[svc]||0)+1;
-    });
-  }
-
-  // Process all transactions
-  Object.values(txs).forEach(processRecord);
-
-  // Also process jobs not yet in transactions (in-progress)
-  Object.values(jobs).forEach(j=>{
-    if(j.status==='completed') return; // already in transactions
-    processRecord(j);
-  });
-
-  return customers;
-}
-
-function getVisitCount(plate){
-  if(!plate) return 0;
-  const key = normalizePlate(plate);
-  // Count from transactions (completed+paid)
-  const txCount = Object.values(txs)
-    .filter(t=>normalizePlate(t.plate||'')===key).length;
-  // Also count in-progress jobs not yet in transactions
-  const jobCount = Object.values(jobs)
-    .filter(j=>normalizePlate(j.plate||'')===key && j.status!=='completed').length;
-  return txCount + jobCount;
-}
-
-window.renderCust = function(){
-  if(!needsMgr()) return;
-  const customers = buildCustomerData();
-  const list = Object.values(customers);
-  const q = ($('custSearch')?$('custSearch').value:'').toLowerCase();
-  const filtered = q ? list.filter(c=>c.plate.toLowerCase().includes(q)||(c.model||'').toLowerCase().includes(q)) : list;
-  filtered.sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));
-
-  // Update summary cards
-  const newCust = list.filter(c=>c.visits===1).length;
-  const vipCust = list.filter(c=>c.visits>=5).length;
-  $('custTotal').textContent = list.length;
-  $('custNew').textContent   = newCust;
-  $('custVip').textContent   = vipCust;
-  $('custNote').textContent  = `${list.length} unique vehicle${list.length!==1?'s':''} on record`;
-
-  if(!filtered.length){
-    $('custList').innerHTML=`<div style="color:var(--muted);text-align:center;padding:30px;font-size:13px">${q?'No matching plates found.':'No customer records yet.'}</div>`;
-    return;
-  }
-
-  $('custList').innerHTML = filtered.map(c=>{
-    const topSvc = Object.entries(c.services).sort((a,b)=>b[1]-a[1])[0];
-    const topSvcStr = topSvc ? topSvc[0] : '—';
-    let badge='';
-    if(c.visits===1)      badge='<span class="visit-badge visit-new">🆕 New</span>';
-    else if(c.visits>=5)  badge='<span class="visit-badge visit-vip">⭐ VIP</span>';
-    else                  badge='<span class="visit-badge visit-ret">🔁 Regular</span>';
-    return`<div class="cust-card">
-      <div class="cust-card-top">
-        <div>
-          <div class="cust-plate">${c.plate}</div>
-          <div class="cust-model">${c.model||'—'}</div>
-        </div>
-        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          ${badge}
-          <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--accent)">${c.visits} visit${c.visits!==1?'s':''}</span>
-        </div>
-      </div>
-      <div style="height:1px;background:var(--border);"></div>
-      <div class="cust-card-bot">
-        <div class="cust-stat">
-          <div class="cust-stat-lbl">First Visit</div>
-          <div class="cust-stat-val">${c.firstVisit||'—'}</div>
-        </div>
-        <div class="cust-stat">
-          <div class="cust-stat-lbl">Last Visit</div>
-          <div class="cust-stat-val" style="color:var(--accent2)">${c.lastVisit||'—'}</div>
-        </div>
-        <div class="cust-stat">
-          <div class="cust-stat-lbl">Top Service</div>
-          <div class="cust-stat-val" style="font-size:11px">${topSvcStr}</div>
-        </div>
-        <div class="cust-stat">
-          <div class="cust-stat-lbl">Total Spent</div>
-          <div class="cust-stat-val" style="color:var(--success)">${fmt(c.totalSpent)}</div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-};
-
 /* REPORTS */
 let dateFilter='all';
 window.setDateFilter=function(mode,btn){
   dateFilter=mode;
   if(btn){document.querySelectorAll('.dqb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
-  // Clear date inputs when switching to non-custom mode
-  if(mode!=='custom'){$('dateFrom').value='';$('dateTo').value='';}
-  renderRep();
-};
-window.activateCustomFilter=function(){
-  // Auto-switch to custom mode and highlight no button (custom has no button)
-  dateFilter='custom';
-  document.querySelectorAll('.dqb').forEach(b=>b.classList.remove('on'));
   renderRep();
 };
 function getFilteredTx(){
@@ -3257,30 +1567,12 @@ function getFilteredTx(){
     return list.filter(t=>t.ts&&t.ts>=m);
   }
   if(dateFilter==='custom'){
-    const from=$('dateFrom').value; // format: YYYY-MM-DD
-    const to=$('dateTo').value;
-    if(!from && !to) return list; // no dates selected — show all
+    const from=$('dateFrom').value, to=$('dateTo').value;
     return list.filter(t=>{
-      // Convert transaction date to YYYY-MM-DD for comparison
-      let ds = '';
-      if(t.ts){
-        // Use LOCAL date (not UTC) to avoid timezone shift
-        const d = new Date(t.ts);
-        ds = d.getFullYear()+'-'+
-             String(d.getMonth()+1).padStart(2,'0')+'-'+
-             String(d.getDate()).padStart(2,'0');
-      } else if(t.date){
-        // t.date is like "5/8/2026" — parse it
-        const parts = t.date.split('/');
-        if(parts.length===3){
-          const [m,d,y] = parts;
-          ds = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-        }
-      }
-      if(!ds) return true; // can't determine date — include it
-      const afterFrom = !from || ds >= from;
-      const beforeTo  = !to   || ds <= to;
-      return afterFrom && beforeTo;
+      if(!t.ts)return true;
+      const d=new Date(t.ts);
+      const ds=d.toISOString().slice(0,10);
+      return(!from||ds>=from)&&(!to||ds<=to);
     });
   }
   return list;
@@ -3292,64 +1584,21 @@ function renderRep(){
   const todayTx=list.filter(t=>t.date===today);
   const totalRev=list.reduce((s,t)=>s+t.total,0);
   const todayRev=todayTx.reduce((s,t)=>s+t.total,0);
-  const todayTips = todayTx.reduce((s,t)=>s+(t.tip||0),0);
-  const totalTips = list.reduce((s,t)=>s+(t.tip||0),0);
-  const todayExp  = Object.values(expenses).filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
   $('metricsGrid').innerHTML=[
-    {lbl:"Today's Sales",    val:fmt(todayRev),  sub:todayTx.length+' transactions'},
-    {lbl:"Total Revenue",    val:fmt(totalRev),  sub:list.length+' total orders'},
-    {lbl:"Avg Order",        val:list.length?fmt(totalRev/list.length):fmt(0), sub:'Per transaction'},
-    {lbl:"Today's Tips 💝",  val:fmt(todayTips), sub:fmt(totalTips)+' all-time'},
-    {lbl:"Today's Expenses", val:fmt(todayExp),  sub:'vs '+fmt(todayRev-todayExp)+' net'},
+    {lbl:"Today's Sales",  val:fmt(todayRev), sub:todayTx.length+' transactions'},
+    {lbl:"Total Revenue",  val:fmt(totalRev), sub:list.length+' total orders'},
+    {lbl:"Avg Order",      val:list.length?fmt(totalRev/list.length):fmt(0),sub:'Per transaction'},
+    {lbl:"Active Jobs",    val:Object.values(jobs).filter(j=>j.status!=='completed').length,sub:'In progress'},
+    {lbl:"Services",       val:Object.keys(prods).length,sub:'In menu'},
   ].map(m=>`<div class="mc"><div class="mc-lbl">${m.lbl}</div><div class="mc-val">${m.val}</div><div class="mc-sub">${m.sub}</div></div>`).join('');
   // Filtered summary
   const fRev=filtered.reduce((s,t)=>s+t.total,0);
   const fCash=filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+t.total,0);
   const fGcash=filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+t.total,0);
-  const fTips     = filtered.reduce((s,t)=>s+(t.tip||0),0);
-  // Revenue = service sales only (tip excluded)
-  // Cash/GCash collected = payment amount (service only, tip tracked separately)
-  const fCashTip  = filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+(t.tip||0),0);
-  const fGcashTip = filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+(t.tip||0),0);
-  // Expenses — filter by same date range
-  const allExp    = Object.values(expenses);
-  const now2      = new Date();
-  const today2    = now2.toLocaleDateString();
-  let fExp = allExp;
-  if(dateFilter==='today') fExp=allExp.filter(e=>e.date===today2);
-  else if(dateFilter==='week'){
-    const w=new Date(now2); w.setDate(now2.getDate()-6); w.setHours(0,0,0,0);
-    fExp=allExp.filter(e=>e.ts&&e.ts>=w.getTime());
-  } else if(dateFilter==='month'){
-    const m=new Date(now2.getFullYear(),now2.getMonth(),1).getTime();
-    fExp=allExp.filter(e=>e.ts&&e.ts>=m);
-  } else if(dateFilter==='custom'){
-    const from=$('dateFrom').value, to=$('dateTo').value;
-    fExp=allExp.filter(e=>{
-      if(!e.ts)return true;
-      const ds=new Date(e.ts).toISOString().slice(0,10);
-      return(!from||ds>=from)&&(!to||ds<=to);
-    });
-  }
-  const fExpTotal = fExp.reduce((s,e)=>s+e.amount,0);
-  // Net = Revenue (services only) - Expenses
-  // Tips are separate — not part of sales, not deducted
-  const fNet      = fRev - fExpTotal;
-  $('dsCount').textContent    = filtered.length;
-  $('dsRevenue').textContent  = fmt(fRev);
-  $('dsCash').textContent     = fmt(fCash);
-  $('dsGcash').textContent    = fmt(fGcash);
-  $('dsTips').textContent     = fmt(fTips);
-  $('dsExpenses').textContent = fmt(fExpTotal);
-  $('dsNet').textContent      = fmt(fNet);
-  $('dsNet').style.color      = fNet>=0?'var(--success)':'var(--danger)';
-  // Update labels to be clear tips are separate
-  const tipLbl = document.querySelector('#dsTips')?.closest('.ds-item')?.querySelector('.ds-lbl');
-  if(tipLbl) tipLbl.textContent = '💝 Tips (separate)';
-  const mgr = staffRole==='manager';
-  // Show/hide Actions column via CSS class
-  const tbl = $('txTable');
-  if(tbl){ mgr ? tbl.classList.add('mgr-view') : tbl.classList.remove('mgr-view'); }
+  $('dsCount').textContent=filtered.length;
+  $('dsRevenue').textContent=fmt(fRev);
+  $('dsCash').textContent=fmt(fCash);
+  $('dsGcash').textContent=fmt(fGcash);
   $('txBody').innerHTML=filtered.length
     ?filtered.slice(0,100).map(t=>`
       <tr>
@@ -3363,16 +1612,9 @@ function renderRep(){
         <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.items||'—'}</td>
         <td><span class="bdg ${t.payment==='gcash'?'by':'bg'}">${(t.payment||'').toUpperCase()}</span></td>
         <td style="font-family:'DM Mono',monospace">${fmt(t.total)}</td>
-        <td style="font-family:'DM Mono',monospace;color:${(t.tip||0)>0?'var(--accent)':'var(--muted)'}">
-          ${(t.tip||0)>0?fmt(t.tip):'—'}
-        </td>
         <td>${t.staff||'—'}</td>
-        <td class="col-actions" style="white-space:nowrap">
-          <span class="al" onclick="openEditTx('${t.id}')">Edit</span>
-          <span class="al del" onclick="deleteTx('${t.id}')">Delete</span>
-        </td>
       </tr>`).join('')
-    :`<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>`;
+    :'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
 }
 
 /* SETTINGS */
@@ -3398,850 +1640,6 @@ renderOrder();
 window.closeModal = function(id){
   document.getElementById(id).classList.remove('on');
 };
-
-
-
-
-/* ══ PROFITABILITY DASHBOARD ══ */
-window.initDashboard = (function(){
-  let _did = false;
-  return function(){
-    if(_did){ try{renderAll();}catch(e){} return; }
-    _did = true;
-// ============================================================
-//   STATE
-// ============================================================
-const DASH_KEY = 'bzone_dash_v1';
-
-let dashSt = {
-  expenses: {
-    rent: 17500, elec: 4500, crews: 5, salary: 450,
-    days: 6, chem: 6000, food: 450, other: 0
-  },
-  months: []
-};
-
-let chartInstances = {};
-
-// ============================================================
-//   STORAGE (graceful — works even if blocked)
-// ============================================================
-function saveState() {
-  try {
-    localStorage.setItem(DASH_KEY, JSON.stringify(dashSt));
-    document.getElementById('storageNotice').style.display = 'block';
-  } catch(e) {
-    console.log('Storage not available — that\'s fine, just won\'t persist.');
-  }
-}
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(DASH_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.expenses) dashSt.expenses = { ...dashSt.expenses, ...parsed.expenses };
-      if (parsed.months && Array.isArray(parsed.months)) dashSt.months = parsed.months;
-      document.getElementById('storageNotice').style.display = 'block';
-      return true;
-    }
-  } catch(e) {
-    console.log('Could not load dashSt.');
-  }
-  return false;
-}
-
-// ============================================================
-//   COMPUTATION
-// ============================================================
-function computeMonthlyExpenses() {
-  const e = dashSt.expenses;
-  const weeksPerMonth = 4.333;
-  return {
-    rent: Number(e.rent) || 0,
-    elec: Number(e.elec) || 0,
-    salary: (Number(e.salary) || 0) * (Number(e.crews) || 0) * (Number(e.days) || 0) * weeksPerMonth,
-    chem: Number(e.chem) || 0,
-    food: (Number(e.food) || 0) * (Number(e.days) || 0) * weeksPerMonth,
-    other: Number(e.other) || 0
-  };
-}
-
-function computeMonthMetrics(month) {
-  const sales = Number(month.sales) || 0;
-  const txn = Number(month.txn) || 0;
-  const opDays = Number(month.opDays) || 0;
-  const exp = computeMonthlyExpenses();
-  const totalExp = exp.rent + exp.elec + exp.salary + exp.chem + exp.food + exp.other;
-  const profit = sales - totalExp;
-  const margin = sales > 0 ? profit / sales : 0;
-  const avgTicket = txn > 0 ? sales / txn : 0;
-  const carsPerDay = opDays > 0 ? txn / opDays : 0;
-  const dailySales = opDays > 0 ? sales / opDays : 0;
-  const breakEvenCars = avgTicket > 0 ? totalExp / avgTicket : 0;
-  const breakEvenPerDay = breakEvenCars / 26;  // assume 26 work days
-  const cushion = carsPerDay - breakEvenPerDay;
-  return { sales, txn, opDays, exp, totalExp, profit, margin, avgTicket,
-           carsPerDay, dailySales, breakEvenCars, breakEvenPerDay, cushion };
-}
-
-// ============================================================
-//   FORMATTERS
-// ============================================================
-const peso = v => '₱' + Math.round(v).toLocaleString();
-const pesoSign = v => (v >= 0 ? '+' : '') + '₱' + Math.round(v).toLocaleString();
-const pct = v => (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
-const pctAbs = v => (v * 100).toFixed(1) + '%';
-
-// ============================================================
-//   RENDER: EXPENSES INPUTS
-// ============================================================
-function bindExpenseInputs() {
-  const keys = ['rent','elec','crews','salary','days','chem','food','other'];
-  keys.forEach(k => {
-    const el = document.getElementById('exp_' + k);
-    if (!el) return;
-    el.value = dashSt.expenses[k];
-    el.addEventListener('input', () => {
-      dashSt.expenses[k] = Number(el.value);
-      saveState();
-      renderAll();
-    });
-  });
-}
-
-function resetExpenses() {
-  dashSt.expenses = { rent: 17500, elec: 4500, crews: 5, salary: 450, days: 6, chem: 6000, food: 450, other: 0 };
-  bindExpenseInputs();
-  saveState();
-  renderAll();
-}
-
-// ============================================================
-//   RENDER: MONTHS LIST
-// ============================================================
-function renderMonthsList() {
-  const list = document.getElementById('monthsList');
-  if (dashSt.months.length === 0) {
-    list.innerHTML = '<div class="empty">No months yet — click "+ Add Month" or "Load My Q1 Data" to start.</div>';
-    return;
-  }
-  list.innerHTML = dashSt.months.map((m, idx) => `
-    <div class="month-row">
-      <div class="input-group">
-        <label class="input-label">Month Label</label>
-        <input type="text" value="${m.label || ''}" placeholder="e.g. January 2026"
-               oninput="updateMonth(${idx}, 'label', this.value)" />
-      </div>
-      <div class="input-group">
-        <label class="input-label">Gross Sales (₱)</label>
-        <input type="number" value="${m.sales ?? ''}" placeholder="0"
-               oninput="updateMonth(${idx}, 'sales', this.value)" />
-      </div>
-      <div class="input-group">
-        <label class="input-label">Transactions</label>
-        <input type="number" value="${m.txn ?? ''}" placeholder="0"
-               oninput="updateMonth(${idx}, 'txn', this.value)" />
-        <div class="input-hint">cars washed</div>
-      </div>
-      <div class="input-group">
-        <label class="input-label">Operating Days</label>
-        <input type="number" value="${m.opDays ?? ''}" placeholder="0" max="31"
-               oninput="updateMonth(${idx}, 'opDays', this.value)" />
-        <div class="input-hint">days open</div>
-      </div>
-      <div class="input-group">
-        <label class="input-label">Tips (₱)</label>
-        <input type="number" value="${m.tips ?? 0}" placeholder="0"
-               oninput="updateMonth(${idx}, 'tips', this.value)" />
-        <div class="input-hint">optional</div>
-      </div>
-      <div>
-        <button class="btn btn-danger" onclick="removeMonth(${idx})">✕ Remove</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function addMonth() {
-  dashSt.months.push({ label: '', sales: '', txn: '', opDays: '', tips: 0 });
-  saveState();
-  renderAll();
-}
-
-function updateMonth(idx, field, value) {
-  if (!dashSt.months[idx]) return;
-  dashSt.months[idx][field] = field === 'label' ? value : (value === '' ? '' : Number(value));
-  saveState();
-  // Skip full re-render of months list (would lose input focus) — just update charts
-  renderResults();
-}
-
-function removeMonth(idx) {
-  dashSt.months.splice(idx, 1);
-  saveState();
-  renderAll();
-}
-
-function loadSampleData() {
-  dashSt.months = [
-    { label: 'January 2026',  sales: 127445, txn: 487, opDays: 25, tips: 9030 },
-    { label: 'February 2026', sales: 142760, txn: 516, opDays: 28, tips: 0 },
-    { label: 'March 2026',    sales: 131630, txn: 440, opDays: 31, tips: 0 }
-  ];
-  saveState();
-  renderAll();
-}
-
-function clearAllData() {
-  if (!confirm('Clear all months? Expenses will stay.')) return;
-  dashSt.months = [];
-  saveState();
-  renderAll();
-}
-
-// ============================================================
-//   RENDER: RESULTS (KPIs, charts, P&L, insights, suggestions)
-// ============================================================
-function renderResults() {
-  const container = document.getElementById('resultsContainer');
-
-  // No data → show empty state
-  const validMonths = dashSt.months.filter(m => Number(m.sales) > 0);
-  if (validMonths.length === 0) {
-    container.innerHTML = `
-      <section class="section">
-        <div class="panel" style="text-align:center; padding: 60px 20px;">
-          <p style="color: var(--ink-muted); font-style: italic; font-size: 16px;">
-            Add at least one month with sales to see your analysis.
-          </p>
-        </div>
-      </section>
-    `;
-    destroyCharts();
-    return;
-  }
-
-  // Compute metrics for each month
-  const metrics = validMonths.map(m => ({ label: m.label || 'Untitled', tips: Number(m.tips) || 0, ...computeMonthMetrics(m) }));
-
-  // Build HTML for results
-  container.innerHTML = `
-    ${renderVerdict(metrics)}
-    ${renderKPIs(metrics)}
-    ${renderCharts(metrics)}
-    ${renderPnLTable(metrics)}
-    ${renderInsights(metrics)}
-    ${renderSuggestions(metrics)}
-    ${renderBreakEven(metrics)}
-  `;
-
-  // After DOM is in place, draw charts
-  setTimeout(() => drawCharts(metrics), 50);
-}
-
-// ============================================================
-//   VERDICT
-// ============================================================
-function renderVerdict(metrics) {
-  const latest = metrics[metrics.length - 1];
-  let cls, badge, text;
-
-  if (latest.profit < 0) {
-    cls = 'bad'; badge = 'Warning';
-    text = `Your latest month (<strong>${latest.label}</strong>) is <strong>losing ₱${Math.abs(Math.round(latest.profit)).toLocaleString()}</strong>. The business is not profitable right now — see the suggestions below.`;
-  } else if (latest.margin < 0.10) {
-    cls = 'warn'; badge = 'Caution';
-    text = `<strong>${latest.label}</strong> made <strong>${peso(latest.profit)}</strong> profit — but the margin is thin (<strong>${pctAbs(latest.margin)}</strong>). One bad month could push you into a loss.`;
-  } else if (latest.margin < 0.20) {
-    cls = 'warn'; badge = 'Okay';
-    text = `<strong>${latest.label}</strong> is profitable at <strong>${peso(latest.profit)}</strong> (<strong>${pctAbs(latest.margin)}</strong> margin). Healthy but with room to improve.`;
-  } else {
-    cls = 'good'; badge = 'Profitable';
-    text = `<strong>${latest.label}</strong> is solidly profitable — <strong>${peso(latest.profit)}</strong> net profit at <strong>${pctAbs(latest.margin)}</strong> margin.`;
-  }
-
-  return `
-    <section class="section">
-      <h2 class="section-title">The <em>verdict</em></h2>
-      <div class="section-sub">Based on your latest month</div>
-      <div class="verdict ${cls}">
-        <div class="verdict-badge">${badge}</div>
-        <div class="verdict-text">${text}</div>
-      </div>
-    </section>
-  `;
-}
-
-// ============================================================
-//   KPIs
-// ============================================================
-function renderKPIs(metrics) {
-  const latest = metrics[metrics.length - 1];
-  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
-
-  const profitClass = latest.profit < 0 ? 'negative' : (latest.margin < 0.10 ? 'warn' : 'positive');
-  const cushionClass = latest.cushion < 0 ? 'negative' : (latest.cushion < 2 ? 'warn' : 'positive');
-
-  let salesChange = '';
-  if (prev) {
-    const chg = (latest.sales - prev.sales) / prev.sales;
-    const cls = chg >= 0 ? 'var(--good)' : 'var(--bad)';
-    salesChange = `<span style="color:${cls}">${pct(chg)}</span> vs prev`;
-  } else {
-    salesChange = `${latest.txn} transactions`;
-  }
-
-  return `
-    <section class="section">
-      <h2 class="section-title">Key <em>numbers</em></h2>
-      <div class="section-sub">${latest.label}</div>
-      <div class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-label">Net Profit</div>
-          <div class="kpi-value ${profitClass}">${peso(latest.profit)}</div>
-          <div class="kpi-sub">${pctAbs(latest.margin)} margin</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Gross Sales</div>
-          <div class="kpi-value">${peso(latest.sales)}</div>
-          <div class="kpi-sub">${salesChange}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Avg Ticket</div>
-          <div class="kpi-value">${peso(latest.avgTicket)}</div>
-          <div class="kpi-sub">per customer</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Cars / Day</div>
-          <div class="kpi-value">${latest.carsPerDay.toFixed(1)}</div>
-          <div class="kpi-sub">${latest.opDays} operating days</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Break-Even</div>
-          <div class="kpi-value">${latest.breakEvenPerDay.toFixed(1)}</div>
-          <div class="kpi-sub">cars/day needed</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Safety Cushion</div>
-          <div class="kpi-value ${cushionClass}">${latest.cushion >= 0 ? '+' : ''}${latest.cushion.toFixed(1)}</div>
-          <div class="kpi-sub">cars/day above break-even</div>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-// ============================================================
-//   CHARTS SECTION
-// ============================================================
-function renderCharts(metrics) {
-  return `
-    <section class="section">
-      <h2 class="section-title">The <em>charts</em></h2>
-      <div class="section-sub">Trends across your tracked months</div>
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="chart-title">Revenue vs Profit</div>
-          <div class="chart-sub">Monthly totals</div>
-          <div class="chart-container"><canvas id="chart1"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Price vs Volume</div>
-          <div class="chart-sub">Avg ticket and cars/day</div>
-          <div class="chart-container"><canvas id="chart2"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Profit Margin Trend</div>
-          <div class="chart-sub">% of sales</div>
-          <div class="chart-container"><canvas id="chart3"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Expense Breakdown</div>
-          <div class="chart-sub">Where the money goes</div>
-          <div class="chart-container"><canvas id="chart4"></canvas></div>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-function destroyCharts() {
-  Object.values(chartInstances).forEach(c => { if (c) c.destroy(); });
-  chartInstances = {};
-}
-
-function drawCharts(metrics) {
-  destroyCharts();
-  Chart.defaults.font.family = "'JetBrains Mono', monospace";
-  Chart.defaults.color = '#a8a294';
-
-  const labels = metrics.map(m => m.label);
-  const sales = metrics.map(m => m.sales);
-  const profits = metrics.map(m => m.profit);
-  const tickets = metrics.map(m => Math.round(m.avgTicket));
-  const cars = metrics.map(m => +m.carsPerDay.toFixed(1));
-  const margins = metrics.map(m => +(m.margin * 100).toFixed(1));
-
-  const tooltipCfg = { backgroundColor: '#0f1117', borderColor: '#ffb800', borderWidth: 1, padding: 12 };
-
-  // Chart 1: Revenue vs Profit
-  if (document.getElementById('chart1')) {
-    chartInstances.c1 = new Chart(document.getElementById('chart1'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Revenue', data: sales, backgroundColor: '#2a2e3c', borderRadius: 4 },
-          { label: 'Net Profit', data: profits, backgroundColor: '#ffb800', borderRadius: 4 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 14, font: { size: 11 } } },
-          tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.dataset.label + ': ' + peso(ctx.parsed.y) } }
-        },
-        scales: {
-          y: { grid: { color: '#2a2e3c' }, ticks: { callback: v => '₱' + (v/1000).toFixed(0) + 'k', font: { size: 10 } } },
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-  }
-
-  // Chart 2: Price vs Volume (dual axis)
-  if (document.getElementById('chart2')) {
-    chartInstances.c2 = new Chart(document.getElementById('chart2'), {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Avg Ticket (₱)', data: tickets, borderColor: '#ffb800', backgroundColor: '#ffb800',
-            tension: 0.3, yAxisID: 'y', borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#ffb800' },
-          { label: 'Cars/Day', data: cars, borderColor: '#ff5e3a', backgroundColor: '#ff5e3a',
-            tension: 0.3, yAxisID: 'y1', borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#ff5e3a',
-            borderDash: [4, 4] }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 14, font: { size: 11 } } },
-          tooltip: tooltipCfg
-        },
-        scales: {
-          y: { type: 'linear', position: 'left', grid: { color: '#2a2e3c' },
-               ticks: { color: '#ffb800', callback: v => '₱' + v, font: { size: 10 } } },
-          y1: { type: 'linear', position: 'right', grid: { display: false },
-                ticks: { color: '#ff5e3a', font: { size: 10 } } },
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-  }
-
-  // Chart 3: Margin trend
-  if (document.getElementById('chart3')) {
-    chartInstances.c3 = new Chart(document.getElementById('chart3'), {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Margin %', data: margins,
-          borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.1)',
-          tension: 0.4, fill: true, borderWidth: 3,
-          pointRadius: 7, pointBackgroundColor: '#4ade80', pointBorderColor: '#0f1117', pointBorderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { ...tooltipCfg, callbacks: { label: ctx => 'Margin: ' + ctx.parsed.y + '%' } }
-        },
-        scales: {
-          y: { grid: { color: '#2a2e3c' }, ticks: { callback: v => v + '%', font: { size: 10 } } },
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-  }
-
-  // Chart 4: Expense Breakdown (most recent month)
-  if (document.getElementById('chart4')) {
-    const latest = metrics[metrics.length - 1];
-    chartInstances.c4 = new Chart(document.getElementById('chart4'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Salary', 'Rent', 'Meals', 'Chemicals', 'Electricity', 'Other'].filter((_, i) => {
-          const vals = [latest.exp.salary, latest.exp.rent, latest.exp.food, latest.exp.chem, latest.exp.elec, latest.exp.other];
-          return vals[i] > 0;
-        }),
-        datasets: [{
-          data: [latest.exp.salary, latest.exp.rent, latest.exp.food, latest.exp.chem, latest.exp.elec, latest.exp.other].filter(v => v > 0),
-          backgroundColor: ['#ffb800','#ff5e3a','#60a5fa','#4ade80','#a78bfa','#f87171'],
-          borderColor: '#181b24', borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
-          tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.label + ': ' + peso(ctx.parsed) } }
-        }
-      }
-    });
-  }
-}
-
-// ============================================================
-//   P&L TABLE
-// ============================================================
-function renderPnLTable(metrics) {
-  const cols = metrics.map(m => `<th>${m.label}</th>`).join('');
-  const row = (label, fn, opts = {}) => {
-    const cls = opts.cls || '';
-    const cells = metrics.map(m => {
-      const v = fn(m);
-      const negative = v < 0 && opts.checkNeg;
-      return `<td class="${negative ? 'is-negative' : ''}">${typeof v === 'string' ? v : peso(v)}</td>`;
-    }).join('');
-    return `<tr class="${cls}"><td>${label}</td>${cells}</tr>`;
-  };
-
-  return `
-    <section class="section">
-      <h2 class="section-title">P&amp;L <em>breakdown</em></h2>
-      <div class="section-sub">Line-by-line for every month</div>
-      <div class="panel" style="padding:0; overflow-x:auto;">
-        <table class="pnl-table">
-          <thead><tr><th>Line Item</th>${cols}</tr></thead>
-          <tbody>
-            <tr class="section-row"><td colspan="${metrics.length + 1}">Revenue</td></tr>
-            ${row('Gross Sales', m => m.sales)}
-            <tr class="section-row"><td colspan="${metrics.length + 1}">Expenses</td></tr>
-            ${row('Rent', m => m.exp.rent)}
-            ${row('Electricity', m => m.exp.elec)}
-            ${row('Crew Salary', m => m.exp.salary)}
-            ${row('Chemicals', m => m.exp.chem)}
-            ${row('Crew Meals', m => m.exp.food)}
-            ${dashSt.expenses.other > 0 ? row('Other', m => m.exp.other) : ''}
-            ${row('Total Expenses', m => m.totalExp, { cls: 'total-row' })}
-            ${row('Net Profit', m => m.profit, { cls: 'profit-row', checkNeg: true })}
-            ${row('Margin', m => pctAbs(m.margin))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  `;
-}
-
-// ============================================================
-//   SMART INSIGHTS — adapts to actual data
-// ============================================================
-function renderInsights(metrics) {
-  const insights = [];
-  const latest = metrics[metrics.length - 1];
-  const first = metrics[0];
-  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
-
-  // --- Insight 1: Overall profitability ---
-  if (latest.profit > 0) {
-    insights.push({
-      cls: 'good',
-      title: 'You\'re making money',
-      body: `<strong>${latest.label}</strong> generated <strong>${peso(latest.profit)}</strong> in net profit on <strong>${peso(latest.sales)}</strong> in sales — a margin of <span class="stat">${pctAbs(latest.margin)}</span>. Fixed expenses each month run about ${peso(latest.totalExp)}.`
-    });
-  } else {
-    insights.push({
-      cls: 'bad',
-      title: 'You\'re losing money right now',
-      body: `<strong>${latest.label}</strong> brought in <strong>${peso(latest.sales)}</strong> but expenses were <strong>${peso(latest.totalExp)}</strong> — a loss of <span class="stat">${peso(Math.abs(latest.profit))}</span>. Action needed urgently.`
-    });
-  }
-
-  // --- Insight 2: Price trend (if 2+ months) ---
-  if (prev) {
-    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
-    if (Math.abs(ticketChange) >= 0.03) {
-      if (ticketChange > 0) {
-        insights.push({
-          cls: 'good',
-          title: 'Your average ticket went up',
-          body: `Customers are paying more per visit. Avg ticket moved from <span class="stat">${peso(prev.avgTicket)}</span> (${prev.label}) to <span class="stat">${peso(latest.avgTicket)}</span> (${latest.label}) — that's <strong>${pct(ticketChange)}</strong>. Either you raised prices or customers are buying more services.`
-        });
-      } else {
-        insights.push({
-          cls: 'warn',
-          title: 'Avg ticket dropped',
-          body: `Each customer paid less on average — <span class="stat">${peso(prev.avgTicket)}</span> → <span class="stat">${peso(latest.avgTicket)}</span> (<strong>${pct(ticketChange)}</strong>). Either you lowered prices, gave more discounts, or customers picked cheaper services.`
-        });
-      }
-    }
-
-    // --- Insight 3: Volume trend ---
-    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
-    if (Math.abs(volumeChange) >= 0.05) {
-      if (volumeChange > 0) {
-        insights.push({
-          cls: 'good',
-          title: 'More cars came in',
-          body: `Daily volume rose from <span class="stat">${prev.carsPerDay.toFixed(1)} cars/day</span> to <span class="stat">${latest.carsPerDay.toFixed(1)} cars/day</span> (<strong>${pct(volumeChange)}</strong>). Whatever you're doing for customer traffic is working.`
-        });
-      } else {
-        insights.push({
-          cls: 'warn',
-          title: 'Volume is dropping',
-          body: `Cars per day fell from <span class="stat">${prev.carsPerDay.toFixed(1)}</span> to <span class="stat">${latest.carsPerDay.toFixed(1)}</span> (<strong>${pct(volumeChange)}</strong>). Find out why — pricing, competition, season, or just one-time slow month?`
-        });
-      }
-    }
-  }
-
-  // --- Insight 4: Price-volume trade-off detection ---
-  if (prev) {
-    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
-    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
-    if (ticketChange > 0.03 && volumeChange < -0.05) {
-      const salesChange = (latest.sales - prev.sales) / prev.sales;
-      insights.push({
-        cls: 'info',
-        title: 'Classic price-vs-volume trade-off',
-        body: `Prices went up <strong>${pct(ticketChange)}</strong>, but volume dropped <strong>${pct(volumeChange)}</strong>. Net effect on total sales: <strong>${pct(salesChange)}</strong>. ${salesChange >= 0 ? 'The higher prices more than compensated.' : 'The volume loss outweighed the price gain.'}`
-      });
-    }
-  }
-
-  // --- Insight 5: Break-even cushion ---
-  if (latest.cushion < 0) {
-    insights.push({
-      cls: 'bad',
-      title: 'You\'re below break-even',
-      body: `You need <span class="stat">${latest.breakEvenPerDay.toFixed(1)} cars/day</span> to cover costs at the current avg ticket of ${peso(latest.avgTicket)}. You averaged only <span class="stat">${latest.carsPerDay.toFixed(1)}</span>. Either prices must rise, costs must drop, or volume must increase.`
-    });
-  } else if (latest.cushion < 2) {
-    insights.push({
-      cls: 'warn',
-      title: 'Thin safety margin',
-      body: `Your break-even is <span class="stat">${latest.breakEvenPerDay.toFixed(1)} cars/day</span> and you ran <span class="stat">${latest.carsPerDay.toFixed(1)}</span> — only <strong>${latest.cushion.toFixed(1)} cars/day above the line</strong>. A slow week could wipe out profit.`
-    });
-  } else {
-    insights.push({
-      cls: 'good',
-      title: 'Comfortable break-even cushion',
-      body: `You're <strong>${latest.cushion.toFixed(1)} cars/day</strong> above your break-even of ${latest.breakEvenPerDay.toFixed(1)} cars/day. Plenty of room to absorb a slow patch.`
-    });
-  }
-
-  // --- Insight 6: Closed days ---
-  const expectedDays = 30; // rough avg
-  if (latest.opDays < 22) {
-    insights.push({
-      cls: 'warn',
-      title: 'You had several closed days',
-      body: `Only <span class="stat">${latest.opDays} operating days</span> in ${latest.label}. Each closed day means rent and salaries (if paid daily, only food + crew) still tick, but no revenue. Check if those closures were necessary.`
-    });
-  }
-
-  // --- Insight 7: Tips tracking ---
-  const tipsThisMonth = dashSt.months[dashSt.months.length - 1]?.tips || 0;
-  const tipsPrevMonth = dashSt.months.length > 1 ? (dashSt.months[dashSt.months.length - 2]?.tips || 0) : null;
-  if (tipsPrevMonth !== null && tipsPrevMonth > 1000 && tipsThisMonth === 0) {
-    insights.push({
-      cls: 'warn',
-      title: 'Tips stopped getting logged',
-      body: `${dashSt.months[dashSt.months.length - 2].label} had <strong>${peso(tipsPrevMonth)}</strong> in tips but ${latest.label} shows zero. Either tracking stopped or customers actually stopped tipping. Worth confirming with crew.`
-    });
-  }
-
-  // Build HTML
-  return `
-    <section class="section">
-      <h2 class="section-title">What the data is <em>telling you</em></h2>
-      <div class="section-sub">Auto-generated from your numbers</div>
-      <div class="insights-grid">
-        ${insights.map(i => `
-          <div class="insight ${i.cls}">
-            <h3>${i.title}</h3>
-            <p>${i.body}</p>
-          </div>
-        `).join('')}
-      </div>
-    </section>
-  `;
-}
-
-// ============================================================
-//   SMART SUGGESTIONS — also adapts
-// ============================================================
-function renderSuggestions(metrics) {
-  const sugs = [];
-  const latest = metrics[metrics.length - 1];
-  const prev = metrics.length > 1 ? metrics[metrics.length - 2] : null;
-
-  // --- Critical: losing money ---
-  if (latest.profit < 0) {
-    sugs.push({
-      title: 'Stop the bleeding first',
-      body: `You're losing ${peso(Math.abs(latest.profit))}/month. Quickest levers: (1) check if you really need ${dashSt.expenses.crews} crews — could you run with fewer on slow days? (2) audit chemicals usage; (3) consider raising prices ₱20–30 per service.`
-    });
-  }
-
-  // --- Volume dropping ---
-  if (prev) {
-    const volumeChange = (latest.carsPerDay - prev.carsPerDay) / prev.carsPerDay;
-    if (volumeChange < -0.10) {
-      sugs.push({
-        title: 'Investigate why customers stopped coming',
-        body: `Volume dropped ${pct(volumeChange)} vs ${prev.label}. Talk to 5 regular customers this week — ask if pricing, service, or competitor is the reason. Cheapest market research you can do.`
-      });
-      sugs.push({
-        title: 'Try a weekday loyalty promo',
-        body: `Offer a discount on your slowest weekdays (not weekends — those are already busy). Goal: refill the volume without lowering your premium pricing on prime days.`
-      });
-    }
-  }
-
-  // --- Price worked, hold it ---
-  if (prev) {
-    const ticketChange = (latest.avgTicket - prev.avgTicket) / prev.avgTicket;
-    if (ticketChange > 0.05 && latest.profit > 0) {
-      sugs.push({
-        title: 'Keep the new prices',
-        body: `Your avg ticket is up ${pct(ticketChange)} and you're still profitable. Don't reverse the increase — focus on bringing volume back at the new pricing.`
-      });
-    }
-  }
-
-  // --- Thin margin ---
-  if (latest.margin > 0 && latest.margin < 0.15) {
-    sugs.push({
-      title: 'Build a bigger cushion',
-      body: `${pctAbs(latest.margin)} margin is too thin. Look at the expense breakdown: your biggest cost is likely crew salary (${peso(latest.exp.salary)}/month). Could one less crew handle peak hours? Could anyone shift to commission?`
-    });
-  }
-
-  // --- Always-on: track cars/day ---
-  sugs.push({
-    title: 'Track cars per day religiously',
-    body: `This is the single number that determines if you make money. At your current avg ticket of ${peso(latest.avgTicket)}, break-even is ${latest.breakEvenPerDay.toFixed(1)} cars/day. If you ever drop below that, you're paying to be open.`
-  });
-
-  // --- Tips ---
-  if (latest.profit > 0 && (dashSt.months[dashSt.months.length - 1]?.tips || 0) === 0 && metrics.length > 1) {
-    const anyTips = dashSt.months.some(m => (m.tips || 0) > 0);
-    if (anyTips) {
-      sugs.push({
-        title: 'Fix the tips tracking',
-        body: `Earlier months had tips logged but recent months don't. Either ask the crew to record tips again, or confirm customers stopped tipping. Tips affect crew morale and retention.`
-      });
-    }
-  }
-
-  // --- Healthy and growing ---
-  if (latest.margin >= 0.20 && prev && latest.profit > prev.profit) {
-    sugs.push({
-      title: 'You\'re in a good spot — think about growth',
-      body: `Healthy margin (${pctAbs(latest.margin)}) and rising profit. Could you add a service (interior detailing, premium wax)? A second location? Save a few months of profit as a cushion first, then think expansion.`
-    });
-  }
-
-  // --- Operating days ---
-  if (latest.opDays < 25) {
-    sugs.push({
-      title: 'Open more days if you can',
-      body: `You operated ${latest.opDays} days. Rent (${peso(latest.exp.rent)}) is paid for the whole month either way. Each extra day open could add roughly ${peso(latest.dailySales)} in revenue at current pace.`
-    });
-  }
-
-  return `
-    <section class="section">
-      <h2 class="section-title">What to <em>do</em> next</h2>
-      <div class="section-sub">Tailored to your current numbers</div>
-      <div class="suggestions">
-        ${sugs.map((s, i) => `
-          <div class="sug-item">
-            <div class="sug-num">0${i + 1}</div>
-            <div class="sug-body">
-              <h4>${s.title}</h4>
-              <p>${s.body}</p>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </section>
-  `;
-}
-
-// ============================================================
-//   BREAK-EVEN
-// ============================================================
-function renderBreakEven(metrics) {
-  const latest = metrics[metrics.length - 1];
-  const exp = computeMonthlyExpenses();
-  const totalExp = exp.rent + exp.elec + exp.salary + exp.chem + exp.food + exp.other;
-
-  // Generate sensitivity table at different avg tickets
-  const tickets = [200, 250, 300, 350, 400];
-  const rows = tickets.map(t => {
-    const carsMonth = totalExp / t;
-    const carsDay = carsMonth / 26;
-    return `<tr>
-      <td>${peso(t)}</td>
-      <td>${Math.ceil(carsMonth)}</td>
-      <td>${carsDay.toFixed(1)}</td>
-    </tr>`;
-  }).join('');
-
-  return `
-    <section class="section">
-      <h2 class="section-title">Break-even <em>sensitivity</em></h2>
-      <div class="section-sub">At different price points</div>
-      <div class="panel" style="padding:0; overflow-x:auto;">
-        <table class="pnl-table">
-          <thead><tr>
-            <th>Avg Ticket</th><th>Cars / Month</th><th>Cars / Day (26 work days)</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      <p style="margin-top: 16px; color: var(--ink-dim); font-size: 14px;">
-        At your current avg ticket of <strong style="color:var(--accent);">${peso(latest.avgTicket)}</strong>,
-        you need <strong style="color:var(--accent);">${latest.breakEvenPerDay.toFixed(1)} cars/day</strong> to break even.
-        Your actual: <strong style="color:${latest.carsPerDay >= latest.breakEvenPerDay ? 'var(--good)' : 'var(--bad)'};">${latest.carsPerDay.toFixed(1)} cars/day</strong>.
-      </p>
-    </section>
-  `;
-}
-
-// ============================================================
-//   ORCHESTRATION
-// ============================================================
-function renderAll() {
-  renderMonthsList();
-  renderResults();
-}
-
-// ============================================================
-//   INIT
-// ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  const hadSavedData = loadState();
-  if (!hadSavedData) {
-    // First-time visitor — preload with sample data so they see something working
-    dashSt.months = [
-      { label: 'January 2026',  sales: 127445, txn: 487, opDays: 25, tips: 9030 },
-      { label: 'February 2026', sales: 142760, txn: 516, opDays: 28, tips: 0 },
-      { label: 'March 2026',    sales: 131630, txn: 440, opDays: 31, tips: 0 }
-    ];
-  }
-  bindExpenseInputs();
-  renderAll();
-});
-    try{ if(!loadState()) renderAll(); else renderAll(); bindExpenseInputs(); }catch(e){console.error("Dashboard init error:",e);}
-  };
-})();
 </script>
 </body>
 </html>
