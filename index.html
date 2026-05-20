@@ -1108,10 +1108,12 @@ window.pinKey = function(k){
       $('pinScreen').classList.remove('on');
       pinBuffer=''; updateDots(); toast('Switched to '+staffName);
       renderInv();
-      // Always refresh data card visibility immediately
       const mgr=staffRole==='manager';
       $('dataCardMgr').style.display=mgr?'flex':'none';
       $('dataCardLock').style.display=mgr?'none':'flex';
+      // Show manager tabs immediately
+      const _ncb=document.getElementById('nbCust'); if(_ncb) _ncb.style.display=mgr?'':'none';
+      const _ndb=document.getElementById('nbDash'); if(_ndb) _ndb.style.display=mgr?'':'none';
     } else {
       $('pinErr').textContent='Wrong PIN. Try again.';
       pinBuffer=''; updateDots();
