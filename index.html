@@ -1639,9 +1639,9 @@ window.factoryReset=async function(){
 };
 
 /* REPORTS */
-let dateFilter='all';
+let dateFilter='all'; window.dateFilter='all';
 window.setDateFilter=function(mode,btn){
-  dateFilter=mode;
+  dateFilter=mode; window.dateFilter=mode;
   if(btn){document.querySelectorAll('.dqb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
   renderRep();
 };
@@ -1693,7 +1693,7 @@ function renderRep(){
   const now2=new Date();
   const today2=now2.toLocaleDateString();
   let fExp=allExp;
-  const df=window.dateFilter||'all';
+  const df=dateFilter;
   if(df==='today') fExp=allExp.filter(e=>e.date===today2);
   else if(df==='week'){const w=new Date(now2);w.setDate(now2.getDate()-6);w.setHours(0,0,0,0);fExp=allExp.filter(e=>e.ts&&e.ts>=w.getTime());}
   else if(df==='month'){const m=new Date(now2.getFullYear(),now2.getMonth(),1).getTime();fExp=allExp.filter(e=>e.ts&&e.ts>=m);}
