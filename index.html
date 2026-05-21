@@ -806,13 +806,14 @@ tr:hover td{background:var(--card);}
           <div class="ds-item" style="border-color:rgba(240,180,41,.3);background:rgba(240,180,41,.05);"><div class="ds-lbl">💝 Tips (not in sales)</div><div class="ds-val" id="dsTips" style="color:var(--accent)">₱0.00</div></div>
           <div class="ds-item" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="ds-lbl">🧾 Expenses</div><div class="ds-val" id="dsExpenses" style="color:var(--danger)">₱0.00</div></div>
           <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.08);"><div class="ds-lbl">📊 Net (Sales−Exp)</div><div class="ds-val" id="dsNet" style="color:var(--success)">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(79,209,197,.3);background:rgba(79,209,197,.05);"><div class="ds-lbl">🏷️ Discounts Given</div><div class="ds-val" id="dsDisc" style="color:var(--accent2)">₱0.00</div></div>
         </div>
       </div>
 
       <!-- SCROLLABLE: transaction table only -->
       <div class="tbl-x">
         <table style="min-width:900px" id="txTable" class="tx-table">
-          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
+          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Disc 🏷️</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
           <tbody id="txBody"></tbody>
         </table>
       </div>
@@ -923,6 +924,7 @@ tr:hover td{background:var(--card);}
       <div class="fg"><div class="fl">Services</div><input class="fi" id="etServices"></div>
       <div class="fg"><div class="fl">Payment</div><select class="fi" id="etPayment"><option value="cash">Cash</option><option value="gcash">GCash</option></select></div>
       <div class="fg"><div class="fl">Total (₱)</div><input class="fi" type="number" id="etTotal" min="0"></div>
+      <div class="fg"><div class="fl">Discount (₱)</div><input class="fi" type="number" id="etDiscount" min="0" placeholder="0.00" style="border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.05);"></div>
       <div class="fg"><div class="fl">Tip (₱)</div><input class="fi" type="number" id="etTip" min="0" placeholder="0.00" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);"></div>
       <div class="fg"><div class="fl">Time In</div><input class="fi" id="etTimeIn"></div>
       <div class="fg"><div class="fl">Time Out</div><input class="fi" id="etTimeOut"></div>
@@ -1035,6 +1037,15 @@ tr:hover td{background:var(--card);}
           <span style="font-size:14px;flex-shrink:0">ℹ️</span>
           <span>Ask customer to show their <b>GCash payment confirmation</b> before proceeding.</span>
         </div>
+      </div>
+      <!-- DISCOUNT SECTION (always visible) -->
+      <div style="margin-top:14px;padding:12px 14px;background:rgba(79,209,197,.06);border:1px solid rgba(79,209,197,.3);border-radius:10px;display:flex;flex-direction:column;gap:7px;">
+        <div class="fl" style="display:flex;align-items:center;justify-content:space-between;color:var(--accent2);font-weight:700;">
+          <span>🏷️ Discount (Optional)</span>
+          <span style="font-size:9px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">— reduces amount due</span>
+        </div>
+        <input class="fi" type="number" id="payDiscInput" placeholder="0.00" min="0" oninput="recalcPayDiscount()" style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.05);">
+        <div id="payDiscNote" style="display:none;font-size:11px;color:var(--accent2);"></div>
       </div>
       <!-- TIP SECTION (always visible) -->
       <div style="margin-top:14px;padding:12px 14px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.3);border-radius:10px;display:flex;flex-direction:column;gap:7px;">
@@ -1432,9 +1443,33 @@ window.openPayForJob = function(key){
   $('cashSec').style.display='flex';
   $('gcashSec').style.display='none';
   $('cashIn').value=''; $('chgRow').style.display='none';
+  // Reset discount
+  try{ $('payDiscInput').value=''; $('payDiscNote').style.display='none'; }catch(e){}
+  window._payOrigTotal = j.total; // store original before discount
   $('payModal').classList.add('on');
 };
-window.closePay=function(){$('payModal').classList.remove('on'); activeJobKey=null;};
+window.closePay=function(){$('payModal').classList.remove('on'); activeJobKey=null; try{$('payDiscInput').value='';$('payDiscNote').style.display='none';}catch(e){}};
+
+/* ══ RECALC DISCOUNT IN PAY MODAL ══ */
+window.recalcPayDiscount = function(){
+  if(!activeJobKey) return;
+  const j = jobs[activeJobKey]; if(!j) return;
+  const orig = window._payOrigTotal != null ? window._payOrigTotal : j.total;
+  let disc = parseFloat(($('payDiscInput')||{value:'0'}).value) || 0;
+  if(disc < 0) disc = 0;
+  if(disc > orig) disc = orig; // cannot exceed total
+  const newTotal = orig - disc;
+  // Update displayed amounts
+  try{ $('payAmt').textContent = fmt(newTotal); }catch(e){}
+  try{ if($('gcashAmt')) $('gcashAmt').textContent = fmt(newTotal); }catch(e){}
+  const note = $('payDiscNote');
+  if(note){
+    if(disc > 0){ note.style.display='block'; note.textContent='Original: '+fmt(orig)+' → New total: '+fmt(newTotal); }
+    else { note.style.display='none'; }
+  }
+  // Recalc change if cash already entered
+  try{ if(typeof calcChange==='function') calcChange(); }catch(e){}
+};
 window.pickMethod=function(m,el){
   payMethod=m;
   document.querySelectorAll('.pm').forEach(e=>e.classList.remove('on'));
@@ -1454,7 +1489,10 @@ window.pickMethod=function(m,el){
 
 window.calcChange=function(){
   const j=activeJobKey?jobs[activeJobKey]:null;
-  const total=j?j.total:0;
+  let total=j?j.total:0;
+  // Apply discount from pay modal if any
+  const _disc=parseFloat(($('payDiscInput')||{value:'0'}).value)||0;
+  if(_disc>0) total=Math.max(total-_disc,0);
   const recv=parseFloat($('cashIn').value)||0;
   const cr=$('chgRow');
   if(recv>0){
@@ -1688,6 +1726,7 @@ function renderRep(){
   const fCash=filtered.filter(t=>t.payment==='cash').reduce((s,t)=>s+t.total,0);
   const fGcash=filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+t.total,0);
   const fTips=filtered.reduce((s,t)=>s+(t.tip||0),0);
+  const fDisc=filtered.reduce((s,t)=>s+(t.discount||0),0);
   // Expenses filtered by same date range
   const allExp=Object.values(expenses||{});
   const now2=new Date();
@@ -1714,6 +1753,7 @@ function renderRep(){
   if($('dsTips')) $('dsTips').textContent=fmt(fTips);
   if($('dsExpenses')) $('dsExpenses').textContent=fmt(fExpTotal);
   if($('dsNet')){ $('dsNet').textContent=fmt(fNet); $('dsNet').style.color=fNet>=0?'var(--success)':'var(--danger)'; }
+  if($('dsDisc')) $('dsDisc').textContent=fmt(fDisc);
   // Show/hide Actions column based on role
   const mgr=staffRole==='manager';
   const tbl=$('txTable');
@@ -1732,6 +1772,9 @@ function renderRep(){
         <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.items||'—'}</td>
         <td><span class="bdg ${t.payment==='gcash'?'by':'bg'}">${(t.payment||'').toUpperCase()}</span></td>
         <td style="font-family:'DM Mono',monospace">${fmt(t.total)}</td>
+        <td style="font-family:'DM Mono',monospace;color:${(t.discount||0)>0?'var(--accent2)':'var(--muted)'}">
+          ${(t.discount||0)>0?'-'+fmt(t.discount):'—'}
+        </td>
         <td style="font-family:'DM Mono',monospace;color:${(t.tip||0)>0?'var(--accent)':'var(--muted)'}">
           ${(t.tip||0)>0?fmt(t.tip):'—'}
         </td>
@@ -1741,7 +1784,7 @@ function renderRep(){
           <span class="al del" onclick="deleteTx('${t.id}')" style="color:var(--danger);cursor:pointer;font-weight:600;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(252,92,125,.1);margin-left:4px;">Del</span>
         </td>
       </tr>`).join('')
-    :'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
+    :'<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
 }
 
 /* SETTINGS */
@@ -1796,7 +1839,13 @@ window.closePay = function(){
 window.confirmPay = async function(){
   if(!activeJobKey){toast('No job selected','var(--danger)');return;}
   const j=jobs[activeJobKey]; if(!j)return;
-  if(payMethod==='cash'){const recv=parseFloat($('cashIn').value)||0;if(recv<j.total){alert('Cash received is not enough!');return;}}
+  // Apply discount
+  const origTotal = (window._payOrigTotal != null ? window._payOrigTotal : j.total);
+  let disc = parseFloat(($('payDiscInput')||{value:'0'}).value) || 0;
+  if(disc < 0) disc = 0;
+  if(disc > origTotal) disc = origTotal;
+  const finalTotal = origTotal - disc;
+  if(payMethod==='cash'){const recv=parseFloat($('cashIn').value)||0;if(recv<finalTotal){alert('Cash received is not enough!');return;}}
   const tip=parseFloat(($('tipInput')||{value:'0'}).value)||0;
   const now=new Date(); const timeOut=now.toLocaleTimeString();
   const txRef=push(ref(db,'transactions')); const updates={};
@@ -1804,10 +1853,12 @@ window.confirmPay = async function(){
   updates['jobs/'+activeJobKey+'/timeOut']=timeOut;
   updates['jobs/'+activeJobKey+'/timeOutTs']=now.getTime();
   updates['jobs/'+activeJobKey+'/payment']=payMethod;
-  updates['transactions/'+txRef.key]={id:txRef.key,plate:j.plate,bay:j.bay,carModel:j.carModel||'',timeIn:j.timeIn,timeOut,date:j.date||now.toLocaleDateString(),items:j.services,payment:payMethod,total:j.total,tip,staff:staffName,ts:now.getTime()};
+  updates['jobs/'+activeJobKey+'/total']=finalTotal;
+  if(disc>0) updates['jobs/'+activeJobKey+'/discount']=disc;
+  updates['transactions/'+txRef.key]={id:txRef.key,plate:j.plate,bay:j.bay,carModel:j.carModel||'',timeIn:j.timeIn,timeOut,date:j.date||now.toLocaleDateString(),items:j.services,payment:payMethod,total:finalTotal,discount:disc,tip,staff:staffName,ts:now.getTime()};
   await update(ref(db),updates);
   window.closePay();
-  toast('✅ Payment collected! '+(j.plate||'')+' checked out'+(tip>0?' | Tip: '+fmt(tip):''));
+  toast('✅ Payment collected! '+(j.plate||'')+' checked out'+(disc>0?' | Disc: '+fmt(disc):'')+(tip>0?' | Tip: '+fmt(tip):''));
 };
 
 /* ══ EXPENSES STATE ══ */
@@ -1917,7 +1968,7 @@ window.openEditTx = function(id){
   const [key,t]=entry; editTxKey=key;
   $('etDate').value=t.date||''; $('etPlate').value=t.plate||''; $('etModel').value=t.carModel||'';
   $('etBay').value=t.bay||'1'; $('etServices').value=t.items||''; $('etPayment').value=t.payment||'cash';
-  $('etTotal').value=t.total||0; $('etTip').value=t.tip||'';
+  $('etTotal').value=t.total||0; $('etTip').value=t.tip||''; $('etDiscount').value=t.discount||'';
   $('etTimeIn').value=t.timeIn||''; $('etTimeOut').value=t.timeOut||''; $('etStaff').value=t.staff||'';
   $('editTxModal').classList.add('on');
 };
@@ -1925,10 +1976,11 @@ window.saveEditTx = async function(){
   if(!needsMgr())return; if(!editTxKey)return;
   const total=parseFloat($('etTotal').value)||0;
   const tip=parseFloat($('etTip').value)||0;
+  const discount=parseFloat($('etDiscount').value)||0;
   const plate=($('etPlate').value||'').trim().toUpperCase();
   const carModel=($('etModel').value||'').trim();
   const updates={};
-  updates['transactions/'+editTxKey]={...txs[editTxKey],date:($('etDate').value||'').trim(),plate,carModel,bay:$('etBay').value,items:($('etServices').value||'').trim(),payment:$('etPayment').value,total,tip,timeIn:($('etTimeIn').value||'').trim(),timeOut:($('etTimeOut').value||'').trim(),staff:($('etStaff').value||'').trim()};
+  updates['transactions/'+editTxKey]={...txs[editTxKey],date:($('etDate').value||'').trim(),plate,carModel,bay:$('etBay').value,items:($('etServices').value||'').trim(),payment:$('etPayment').value,total,tip,discount,timeIn:($('etTimeIn').value||'').trim(),timeOut:($('etTimeOut').value||'').trim(),staff:($('etStaff').value||'').trim()};
   const matchingJob=Object.entries(jobs).find(([,j])=>j.plate===(txs[editTxKey]||{}).plate&&j.date===(txs[editTxKey]||{}).date);
   if(matchingJob){
     const [jk]=matchingJob;
