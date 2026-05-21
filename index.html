@@ -800,20 +800,21 @@ tr:hover td{background:var(--card);}
         </div>
         <div class="date-summary" id="dateSummary">
           <div class="ds-item"><div class="ds-lbl">Transactions</div><div class="ds-val" id="dsCount">0</div></div>
-          <div class="ds-item"><div class="ds-lbl">Revenue</div><div class="ds-val" id="dsRevenue">₱0.00</div></div>
+          <div class="ds-item"><div class="ds-lbl">Gross Sales</div><div class="ds-val" id="dsGross">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(79,209,197,.3);background:rgba(79,209,197,.05);"><div class="ds-lbl">🏷️ Discounts</div><div class="ds-val" id="dsDisc" style="color:var(--accent2)">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(255,255,255,.15);"><div class="ds-lbl">Net Sales (after disc)</div><div class="ds-val" id="dsRevenue">₱0.00</div></div>
           <div class="ds-item"><div class="ds-lbl">Cash</div><div class="ds-val" id="dsCash">₱0.00</div></div>
           <div class="ds-item"><div class="ds-lbl">GCash</div><div class="ds-val" id="dsGcash">₱0.00</div></div>
           <div class="ds-item" style="border-color:rgba(240,180,41,.3);background:rgba(240,180,41,.05);"><div class="ds-lbl">💝 Tips (not in sales)</div><div class="ds-val" id="dsTips" style="color:var(--accent)">₱0.00</div></div>
           <div class="ds-item" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="ds-lbl">🧾 Expenses</div><div class="ds-val" id="dsExpenses" style="color:var(--danger)">₱0.00</div></div>
-          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.08);"><div class="ds-lbl">📊 Net (Sales−Exp)</div><div class="ds-val" id="dsNet" style="color:var(--success)">₱0.00</div></div>
-          <div class="ds-item" style="border-color:rgba(79,209,197,.3);background:rgba(79,209,197,.05);"><div class="ds-lbl">🏷️ Discounts Given</div><div class="ds-val" id="dsDisc" style="color:var(--accent2)">₱0.00</div></div>
+          <div class="ds-item" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.08);"><div class="ds-lbl">📊 Net Profit (Net Sales−Exp)</div><div class="ds-val" id="dsNet" style="color:var(--success)">₱0.00</div></div>
         </div>
       </div>
 
       <!-- SCROLLABLE: transaction table only -->
       <div class="tbl-x">
-        <table style="min-width:900px" id="txTable" class="tx-table">
-          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Disc 🏷️</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
+        <table style="min-width:980px" id="txTable" class="tx-table">
+          <thead><tr><th>#</th><th>Date</th><th>Car Model</th><th>Plate</th><th>Bay</th><th>Time In</th><th>Time Out</th><th>Services</th><th>Payment</th><th>Total</th><th>Disc 🏷️</th><th>Net</th><th>Tip 💝</th><th>Staff</th><th class="col-actions">Actions</th></tr></thead>
           <tbody id="txBody"></tbody>
         </table>
       </div>
@@ -923,8 +924,9 @@ tr:hover td{background:var(--card);}
       <div class="fg"><div class="fl">Bay</div><select class="fi" id="etBay"><option value="1">Bay 1</option><option value="2">Bay 2</option><option value="3">Bay 3</option><option value="4">Bay 4</option></select></div>
       <div class="fg"><div class="fl">Services</div><input class="fi" id="etServices"></div>
       <div class="fg"><div class="fl">Payment</div><select class="fi" id="etPayment"><option value="cash">Cash</option><option value="gcash">GCash</option></select></div>
-      <div class="fg"><div class="fl">Total (₱)</div><input class="fi" type="number" id="etTotal" min="0"></div>
-      <div class="fg"><div class="fl">Discount (₱)</div><input class="fi" type="number" id="etDiscount" min="0" placeholder="0.00" style="border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.05);"></div>
+      <div class="fg"><div class="fl">Gross Total (₱) — before discount</div><input class="fi" type="number" id="etTotal" min="0" oninput="recalcEditNet()"></div>
+      <div class="fg"><div class="fl">Discount (₱)</div><input class="fi" type="number" id="etDiscount" min="0" placeholder="0.00" oninput="recalcEditNet()" style="border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.05);"></div>
+      <div style="padding:8px 12px;background:rgba(72,187,120,.07);border:1px solid rgba(72,187,120,.25);border-radius:8px;font-size:12px;display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--muted)">Net Sales (what counts as revenue)</span><b id="etNetPreview" style="font-family:'DM Mono',monospace;color:var(--success);font-size:14px;">₱0.00</b></div>
       <div class="fg"><div class="fl">Tip (₱)</div><input class="fi" type="number" id="etTip" min="0" placeholder="0.00" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);"></div>
       <div class="fg"><div class="fl">Time In</div><input class="fi" id="etTimeIn"></div>
       <div class="fg"><div class="fl">Time Out</div><input class="fi" id="etTimeOut"></div>
@@ -1727,6 +1729,7 @@ function renderRep(){
   const fGcash=filtered.filter(t=>t.payment==='gcash').reduce((s,t)=>s+t.total,0);
   const fTips=filtered.reduce((s,t)=>s+(t.tip||0),0);
   const fDisc=filtered.reduce((s,t)=>s+(t.discount||0),0);
+  const fGross=fRev+fDisc;
   // Expenses filtered by same date range
   const allExp=Object.values(expenses||{});
   const now2=new Date();
@@ -1747,6 +1750,7 @@ function renderRep(){
   const fExpTotal=fExp.reduce((s,e)=>s+e.amount,0);
   const fNet=fRev-fExpTotal;
   $('dsCount').textContent=filtered.length;
+  if($('dsGross')) $('dsGross').textContent=fmt(fGross);
   $('dsRevenue').textContent=fmt(fRev);
   $('dsCash').textContent=fmt(fCash);
   $('dsGcash').textContent=fmt(fGcash);
@@ -1771,10 +1775,11 @@ function renderRep(){
         <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--success)">${t.timeOut||'—'}</td>
         <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.items||'—'}</td>
         <td><span class="bdg ${t.payment==='gcash'?'by':'bg'}">${(t.payment||'').toUpperCase()}</span></td>
-        <td style="font-family:'DM Mono',monospace">${fmt(t.total)}</td>
+        <td style="font-family:'DM Mono',monospace">${fmt((t.total||0)+(t.discount||0))}</td>
         <td style="font-family:'DM Mono',monospace;color:${(t.discount||0)>0?'var(--accent2)':'var(--muted)'}">
           ${(t.discount||0)>0?'-'+fmt(t.discount):'—'}
         </td>
+        <td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--success)">${fmt(t.total)}</td>
         <td style="font-family:'DM Mono',monospace;color:${(t.tip||0)>0?'var(--accent)':'var(--muted)'}">
           ${(t.tip||0)>0?fmt(t.tip):'—'}
         </td>
@@ -1784,7 +1789,7 @@ function renderRep(){
           <span class="al del" onclick="deleteTx('${t.id}')" style="color:var(--danger);cursor:pointer;font-weight:600;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(252,92,125,.1);margin-left:4px;">Del</span>
         </td>
       </tr>`).join('')
-    :'<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
+    :'<tr><td colspan="15" style="text-align:center;color:var(--muted);padding:24px">No transactions for selected period</td></tr>';
 }
 
 /* SETTINGS */
@@ -1961,6 +1966,14 @@ function renderExp(){
 
 /* ══ EDIT TRANSACTION ══ */
 let editTxKey=null;
+window.recalcEditNet = function(){
+  const gross=parseFloat(($('etTotal')||{value:'0'}).value)||0;
+  let disc=parseFloat(($('etDiscount')||{value:'0'}).value)||0;
+  if(disc<0) disc=0;
+  if(disc>gross) disc=gross;
+  const net=gross-disc;
+  if($('etNetPreview')) $('etNetPreview').textContent=fmt(net);
+};
 window.openEditTx = function(id){
   if(!needsMgr())return;
   const entry=Object.entries(txs).find(([,t])=>t.id===id);
@@ -1968,15 +1981,22 @@ window.openEditTx = function(id){
   const [key,t]=entry; editTxKey=key;
   $('etDate').value=t.date||''; $('etPlate').value=t.plate||''; $('etModel').value=t.carModel||'';
   $('etBay').value=t.bay||'1'; $('etServices').value=t.items||''; $('etPayment').value=t.payment||'cash';
-  $('etTotal').value=t.total||0; $('etTip').value=t.tip||''; $('etDiscount').value=t.discount||'';
+  // Total field shows GROSS (before discount). Saved total is net, so gross = total + discount.
+  const disc=t.discount||0;
+  const gross=(t.total||0)+disc;
+  $('etTotal').value=gross; $('etDiscount').value=disc||''; $('etTip').value=t.tip||'';
   $('etTimeIn').value=t.timeIn||''; $('etTimeOut').value=t.timeOut||''; $('etStaff').value=t.staff||'';
+  recalcEditNet();
   $('editTxModal').classList.add('on');
 };
 window.saveEditTx = async function(){
   if(!needsMgr())return; if(!editTxKey)return;
-  const total=parseFloat($('etTotal').value)||0;
+  const gross=parseFloat($('etTotal').value)||0;
   const tip=parseFloat($('etTip').value)||0;
-  const discount=parseFloat($('etDiscount').value)||0;
+  let discount=parseFloat($('etDiscount').value)||0;
+  if(discount<0) discount=0;
+  if(discount>gross) discount=gross;
+  const total=gross-discount; // NET — this is what counts as revenue
   const plate=($('etPlate').value||'').trim().toUpperCase();
   const carModel=($('etModel').value||'').trim();
   const updates={};
@@ -1987,10 +2007,11 @@ window.saveEditTx = async function(){
     updates['jobs/'+jk+'/plate']=plate; updates['jobs/'+jk+'/carModel']=carModel;
     updates['jobs/'+jk+'/bay']=$('etBay').value; updates['jobs/'+jk+'/services']=($('etServices').value||'').trim();
     updates['jobs/'+jk+'/payment']=$('etPayment').value; updates['jobs/'+jk+'/total']=total;
+    updates['jobs/'+jk+'/discount']=discount;
     updates['jobs/'+jk+'/timeIn']=($('etTimeIn').value||'').trim(); updates['jobs/'+jk+'/timeOut']=($('etTimeOut').value||'').trim();
   }
   await update(ref(db),updates);
-  closeModal('editTxModal'); editTxKey=null; toast('Transaction & Job updated ✓');
+  closeModal('editTxModal'); editTxKey=null; toast('Transaction updated ✓'+(discount>0?' | Net: '+fmt(total):''));
 };
 window.deleteTx = async function(id){
   if(!needsMgr())return;
