@@ -1414,6 +1414,10 @@ window.confirmLogIn = async function(){
   const now=new Date();
   const timeIn=now.toLocaleTimeString();
   const dateStr=now.toLocaleDateString();
+  // Gross = subtotal before discount (we store GROSS as total; discount stored separately)
+  const sub=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const dApplied=Math.min(disc,sub);
+  const grossTotal=sub*(1+S.tax/100);
   const jobRef=push(ref(db,'jobs'));
   await set(ref(db,'jobs/'+jobRef.key),{
     plate, bay, carModel,
@@ -1422,7 +1426,8 @@ window.confirmLogIn = async function(){
     services:cart.map(c=>c.name+' x'+c.qty).join(', '),
     servicesList:cart.map(c=>({key:c.key,name:c.name,qty:c.qty,price:c.price})),
     payment:null,        // payment not yet collected
-    total:getTotal(),
+    total:grossTotal,    // GROSS (before discount)
+    discount:dApplied,   // discount entered in POS
     staff:staffName,
     status:'in-progress', // waiting for job to finish
     date:dateStr,
@@ -1430,7 +1435,7 @@ window.confirmLogIn = async function(){
   $('loginCarModal').classList.remove('on');
   clearOrder();
   $('plateInput').value=''; $('bayInput').value=''; $('carModelInput').value='';
-  toast('🚗 '+plate+' logged in — Bay '+bay+' is now IN PROGRESS');
+  toast('🚗 '+plate+' logged in — Bay '+bay+' is now IN PROGRESS'+(dApplied>0?' | Disc: '+fmt(dApplied):''));
   // Switch to Jobs tab so staff can see it
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
@@ -1442,7 +1447,11 @@ window.confirmLogIn = async function(){
 window.openPayForJob = function(key){
   const j=jobs[key]; if(!j)return;
   activeJobKey=key;
-  $('payAmt').textContent=fmt(j.total);
+  const existingDisc = j.discount || 0;
+  const gross = j.total || 0;          // stored total is GROSS
+  const net = Math.max(gross - existingDisc, 0);
+  window._payOrigTotal = gross;        // gross before any discount
+  $('payAmt').textContent=fmt(net);    // show net amount due
   $('mPlate').textContent=j.plate||'—';
   $('mBay').textContent='Bay '+(j.bay||'—');
   $('mTimeIn').textContent=j.timeIn||'—';
@@ -1453,9 +1462,13 @@ window.openPayForJob = function(key){
   $('cashSec').style.display='flex';
   $('gcashSec').style.display='none';
   $('cashIn').value=''; $('chgRow').style.display='none';
-  // Reset discount
-  try{ $('payDiscInput').value=''; $('payDiscNote').style.display='none'; }catch(e){}
-  window._payOrigTotal = j.total; // store original before discount
+  // Pre-fill discount from POS (cashier can adjust)
+  try{
+    $('payDiscInput').value = existingDisc>0 ? existingDisc : '';
+    if(existingDisc>0){ $('payDiscNote').style.display='block'; $('payDiscNote').textContent='Original: '+fmt(gross)+' → New total: '+fmt(net); }
+    else { $('payDiscNote').style.display='none'; }
+  }catch(e){}
+  if($('gcashAmt')) $('gcashAmt').textContent=fmt(net);
   $('payModal').classList.add('on');
 };
 window.closePay=function(){$('payModal').classList.remove('on'); activeJobKey=null; try{$('payDiscInput').value='';$('payDiscNote').style.display='none';}catch(e){}};
@@ -1847,6 +1860,7 @@ window.confirmExtraService = function(){
 window.closePay = function(){
   $('payModal').classList.remove('on'); activeJobKey=null;
   try{ $('tipInput').value=''; }catch(e){}
+  try{ $('payDiscInput').value=''; $('payDiscNote').style.display='none'; }catch(e){}
 };
 
 /* ══ CONFIRM PAY WITH TIP ══ */
