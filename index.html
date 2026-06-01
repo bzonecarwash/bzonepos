@@ -1473,6 +1473,21 @@ window.confirmLogIn = async function(){
   const plate=$('plateInput').value.trim();
   const bay=$('bayInput').value;
   const carModel=$('carModelInput').value.trim();
+
+  // === BLOCK DUPLICATE ACTIVE PLATE ===
+  // Check if same plate already exists with status 'in-progress'
+  const normInput = (typeof normalizePlate==='function') ? normalizePlate(plate) : plate.replace(/\s+/g,'').toUpperCase();
+  const existingActive = Object.values(jobs).find(j => {
+    if(!j || j.status==='completed') return false;
+    const jp = (typeof normalizePlate==='function') ? normalizePlate(j.plate||'') : (j.plate||'').replace(/\s+/g,'').toUpperCase();
+    return jp === normInput;
+  });
+  if(existingActive){
+    alert('⚠️ "'+plate+'" is already in progress at Bay '+(existingActive.bay||'?')+'.\n\nCollect payment first before logging in again.');
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+    return; // STOP — do not create duplicate
+  }
+
   const now=new Date();
   const timeIn=now.toLocaleTimeString();
   const dateStr=now.toLocaleDateString();
