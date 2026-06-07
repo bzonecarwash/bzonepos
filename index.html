@@ -1285,13 +1285,7 @@ tr:hover td{background:var(--card);}
         <div class="store-card">
           <div class="store-card-title">Product List <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stProdCountLbl">—</span></div>
           <div class="store-add-row" style="background:transparent;border:none;padding:4px 10px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
-            <span style="padding-left:7px;">NAME</span>
-            <span style="text-align:right;padding-right:7px;">COST</span>
-            <span style="text-align:right;padding-right:7px;">CUST ₱</span>
-            <span style="text-align:right;padding-right:7px;">STAFF ₱</span>
-            <span style="text-align:right;padding-right:7px;">STOCK</span>
-            <span style="text-align:right;padding-right:7px;">LOW @</span>
-            <span style="width:18px;"></span>
+            <span>NAME</span><span style="text-align:right;">COST</span><span style="text-align:right;">CUST ₱</span><span style="text-align:right;">STAFF ₱</span><span style="text-align:right;">STOCK</span><span style="text-align:right;">LOW @</span><span></span>
           </div>
           <div class="store-prodlist" id="storeProdList"></div>
         </div>
@@ -1349,12 +1343,18 @@ tr:hover td{background:var(--card);}
           <div class="store-card-title">Store Summary
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
               <button id="stCashCollectBtn" onclick="storeOpenCashCollect()" style="display:none;padding:5px 12px;background:rgba(252,92,125,.1);border:1px solid rgba(252,92,125,.4);color:var(--danger);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">💰 Cash Collection</button>
-              <select id="stRepPeriod" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;">
+              <select id="stRepPeriod" onchange="storeRepPeriodChanged()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;">
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
                 <option value="month" selected>This Month</option>
                 <option value="all">All Time</option>
+                <option value="custom">Custom Range…</option>
               </select>
+              <div id="stRepCustom" style="display:none;align-items:center;gap:4px;">
+                <input type="date" id="stRepFrom" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:6px;cursor:pointer;color-scheme:dark;">
+                <span style="color:var(--muted);font-size:11px;">to</span>
+                <input type="date" id="stRepTo" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:6px;cursor:pointer;color-scheme:dark;">
+              </div>
             </div>
           </div>
           <div class="store-summary" id="storeSumGrid"></div>
@@ -3463,15 +3463,14 @@ function renderPay(){
       ? advs.slice(0,200).map(([id,a])=>{
           const s = payStaff[a.staffId];
           const sname = s?s.name:'(removed)';
-          const dStr = a.date || (a.ts?phtISO(a.ts):'—');
-          const tStr = a.ts ? phtTimeStr(new Date(a.ts)) : '';
+          const dStr = a.date || (a.ts?new Date(a.ts).toISOString().slice(0,10):'—');
           const settled = !!a.settledAt;
           return `<div class="pay-adv-row" style="margin-bottom:5px;${settled?'opacity:0.55;':''}">
             <div>
               <div class="av-name">${sname} ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>
               ${a.note?'<div style="font-size:9px;color:var(--muted);">'+a.note+'</div>':''}
             </div>
-            <div class="av-date" style="text-align:right;line-height:1.3;"><div>${dStr}</div>${tStr?'<div style="font-size:9px;opacity:0.7;">'+tStr+'</div>':''}</div>
+            <div class="av-date">${dStr}</div>
             <div class="av-amt" style="${settled?'text-decoration:line-through;':''}">-${fmt(a.amt||0)}</div>
             <div class="pay-del" onclick="payDelAdvance('${id}')" title="Delete">✕</div>
           </div>`;
@@ -3561,14 +3560,13 @@ function renderPay(){
           if(c.staffId && payStaff[c.staffId]) sname = payStaff[c.staffId].name;
           else if(c.name) sname = c.name;
           const dStr = c.date || (c.ts?phtISO(c.ts):'—');
-          const tStr = c.ts ? phtTimeStr(new Date(c.ts)) : '';
           const settled = !!c.settledAt;
           return `<div class="pay-adv-row" style="margin-bottom:5px;${settled?'opacity:0.55;':''}">
             <div>
               <div class="av-name">${sname} ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>
               ${c.note?'<div style="font-size:9px;color:var(--muted);">'+c.note+'</div>':''}
             </div>
-            <div class="av-date" style="text-align:right;line-height:1.3;"><div>${dStr}</div>${tStr?'<div style="font-size:9px;opacity:0.7;">'+tStr+'</div>':''}</div>
+            <div class="av-date">${dStr}</div>
             <div class="av-amt" style="${settled?'text-decoration:line-through;':''}">-${fmt(c.amt||0)}</div>
             <div class="pay-del" onclick="payDelCredit('${id}')" title="Delete">✕</div>
           </div>`;
@@ -4544,6 +4542,20 @@ function renderStoreCredit(){
   }
 }
 
+function storeRepPeriodChanged(){
+  const p = ($('stRepPeriod')||{}).value;
+  const c = $('stRepCustom');
+  if(c) c.style.display = (p==='custom') ? 'flex' : 'none';
+  // First time Custom is picked, seed the inputs with the current month-to-date
+  if(p==='custom'){
+    const nowP = toPHT(new Date());
+    const _loc = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const f=$('stRepFrom'), t=$('stRepTo');
+    if(f && !f.value) f.value = nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
+    if(t && !t.value) t.value = _loc(nowP);
+  }
+  renderStore();
+}
 function renderStoreReport(){
   const period = ($('stRepPeriod')||{value:'month'}).value;
   const nowP = toPHT(new Date());
@@ -4557,6 +4569,11 @@ function renderStoreReport(){
   } else if(period==='month'){
     fromISO = nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
     toISO = _loc(nowP);
+  } else if(period==='custom'){
+    fromISO = ($('stRepFrom')||{}).value || '1970-01-01';
+    toISO   = ($('stRepTo')||{}).value   || '2999-12-31';
+    // If user enters From later than To, swap so the range still works
+    if(fromISO>toISO){ const _t=fromISO; fromISO=toISO; toISO=_t; }
   } else {
     fromISO='1970-01-01'; toISO='2999-12-31';
   }
