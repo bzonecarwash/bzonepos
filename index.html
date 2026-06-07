@@ -3640,7 +3640,10 @@ function renderPaySummary(){
   });
   // Aggregate advances by day
   Object.values(payAdv).forEach(a=>{
-    if(a.settledAt) return; // settled — already paid out
+    // NOTE: We INCLUDE settled advances here because Daily Net Remaining is a
+    // historical view ("how much cash was left in the drawer that day").
+    // The advance was real cash that left the drawer on that day, regardless
+    // of whether it was later settled at Pay Day.
     const iso = a.date || (a.ts?isoFromTs(a.ts):'');
     if(!iso || iso<fromISO || iso>toISO) return;
     if(!dailyMap[iso]) dailyMap[iso] = {cash:0, expenses:0, advances:0};
@@ -4314,9 +4317,11 @@ function renderStoreCredit(){
   }
 
   // Populate staff filter dropdown (active staff + any staff who have credits)
-  // FIX: only rebuild when the staff list actually changes — preserves user selection
+  // Always preserve the user's current selection even when rebuilding.
   const staffSel = $('stCrFilterStaff');
   if(staffSel){
+    // Capture user's current selection FIRST, before any rebuild logic
+    const userSelectedValue = staffSel.value;
     const staffWithCreditIds = new Set();
     Object.values(storeSales).forEach(s=>{
       if(s.mode==='staff_credit' && s.buyerStaffId) staffWithCreditIds.add(s.buyerStaffId);
@@ -4330,16 +4335,18 @@ function renderStoreCredit(){
       const s = (payStaff||{})[id];
       return {id, name: s ? s.name : '(removed staff)'};
     }).sort((a,b)=>a.name.localeCompare(b.name));
-    // Build a signature to detect changes; only rebuild if list changed
+    // Build signature; only rebuild HTML if list of options changed (avoids flicker)
     const sig = opts.map(o=>o.id+':'+o.name).join('|');
     if(staffSel.dataset.sig !== sig){
-      const currentValue = staffSel.value;
       staffSel.innerHTML = '<option value="">All Staff</option>' + opts.map(o=>`<option value="${o.id}">${o.name}</option>`).join('');
       staffSel.dataset.sig = sig;
-      // Restore previous selection if still valid; otherwise keep "All Staff"
-      if(currentValue && opts.some(o=>o.id===currentValue)){
-        staffSel.value = currentValue;
-      }
+    }
+    // Always restore the user's selection if it's still a valid option
+    if(userSelectedValue && opts.some(o=>o.id===userSelectedValue)){
+      if(staffSel.value !== userSelectedValue) staffSel.value = userSelectedValue;
+    } else if(userSelectedValue && !opts.some(o=>o.id===userSelectedValue)){
+      // Their selected staff no longer exists — fall back to "All Staff"
+      staffSel.value = '';
     }
   }
 
