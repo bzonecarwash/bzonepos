@@ -1101,21 +1101,28 @@ tr:hover td{background:var(--card);}
         </div>
       </div>
 
-      <!-- STORE CREDITS TAB -->
+      <!-- STORE CREDITS TAB (read-only view; created via Store tab) -->
       <div id="payPaneCr" class="pay-pane" style="display:none;">
         <div class="pay-card">
-          <div class="pay-card-title">+ Add Store Credit</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
-            <div class="fg"><div class="fl">Staff</div><select class="fi" id="crStaff" style="cursor:pointer;"></select></div>
-            <div class="fg"><div class="fl">Amount (₱)</div><input class="fi" type="number" id="crAmt" placeholder="0.00" min="0"></div>
+          <div class="pay-card-title">Store Credit History
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <select id="payCrFilterStaff" onchange="payCrFilterChanged(this.value)" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="">All Staff</option>
+              </select>
+              <select id="payCrFilterPeriod" onchange="payCrPeriodChanged(this.value)" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="all" selected>All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              <input type="date" id="payCrDateFrom" onchange="renderPay()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;outline:none;color-scheme:dark;display:none;">
+              <input type="date" id="payCrDateTo" onchange="renderPay()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;outline:none;color-scheme:dark;display:none;">
+            </div>
           </div>
-          <div class="fg"><div class="fl">Note (optional)</div><input class="fi" id="crNote" placeholder="e.g. utang, hulog, pasalubong"></div>
-          <button class="btn-p" onclick="payAddCredit()" style="padding:9px;font-size:13px;">Save Store Credit</button>
-        </div>
-        <div class="pay-card">
-          <div class="pay-card-title">Store Credit History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="crCountLbl">—</span></div>
-          <div id="payCrList"></div>
-          <div style="font-size:10px;color:var(--muted);padding-top:4px;">Store credits are subtracted from Net Remaining on the day they were given.</div>
+          <div id="crCountLbl" style="font-size:10px;color:var(--muted);">—</div>
+          <div id="payCrList" style="display:flex;flex-direction:column;gap:5px;max-height:480px;overflow-y:auto;padding-right:4px;"></div>
+          <div style="font-size:10px;color:var(--muted);padding-top:4px;">Store credits are created from the <b>Store</b> tab (Staff Credit mode at checkout). They subtract from each staff's Owed wages at Pay Day.</div>
         </div>
       </div>
 
@@ -1311,10 +1318,10 @@ tr:hover td{background:var(--card);}
         <div class="store-card">
           <div class="store-card-title">🧾 Credit History
             <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <select id="stCrFilterStaff" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+              <select id="stCrFilterStaff" onchange="storeCrFilterChanged(this.value)" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
                 <option value="">All Staff</option>
               </select>
-              <select id="stCrFilterPeriod" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+              <select id="stCrFilterPeriod" onchange="storeCrPeriodChanged(this.value)" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
                 <option value="all" selected>All Time</option>
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
@@ -3147,6 +3154,18 @@ window.payDelCredit = async function(id){
   toast('Store credit deleted');
 };
 
+/* Payroll Credit-tab filter state — backed by JS variables to survive re-renders */
+window._payCrFilterStaff = '';
+window._payCrFilterPeriod = 'all';
+window.payCrFilterChanged = function(val){
+  window._payCrFilterStaff = val || '';
+  renderPay();
+};
+window.payCrPeriodChanged = function(val){
+  window._payCrFilterPeriod = val || 'all';
+  renderPay();
+};
+
 /* ══ PAY DAY / SETTLEMENT ══
    Marks all unsettled advances and credits as "settled" via a settledAt timestamp.
    Also marks wages + tips earned BEFORE this pay-day timestamp as paid out
@@ -3453,26 +3472,88 @@ function renderPay(){
       : '<div style="color:var(--muted);text-align:center;padding:18px;font-size:12px;">No cash advances yet.</div>';
   }
 
-  // === STORE CREDITS PANE ===
-  const crSel = $('crStaff');
-  if(crSel){
-    crSel.innerHTML = staffList.length
-      ? '<option value="">— Choose staff —</option>' + staffList.map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('')
-      : '<option value="">(no staff)</option>';
+  // === STORE CREDITS PANE (filtered view; created via Store tab) ===
+  // Show/hide custom date inputs
+  const payCrPeriod = window._payCrFilterPeriod || 'all';
+  const fromEl = $('payCrDateFrom'), toEl = $('payCrDateTo');
+  if(fromEl && toEl){
+    const customMode = (payCrPeriod==='custom');
+    fromEl.style.display = customMode ? '' : 'none';
+    toEl.style.display = customMode ? '' : 'none';
   }
+  // Populate staff filter dropdown (uses signature guard but DOES NOT touch user's stored filter value)
+  const payCrSel = $('payCrFilterStaff');
+  if(payCrSel){
+    // Build options from active staff + any staff that have credits in history
+    const staffIdsInCredits = new Set();
+    Object.values(payCredits).forEach(c=>{ if(c.staffId) staffIdsInCredits.add(c.staffId); });
+    const allRelevantIds = new Set([
+      ...Object.entries(payStaff||{}).filter(([,s])=>s.active!==false).map(([id])=>id),
+      ...staffIdsInCredits
+    ]);
+    const opts = Array.from(allRelevantIds).map(id=>{
+      const s = (payStaff||{})[id];
+      return {id, name: s ? s.name : '(removed)'};
+    }).sort((a,b)=>a.name.localeCompare(b.name));
+    const sig = opts.map(o=>o.id+':'+o.name).join('|');
+    if(payCrSel.dataset.sig !== sig){
+      payCrSel.innerHTML = '<option value="">All Staff</option>' + opts.map(o=>`<option value="${o.id}">${o.name}</option>`).join('');
+      payCrSel.dataset.sig = sig;
+    }
+    // Restore the stored filter value (from JS variable, not DOM)
+    const stored = window._payCrFilterStaff || '';
+    if(stored && opts.some(o=>o.id===stored)){
+      if(payCrSel.value !== stored) payCrSel.value = stored;
+    } else if(stored){
+      // Staff no longer exists → clear stored value
+      window._payCrFilterStaff = '';
+      payCrSel.value = '';
+    } else {
+      payCrSel.value = '';
+    }
+  }
+  // Compute period range
+  const nowPCr = toPHT(new Date());
+  function _locCr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  let crFromISO='1970-01-01', crToISO='2999-12-31';
+  if(payCrPeriod==='today'){
+    crFromISO = _locCr(nowPCr); crToISO = _locCr(nowPCr);
+  } else if(payCrPeriod==='week'){
+    const w = new Date(nowPCr); w.setDate(nowPCr.getDate()-6); w.setHours(0,0,0,0);
+    crFromISO = _locCr(w); crToISO = _locCr(nowPCr);
+  } else if(payCrPeriod==='month'){
+    crFromISO = nowPCr.getFullYear()+'-'+String(nowPCr.getMonth()+1).padStart(2,'0')+'-01';
+    crToISO = _locCr(nowPCr);
+  } else if(payCrPeriod==='custom'){
+    crFromISO = (fromEl && fromEl.value) ? fromEl.value : '1970-01-01';
+    crToISO = (toEl && toEl.value) ? toEl.value : '2999-12-31';
+  }
+
   const cl = $('payCrList');
   if(cl){
-    const credits = Object.entries(payCredits).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
-    const outstandingCr = credits.filter(([,c])=>!c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
-    const settledCr = credits.filter(([,c])=>c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
-    if($('crCountLbl')) $('crCountLbl').textContent = credits.length+' record'+(credits.length!==1?'s':'')+' • Outstanding: '+fmt(outstandingCr)+(settledCr>0?' • Settled: '+fmt(settledCr):'');
-    cl.innerHTML = credits.length
-      ? credits.slice(0,200).map(([id,c])=>{
-          // Resolve staff name from staffId (newer records) OR fall back to old .name field
+    const filterStaff = window._payCrFilterStaff || '';
+    const allCredits = Object.entries(payCredits);
+    const filtered = allCredits
+      .filter(([,c])=>{
+        if(filterStaff && c.staffId !== filterStaff) return false;
+        const iso = c.date || (c.ts?phtISO(c.ts):'');
+        return iso>=crFromISO && iso<=crToISO;
+      })
+      .sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+
+    const outstandingCr = filtered.filter(([,c])=>!c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
+    const settledCr = filtered.filter(([,c])=>c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
+    if($('crCountLbl')){
+      const periodTxt = payCrPeriod==='all'?'All time': payCrPeriod==='custom'?(crFromISO+' → '+crToISO) : ('This '+payCrPeriod);
+      const staffTxt = filterStaff ? ((payStaff[filterStaff]||{}).name || '(removed)') : 'All staff';
+      $('crCountLbl').textContent = filtered.length+' record'+(filtered.length!==1?'s':'')+' • '+staffTxt+' • '+periodTxt+' • Outstanding: '+fmt(outstandingCr)+(settledCr>0?' • Settled: '+fmt(settledCr):'');
+    }
+    cl.innerHTML = filtered.length
+      ? filtered.slice(0,300).map(([id,c])=>{
           let sname = '(removed)';
           if(c.staffId && payStaff[c.staffId]) sname = payStaff[c.staffId].name;
           else if(c.name) sname = c.name;
-          const dStr = c.date || (c.ts?new Date(c.ts).toISOString().slice(0,10):'—');
+          const dStr = c.date || (c.ts?phtISO(c.ts):'—');
           const settled = !!c.settledAt;
           return `<div class="pay-adv-row" style="margin-bottom:5px;${settled?'opacity:0.55;':''}">
             <div>
@@ -3484,7 +3565,7 @@ function renderPay(){
             <div class="pay-del" onclick="payDelCredit('${id}')" title="Delete">✕</div>
           </div>`;
         }).join('')
-      : '<div style="color:var(--muted);text-align:center;padding:18px;font-size:12px;">No store credits yet.</div>';
+      : '<div style="color:var(--muted);text-align:center;padding:18px;font-size:12px;">No credits match the current filter.</div>';
   }
 
   // === SUMMARY PANE ===
@@ -4188,6 +4269,18 @@ window.storeDelCashCollect = async function(id){
   toast('Cash collection deleted');
 };
 
+/* Store Credit tab filter state — JS-variable backed for reliable rendering */
+window._storeCrFilterStaff = '';
+window._storeCrFilterPeriod = 'all';
+window.storeCrFilterChanged = function(val){
+  window._storeCrFilterStaff = val || '';
+  renderStore();
+};
+window.storeCrPeriodChanged = function(val){
+  window._storeCrFilterPeriod = val || 'all';
+  renderStore();
+};
+
 function updateStoreLowBadge(){
   const lows = Object.values(storeProducts).filter(p=>(p.stock||0)<=(p.lowAt||5) && (p.stock||0)>0).length;
   const oos = Object.values(storeProducts).filter(p=>(p.stock||0)<=0).length;
@@ -4307,26 +4400,25 @@ function renderStore(){
 }
 
 function renderStoreCredit(){
-  // Only show/hide custom date inputs based on period selection
-  const period = ($('stCrFilterPeriod')||{value:'all'}).value;
+  // Use JS-variable backed filter state (immune to DOM-value resets across re-renders)
+  const period = window._storeCrFilterPeriod || 'all';
   const fromEl = $('stCrDateFrom'), toEl = $('stCrDateTo');
   if(fromEl && toEl){
     const customMode = (period==='custom');
     fromEl.style.display = customMode ? '' : 'none';
     toEl.style.display = customMode ? '' : 'none';
   }
+  // Sync the period dropdown to match the stored value
+  const periodSel = $('stCrFilterPeriod');
+  if(periodSel && periodSel.value !== period) periodSel.value = period;
 
-  // Populate staff filter dropdown (active staff + any staff who have credits)
-  // Always preserve the user's current selection even when rebuilding.
+  // Populate staff filter dropdown
   const staffSel = $('stCrFilterStaff');
   if(staffSel){
-    // Capture user's current selection FIRST, before any rebuild logic
-    const userSelectedValue = staffSel.value;
     const staffWithCreditIds = new Set();
     Object.values(storeSales).forEach(s=>{
       if(s.mode==='staff_credit' && s.buyerStaffId) staffWithCreditIds.add(s.buyerStaffId);
     });
-    // Merge active staff + any historical staff who had credits
     const allRelevantIds = new Set([
       ...Object.entries(payStaff||{}).filter(([,s])=>s.active!==false).map(([id])=>id),
       ...staffWithCreditIds
@@ -4335,17 +4427,20 @@ function renderStoreCredit(){
       const s = (payStaff||{})[id];
       return {id, name: s ? s.name : '(removed staff)'};
     }).sort((a,b)=>a.name.localeCompare(b.name));
-    // Build signature; only rebuild HTML if list of options changed (avoids flicker)
     const sig = opts.map(o=>o.id+':'+o.name).join('|');
     if(staffSel.dataset.sig !== sig){
       staffSel.innerHTML = '<option value="">All Staff</option>' + opts.map(o=>`<option value="${o.id}">${o.name}</option>`).join('');
       staffSel.dataset.sig = sig;
     }
-    // Always restore the user's selection if it's still a valid option
-    if(userSelectedValue && opts.some(o=>o.id===userSelectedValue)){
-      if(staffSel.value !== userSelectedValue) staffSel.value = userSelectedValue;
-    } else if(userSelectedValue && !opts.some(o=>o.id===userSelectedValue)){
-      // Their selected staff no longer exists — fall back to "All Staff"
+    // Restore the stored filter value (from JS variable, not DOM)
+    const stored = window._storeCrFilterStaff || '';
+    if(stored && opts.some(o=>o.id===stored)){
+      if(staffSel.value !== stored) staffSel.value = stored;
+    } else if(stored){
+      // Stored value invalid → clear
+      window._storeCrFilterStaff = '';
+      staffSel.value = '';
+    } else {
       staffSel.value = '';
     }
   }
@@ -4397,7 +4492,7 @@ function renderStoreCredit(){
   }
 
   // ── FILTERED CREDIT LIST ──
-  const filterStaffId = (staffSel && staffSel.value) || '';
+  const filterStaffId = window._storeCrFilterStaff || '';
   const credits = Object.entries(storeSales)
     .filter(([,s])=>{
       if(s.mode !== 'staff_credit') return false;
