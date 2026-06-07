@@ -525,13 +525,17 @@ tr:hover td{background:var(--card);}
 }
 
 
-/* Mobile nav fix — prevent tab overlap */
+/* Mobile nav fix — fit 9 tabs without overlap; allow horizontal scroll if needed */
 @media(max-width:640px){
-  .nav{gap:1px;padding:4px 4px;}
-  .nb{font-size:9px;padding:6px 3px;letter-spacing:-0.3px;}
+  .nav{gap:1px;padding:4px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;}
+  .nav::-webkit-scrollbar{display:none;}
+  .nb{font-size:8.5px;padding:6px 2px;letter-spacing:-0.4px;min-width:fit-content;flex-shrink:0;}
 }
 @media(max-width:420px){
-  .nb{font-size:8.5px;padding:6px 2px;}
+  .nb{font-size:8px;padding:6px 2px;letter-spacing:-0.5px;}
+}
+@media(max-width:360px){
+  .nb{font-size:7.5px;padding:6px 1px;}
 }
 
 
@@ -647,6 +651,67 @@ tr:hover td{background:var(--card);}
   .pay-adv-row{grid-template-columns:1fr 70px auto;gap:5px;}
   .pay-adv-row .av-date{display:none;}
 }
+
+/* ══ STORE TAB (Mini POS for drinks/chips) ══ */
+#pg-store{flex-direction:column;overflow:hidden;}
+#pg-store .store-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:14px;}
+.store-tabs{display:flex;gap:6px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.store-tabs .dqb{padding:5px 12px;}
+.store-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.store-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.store-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.store-summary .pay-sum-card{padding:8px 10px;}
+@media(max-width:640px){ .store-summary{grid-template-columns:repeat(2,1fr);} }
+.store-prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.store-prod{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:all .15s;position:relative;}
+.store-prod:hover{border-color:var(--accent);}
+.store-prod:active{transform:scale(.96);}
+.store-prod.oos{opacity:.45;cursor:not-allowed;}
+.store-prod.oos:hover{border-color:var(--border);}
+.store-prod.low{border-color:var(--accent);}
+.store-prod-name{font-weight:700;font-size:12px;line-height:1.2;}
+.store-prod-price{font-family:'DM Mono',monospace;font-size:14px;color:var(--accent);font-weight:700;}
+.store-prod-stock{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
+.store-prod-stock.low{color:var(--accent);font-weight:700;}
+.store-prod-stock.oos{color:var(--danger);font-weight:700;}
+.store-prod-margin{font-size:9px;color:var(--success);font-family:'DM Mono',monospace;}
+.store-prod-badge{position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;}
+.store-prod-badge.low{background:rgba(240,180,41,.2);color:var(--accent);}
+.store-prod-badge.oos{background:rgba(252,92,125,.2);color:var(--danger);}
+.store-cart{display:flex;flex-direction:column;gap:6px;}
+.store-cart-item{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:12px;}
+.store-cart-item .ci-name{font-weight:600;}
+.store-cart-item .ci-qty{display:flex;align-items:center;gap:4px;}
+.store-cart-item .ci-qty button{width:24px;height:24px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:4px;cursor:pointer;font-weight:700;}
+.store-cart-item .ci-qty button:hover{background:var(--accent);color:#0d0f14;}
+.store-cart-item .ci-amt{font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);text-align:right;min-width:65px;}
+.store-cart-item .ci-del{color:var(--danger);cursor:pointer;font-size:14px;padding:2px 6px;}
+.store-cart-total{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;border-color:var(--accent);}
+.store-cart-total .lbl{font-size:12px;color:var(--muted);}
+.store-cart-total .amt{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);}
+.store-add-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr auto;gap:6px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:11px;}
+.store-add-row input{padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;width:100%;}
+.store-add-row input:focus{border-color:var(--accent);}
+.store-add-row input[type="number"]{font-family:'DM Mono',monospace;text-align:right;}
+.store-prodlist{display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;padding-right:4px;}
+.store-prodlist::-webkit-scrollbar{width:5px;}
+.store-prodlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.store-prodlist-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr auto;gap:6px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:11px;}
+.store-prodlist-row.low{border-color:var(--accent);}
+.store-prodlist-row.oos{border-color:var(--danger);opacity:.6;}
+.store-prodlist-row .pl-name{font-weight:600;font-size:12px;}
+.store-prodlist-row .num{font-family:'DM Mono',monospace;text-align:right;}
+.store-prodlist-row .pl-del{color:var(--danger);cursor:pointer;font-size:13px;padding:2px 5px;}
+@media(max-width:640px){
+  .store-add-row,.store-prodlist-row{grid-template-columns:1fr 1fr;gap:4px;}
+  .store-add-row > *:not(:last-child),.store-prodlist-row > *:not(:last-child){font-size:11px;}
+}
+.store-restock-row{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:6px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:11px;}
+.store-restock-row .rs-date{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+.store-mode-btn{padding:14px 8px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--text);transition:all .15s;}
+.store-mode-btn:hover{transform:translateY(-2px);}
+.store-mode-btn:active{transform:translateY(0);}
 </style>
 </head>
 <body>
@@ -731,12 +796,13 @@ tr:hover td{background:var(--card);}
   <nav class="nav">
     <button class="nb on"  onclick="goPage('pos',this)">POS</button>
     <button class="nb"     onclick="goPage('jobs',this)">Jobs</button>
+    <button class="nb"     onclick="goPage('store',this)">Store</button>
     <button class="nb"     onclick="goPage('inv',this)">Inventory</button>
     <button class="nb"     onclick="goPage('exp',this)">Expenses</button>
     <button class="nb"     onclick="goPage('rep',this)">Reports</button>
     <button class="nb"     id="nbCust" onclick="goPage('cust',this)" style="display:none">Customers</button>
     <button class="nb"     id="nbDash" onclick="goPage('dash',this)" style="display:none">Dashboard</button>
-    <button class="nb"     id="nbPay"  onclick="goPage('pay',this)"  style="display:none">Payroll + Net Remaining</button>
+    <button class="nb"     id="nbPay"  onclick="goPage('pay',this)"  style="display:none">Payroll</button>
     <button class="nb"     onclick="goPage('set',this)">Settings</button>
   </nav>
 </header>
@@ -984,7 +1050,7 @@ tr:hover td{background:var(--card);}
   <!-- ════ PAYROLL PAGE (Manager only) ════ -->
   <div class="page" id="pg-pay">
     <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
-      <div><div class="pg-title">Payroll + Net Remaining</div><div class="pg-sub">Manager only — staff payroll & daily net tracker</div></div>
+      <div><div class="pg-title">Payroll</div><div class="pg-sub">Manager only — staff payroll & daily net tracker</div></div>
       <span style="font-size:10px;color:var(--accent);background:rgba(240,180,41,.1);padding:3px 9px;border-radius:8px;font-weight:700;">🔒 Manager</span>
     </div>
 
@@ -1079,6 +1145,221 @@ tr:hover td{background:var(--card);}
           <div class="pay-card-title">👥 Per-Staff Breakdown</div>
           <div style="overflow-x:auto;">
             <table class="pay-detail-table" id="payBreakdown"></table>
+          </div>
+        </div>
+
+        <!-- PAY DAY / SETTLEMENT (Manager only) -->
+        <div class="pay-card" id="paySettleCard" style="display:none;border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.04);">
+          <div class="pay-card-title">💰 Pay Day / Settlement</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5;">
+            Click when you pay your staff. Resets all <b style="color:var(--text);">outstanding advances + store credits</b> to ₱0 across all staff. Records are preserved in history with a "✓ Settled" marker. This action can be undone if needed.
+          </div>
+          <button class="btn-p" onclick="payRunSettlement()" style="padding:10px;font-size:13px;font-weight:700;background:var(--success);color:#0d0f14;">💰 Run Pay Day — Settle All Outstanding</button>
+        </div>
+
+        <!-- SETTLEMENT HISTORY (Manager only) -->
+        <div class="pay-card" id="paySettleHistCard" style="display:none;">
+          <div class="pay-card-title">📜 Settlement History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="paySettleCountLbl">—</span></div>
+          <div id="paySettleList" style="display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════ STORE PAGE (Drinks/Chips Mini POS) ════ -->
+  <div class="page" id="pg-store">
+    <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
+      <div><div class="pg-title">Store</div><div class="pg-sub">Drinks, chips & sundries — separate from carwash</div></div>
+      <span id="storeLowAlert" style="font-size:10px;color:var(--danger);background:rgba(252,92,125,.1);padding:3px 9px;border-radius:8px;font-weight:700;display:none;">⚠️ <span id="storeLowCount">0</span> low stock</span>
+    </div>
+
+    <div class="store-tabs">
+      <button class="dqb on" id="stTabSell" onclick="storeTab('sell',this)">🛒 Sell</button>
+      <button class="dqb" id="stTabProd" onclick="storeTab('prod',this)" style="display:none">📦 Products</button>
+      <button class="dqb" id="stTabRestock" onclick="storeTab('restock',this)" style="display:none">🔄 Restock</button>
+      <button class="dqb" id="stTabCredit" onclick="storeTab('credit',this)">🧾 Credit</button>
+      <button class="dqb" id="stTabRep" onclick="storeTab('rep',this)">📊 Report</button>
+    </div>
+
+    <div class="store-scroll">
+      <!-- SELL TAB -->
+      <div id="storePaneSell" class="store-pane">
+        <!-- Backdate picker (manager only — for correcting past counts) -->
+        <div class="store-card" id="storeBackdateCard" style="display:none;padding:10px 14px;background:rgba(240,180,41,.05);border-color:rgba(240,180,41,.3);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:11px;color:var(--accent);font-weight:700;">📅 Sale Date</span>
+              <input type="date" id="storeSellDate" onchange="storeUpdateBackdateLbl()" style="font-size:12px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;outline:none;color-scheme:dark;">
+              <button onclick="storeSellDateToday()" style="padding:5px 9px;font-size:10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;">Today</button>
+            </div>
+            <span id="storeBackdateLbl" style="font-size:10px;color:var(--muted);"></span>
+          </div>
+        </div>
+
+        <!-- Mode selector (shown when cart is empty / no mode picked) -->
+        <div class="store-card" id="storeModeCard">
+          <div class="store-card-title">Select Sale Type</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <button class="store-mode-btn" onclick="storeSetMode('customer')" style="background:rgba(79,209,197,.08);border:2px solid rgba(79,209,197,.4);">
+              <div style="font-size:22px;">🛒</div>
+              <div style="font-weight:700;font-size:12px;">Customer</div>
+              <div style="font-size:10px;color:var(--muted);">Cash • Customer Price</div>
+            </button>
+            <button class="store-mode-btn" onclick="storeChooseStaff('cash')" style="background:rgba(240,180,41,.08);border:2px solid rgba(240,180,41,.4);">
+              <div style="font-size:22px;">👤</div>
+              <div style="font-weight:700;font-size:12px;">Staff Cash</div>
+              <div style="font-size:10px;color:var(--muted);">Cash • Staff Price</div>
+            </button>
+            <button class="store-mode-btn" onclick="storeChooseStaff('credit')" style="background:rgba(252,92,125,.08);border:2px solid rgba(252,92,125,.4);">
+              <div style="font-size:22px;">🧾</div>
+              <div style="font-weight:700;font-size:12px;">Staff Credit</div>
+              <div style="font-size:10px;color:var(--muted);">Charge to Payroll</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active mode banner (shown after mode chosen) -->
+        <div class="store-card" id="storeModeBanner" style="display:none;padding:10px 14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="storeModeIcon" style="font-size:18px;"></span>
+              <div>
+                <div id="storeModeLabel" style="font-weight:700;font-size:13px;"></div>
+                <div id="storeModeStaff" style="font-size:10px;color:var(--muted);"></div>
+              </div>
+            </div>
+            <button onclick="storeCancelMode()" style="padding:5px 10px;font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;">Change</button>
+          </div>
+        </div>
+
+        <!-- Product grid (shown after mode chosen) -->
+        <div class="store-card" id="storeProductsCard" style="display:none;">
+          <div class="store-card-title">Available Products
+            <input type="text" id="storeProdSearch" placeholder="Search..." oninput="renderStore()" style="font-size:12px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;outline:none;width:140px;">
+          </div>
+          <div class="store-prod-grid" id="storeProdGrid"></div>
+        </div>
+
+        <!-- Cart -->
+        <div class="store-card" id="storeCartCard" style="display:none;">
+          <div class="store-card-title">🛒 Current Sale</div>
+          <div class="store-cart" id="storeCartList"></div>
+          <div class="store-cart-total"><span class="lbl">TOTAL</span><span class="amt" id="storeCartTotal">₱0.00</span></div>
+          <button class="btn-p" id="storeConfirmBtn" onclick="storeConfirmSale()" style="padding:10px;font-size:14px;font-weight:700;">💵 Complete Sale</button>
+        </div>
+
+        <!-- Staff picker modal -->
+        <div id="storeStaffPickerCard" class="store-card" style="display:none;">
+          <div class="store-card-title">Pick Staff <span id="storeStaffPickerType" style="font-size:10px;color:var(--muted);font-weight:500;"></span></div>
+          <select id="storeStaffPicker" style="padding:8px 12px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:13px;outline:none;cursor:pointer;"></select>
+          <div style="display:flex;gap:6px;">
+            <button onclick="storeCancelMode()" class="btn-cancel" style="flex:1;padding:8px;font-size:12px;">Cancel</button>
+            <button onclick="storeConfirmStaff()" class="btn-p" style="flex:1;padding:8px;font-size:12px;">Continue →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS TAB -->
+      <div id="storePaneProd" class="store-pane" style="display:none;">
+        <div class="store-card">
+          <div class="store-card-title">+ Add Product</div>
+          <div class="store-add-row">
+            <input type="text" id="stNewName" placeholder="Product name">
+            <input type="number" id="stNewCost" placeholder="Cost ₱" min="0" step="0.5">
+            <input type="number" id="stNewPrice" placeholder="Cust ₱" min="0" step="0.5">
+            <input type="number" id="stNewStaffPrice" placeholder="Staff ₱" min="0" step="0.5">
+            <input type="number" id="stNewStock" placeholder="Stock" min="0" value="0">
+            <input type="number" id="stNewLow" placeholder="Low at" min="0" value="5">
+            <button class="btn-p" onclick="storeAddProduct()" style="padding:7px 12px;font-size:11px;">+ Add</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);">Low-stock alerts trigger when stock ≤ threshold. Margin = Sell − Cost.</div>
+        </div>
+        <div class="store-card">
+          <div class="store-card-title">Product List <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stProdCountLbl">—</span></div>
+          <div class="store-add-row" style="background:transparent;border:none;padding:4px 10px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
+            <span>NAME</span><span style="text-align:right;">COST</span><span style="text-align:right;">CUST ₱</span><span style="text-align:right;">STAFF ₱</span><span style="text-align:right;">STOCK</span><span style="text-align:right;">LOW @</span><span></span>
+          </div>
+          <div class="store-prodlist" id="storeProdList"></div>
+        </div>
+      </div>
+
+      <!-- RESTOCK TAB -->
+      <div id="storePaneRestock" class="store-pane" style="display:none;">
+        <div class="store-card">
+          <div class="store-card-title">+ Log Restock</div>
+          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:6px;align-items:center;">
+            <select id="stRsProd" style="padding:7px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;outline:none;cursor:pointer;"></select>
+            <input type="number" id="stRsQty" placeholder="Qty added" min="1" style="padding:7px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;text-align:right;font-family:'DM Mono',monospace;outline:none;">
+            <input type="number" id="stRsCost" placeholder="Unit cost (opt.)" min="0" step="0.5" style="padding:7px 10px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;text-align:right;font-family:'DM Mono',monospace;outline:none;">
+            <button class="btn-p" onclick="storeAddRestock()" style="padding:7px 14px;font-size:12px;">Restock</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);">Adds qty to current stock. If unit cost is provided, it updates the product's cost (for future restocks of varying price).</div>
+        </div>
+        <div class="store-card">
+          <div class="store-card-title">Restock History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stRsCountLbl">—</span></div>
+          <div id="storeRestockList" style="display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+      </div>
+
+      <!-- CREDIT HISTORY TAB -->
+      <div id="storePaneCredit" class="store-pane" style="display:none;">
+        <div class="store-card">
+          <div class="store-card-title">💳 Outstanding Credits by Staff</div>
+          <div class="store-summary" id="storeCreditTotals" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));"></div>
+        </div>
+        <div class="store-card">
+          <div class="store-card-title">🧾 Credit History
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <select id="stCrFilterStaff" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="">All Staff</option>
+              </select>
+              <select id="stCrFilterPeriod" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="all" selected>All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              <input type="date" id="stCrDateFrom" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;outline:none;color-scheme:dark;display:none;">
+              <input type="date" id="stCrDateTo" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;outline:none;color-scheme:dark;display:none;">
+            </div>
+          </div>
+          <div id="storeCreditCountLbl" style="font-size:10px;color:var(--muted);">—</div>
+          <div id="storeCreditList" style="display:flex;flex-direction:column;gap:5px;max-height:420px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+      </div>
+
+      <!-- REPORT TAB -->
+      <div id="storePaneRep" class="store-pane" style="display:none;">
+        <div class="store-card">
+          <div class="store-card-title">Store Summary
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <button id="stCashCollectBtn" onclick="storeOpenCashCollect()" style="display:none;padding:5px 12px;background:rgba(252,92,125,.1);border:1px solid rgba(252,92,125,.4);color:var(--danger);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">💰 Cash Collection</button>
+              <select id="stRepPeriod" onchange="renderStore()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;">
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month" selected>This Month</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+          </div>
+          <div class="store-summary" id="storeSumGrid"></div>
+        </div>
+
+        <!-- Cash Collection History (manager only) -->
+        <div class="store-card" id="storeCashCollectHistCard" style="display:none;">
+          <div class="store-card-title">💰 Cash Collection History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stCashCountLbl">—</span></div>
+          <div id="storeCashCollectList" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+        <div class="store-card">
+          <div class="store-card-title">Sales History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stSalesCountLbl">—</span></div>
+          <div id="storeSalesList" style="display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+        <div class="store-card">
+          <div class="store-card-title">Profit by Product</div>
+          <div style="overflow-x:auto;">
+            <table class="pay-detail-table" id="storeProfitTable"></table>
           </div>
         </div>
       </div>
@@ -1300,6 +1581,26 @@ tr:hover td{background:var(--card);}
     <div class="modal-ft">
       <button class="btn-cancel" onclick="closePay()">Cancel</button>
       <button class="btn-ok" onclick="confirmPay()" id="confirmPayBtn">Confirm Payment ✓</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Store Cash Collection Modal (Manager only) -->
+<div class="overlay" id="cashCollectModal">
+  <div class="modal">
+    <div class="modal-hd">💰 Record Cash Collection</div>
+    <div class="modal-bd" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:rgba(252,92,125,.06);border:1px solid rgba(252,92,125,.3);padding:10px 12px;border-radius:8px;font-size:11px;color:var(--text);">
+        Use this when you take cash from the store drawer (e.g. to go buy restock supplies). It will deduct from the Store's Cash on Hand.
+      </div>
+      <div class="fg"><div class="fl">Amount Taken (₱)</div><input class="fi" type="number" id="ccAmt" placeholder="0.00" min="0" step="0.5"></div>
+      <div class="fg"><div class="fl">Cashier on Duty</div><input class="fi" id="ccCashier" placeholder="(auto-detected)" disabled style="opacity:0.7;"></div>
+      <div class="fg"><div class="fl">Note (purpose)</div><input class="fi" id="ccNote" placeholder="e.g. Buy 24 cokes for restock"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal('cashCollectModal')">Cancel</button>
+      <button class="btn-ok" onclick="storeSaveCashCollect()">💰 Record Collection</button>
     </div>
   </div>
 </div>
@@ -2485,7 +2786,7 @@ window.goPage = function(id,btn){
   if(id==='pay'&&staffRole!=='manager'){toast('Manager only','var(--danger)');return;}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const pageMap={pos:'pg-pos',jobs:'pg-jobs',inv:'pg-inv',exp:'pg-exp',rep:'pg-rep',cust:'pg-cust',dash:'pg-dash',pay:'pg-pay',set:'pg-set'};
+  const pageMap={pos:'pg-pos',jobs:'pg-jobs',inv:'pg-inv',exp:'pg-exp',rep:'pg-rep',cust:'pg-cust',dash:'pg-dash',pay:'pg-pay',store:'pg-store',set:'pg-set'};
   const pg=$(pageMap[id]||'pg-pos'); if(pg) pg.classList.add('on');
   btn.classList.add('on');
   if(id==='inv')  renderInv();
@@ -2495,6 +2796,7 @@ window.goPage = function(id,btn){
   if(id==='exp')  renderExp();
   if(id==='cust') renderCust();
   if(id==='pay')  renderPay();
+  if(id==='store'){ storeMode=null; storeModeStaffId=null; storeCart=[]; renderStoreUI(); }
   const nb=$('nbCust'); if(nb) nb.style.display=staffRole==='manager'?'':'none';
   const nd=$('nbDash'); if(nd) nd.style.display=staffRole==='manager'?'':'none';
   const npx=$('nbPay'); if(npx) npx.style.display=staffRole==='manager'?'':'none';
@@ -2522,6 +2824,11 @@ function _showMgrTabs(){
   const nb=$('nbCust'); if(nb) nb.style.display=staffRole==='manager'?'':'none';
   const nd=$('nbDash'); if(nd) nd.style.display=staffRole==='manager'?'':'none';
   const npx=$('nbPay'); if(npx) npx.style.display=staffRole==='manager'?'':'none';
+  // Store sub-tabs (Products, Restock) and Cash Collection button — manager only
+  const stp=$('stTabProd'); if(stp) stp.style.display=staffRole==='manager'?'':'none';
+  const str=$('stTabRestock'); if(str) str.style.display=staffRole==='manager'?'':'none';
+  const ccb=$('stCashCollectBtn'); if(ccb) ccb.style.display=staffRole==='manager'?'':'none';
+  const cch=$('storeCashCollectHistCard'); if(cch) cch.style.display=staffRole==='manager'?'':'none';
 }
 document.addEventListener('DOMContentLoaded',()=>{ setTimeout(_showMgrTabs,100); setTimeout(_showMgrTabs,500); setTimeout(_showMgrTabs,1500); });
 _showMgrTabs();
@@ -2691,8 +2998,10 @@ setInterval(() => {
 /* ══ PAYROLL — Manager only ══ */
 let payStaff = {};      // {id: {name, rate, active}}
 let payAttend = {};     // {date: {staffId: 'P'|'A'|'H'}}
-let payAdv = {};        // {advId: {staffId, amt, date, note, ts}}
-let payCredits = {};    // {crId: {name, amt, date, note, ts}}
+let payAdv = {};        // {advId: {staffId, amt, date, note, ts, settledAt?}}
+let payCredits = {};    // {crId: {name, amt, date, note, ts, settledAt?}}
+let paySettlements = {};// {sid: {ts, settledBy, totalSettled, perStaff:{staffId:{name,advances,credits,total}}}}
+let paySettledThrough = {}; // {staffId: lastSettlementTs}
 let payCurrentDate = phtISO(new Date());
 let payActiveTab = 'att';
 
@@ -2708,6 +3017,8 @@ onValue(ref(db,'payroll/staff'),snap=>{
     set(ref(db,'payroll/staff'), seed);
   }
   if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
+  // Also refresh Store if it's open (so Credit tab dropdown updates)
+  if($('pg-store')&&$('pg-store').classList.contains('on')) renderStore();
 },()=>{});
 
 onValue(ref(db,'payroll/attend'),snap=>{
@@ -2722,6 +3033,16 @@ onValue(ref(db,'payroll/adv'),snap=>{
 
 onValue(ref(db,'payroll/credits'),snap=>{
   payCredits = snap.exists()?snap.val():{};
+  if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
+},()=>{});
+
+onValue(ref(db,'payroll/settlements'),snap=>{
+  paySettlements = snap.exists()?snap.val():{};
+  if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
+},()=>{});
+
+onValue(ref(db,'payroll/settledThrough'),snap=>{
+  paySettledThrough = snap.exists()?snap.val():{};
   if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
 },()=>{});
 
@@ -2826,6 +3147,239 @@ window.payDelCredit = async function(id){
   toast('Store credit deleted');
 };
 
+/* ══ PAY DAY / SETTLEMENT ══
+   Marks all unsettled advances and credits as "settled" via a settledAt timestamp.
+   Also marks wages + tips earned BEFORE this pay-day timestamp as paid out
+   (via payroll/settledThrough/{staffId} = settlement ts).
+   All records stay in history but no longer count toward Owed balance. */
+window.payRunSettlement = async function(){
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+
+  // Get current settledThrough per staff (so we only show NEW wages/tips earned since last pay day)
+  const prevSettled = {};
+  Object.entries(paySettlements).forEach(([,s])=>{
+    Object.keys(s.perStaff||{}).forEach(sid=>{
+      const t = s.ts||0;
+      if(!prevSettled[sid] || t > prevSettled[sid]) prevSettled[sid] = t;
+    });
+  });
+
+  // Compute current per-staff totals (unsettled adv/credits + wages/tips earned since prevSettled)
+  const perStaff = {}; // staffId -> {name, advances, credits, wages, tips, total, advIds:[], crIds:[]}
+  function ensure(sid){
+    if(!perStaff[sid]){
+      perStaff[sid] = {
+        name: (payStaff[sid]||{}).name || '(removed)',
+        rate: (payStaff[sid]||{}).rate || 0,
+        days: 0, halfdays: 0,
+        wages: 0, tips: 0,
+        advances: 0, credits: 0,
+        total: 0,
+        advIds: [], crIds: []
+      };
+    }
+    return perStaff[sid];
+  }
+
+  // Tally NEW (un-settled) attendance per staff
+  Object.entries(payAttend).forEach(([date, dayObj])=>{
+    const dayTs = new Date(date+'T12:00:00+08:00').getTime();
+    Object.entries(dayObj||{}).forEach(([sid,code])=>{
+      const last = prevSettled[sid] || 0;
+      if(dayTs <= last) return; // already paid out in a previous pay day
+      if(!payStaff[sid] || payStaff[sid].active===false) return;
+      const b = ensure(sid);
+      if(code==='P') b.days++;
+      else if(code==='H') b.halfdays++;
+    });
+  });
+
+  // Tally NEW tips (those after each staff's prevSettled). Tips are split by share.
+  const tipsByDate = {};
+  Object.values(txs).forEach(t=>{
+    if(!t.ts || !t.tip) return;
+    const iso = phtISO(t.ts);
+    if(!tipsByDate[iso]) tipsByDate[iso] = 0;
+    tipsByDate[iso] += (t.tip||0);
+  });
+  Object.entries(tipsByDate).forEach(([date, totalTipsToday])=>{
+    if(!totalTipsToday) return;
+    const dayTs = new Date(date+'T12:00:00+08:00').getTime();
+    const dayAttend = payAttend[date] || {};
+    // Compute shares
+    const shares = {};
+    let totalShares = 0;
+    Object.entries(dayAttend).forEach(([sid,code])=>{
+      let s = 0;
+      if(code==='P') s = 1;
+      else if(code==='H') s = 0.5;
+      if(s>0){
+        shares[sid] = s;
+        totalShares += s;
+      }
+    });
+    if(totalShares === 0) return;
+    const perShare = totalTipsToday / totalShares;
+    Object.entries(shares).forEach(([sid,s])=>{
+      const last = prevSettled[sid] || 0;
+      if(dayTs <= last) return; // already paid out
+      if(!payStaff[sid] || payStaff[sid].active===false) return;
+      const b = ensure(sid);
+      b.tips += perShare * s;
+    });
+  });
+
+  // Tally unsettled advances + credits
+  Object.entries(payAdv).forEach(([id,a])=>{
+    if(a.settledAt) return;
+    if(!a.staffId) return;
+    const b = ensure(a.staffId);
+    b.advances += (a.amt||0);
+    b.advIds.push(id);
+  });
+  Object.entries(payCredits).forEach(([id,c])=>{
+    if(c.settledAt) return;
+    if(!c.staffId) return;
+    const b = ensure(c.staffId);
+    b.credits += (c.amt||0);
+    b.crIds.push(id);
+  });
+
+  // Compute wages + net owed per staff
+  let grandTotalOwed = 0, totalWages = 0, totalTips = 0, totalAdvances = 0, totalCredits = 0, affectedStaffCount = 0;
+  Object.values(perStaff).forEach(b=>{
+    b.wages = b.days * b.rate + b.halfdays * b.rate * 0.5;
+    b.total = b.wages + b.tips - b.advances - b.credits;
+    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0){
+      grandTotalOwed += b.total;
+      totalWages += b.wages;
+      totalTips += b.tips;
+      totalAdvances += b.advances;
+      totalCredits += b.credits;
+      affectedStaffCount++;
+    }
+  });
+
+  if(affectedStaffCount === 0){
+    alert('No outstanding payroll items to settle.');
+    return;
+  }
+
+  // Build confirmation summary
+  let summary = '⚠️ PAY DAY / SETTLEMENT\\n\\n';
+  summary += 'This will pay out and reset:\\n\\n';
+  Object.values(perStaff).filter(b=>b.wages>0||b.tips>0||b.advances>0||b.credits>0).forEach(b=>{
+    summary += '• '+b.name+': '+fmt(b.total)+' net\\n';
+    const parts = [];
+    if(b.wages>0) parts.push(fmt(b.wages)+' wages');
+    if(b.tips>0) parts.push(fmt(b.tips)+' tips');
+    if(b.advances>0) parts.push('−'+fmt(b.advances)+' adv');
+    if(b.credits>0) parts.push('−'+fmt(b.credits)+' cr');
+    summary += '   ('+parts.join(' + ').replace(/\\+ −/g,'− ')+')\\n';
+  });
+  summary += '\\n━━━━━━━━━━━━━━━━━━━━━━\\n';
+  summary += 'Total Wages:    '+fmt(totalWages)+'\\n';
+  summary += 'Total Tips:     +'+fmt(totalTips)+'\\n';
+  summary += 'Total Advances: −'+fmt(totalAdvances)+'\\n';
+  summary += 'Total Credits:  −'+fmt(totalCredits)+'\\n';
+  summary += 'TOTAL NET OWED: '+fmt(grandTotalOwed)+'\\n';
+  summary += '\\nAll records will be PRESERVED in history.\\nThis can be UNDONE if needed.\\n\\nProceed?';
+  if(!confirm(summary)) return;
+
+  const now = new Date();
+  const settlementId = 'st'+now.getTime();
+  const settledAt = now.getTime();
+
+  // Snapshot perStaff data (full breakdown for audit)
+  const perStaffSnapshot = {};
+  Object.entries(perStaff).forEach(([sid,b])=>{
+    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0){
+      perStaffSnapshot[sid] = {
+        name: b.name,
+        days: b.days,
+        halfdays: b.halfdays,
+        wages: b.wages,
+        tips: b.tips,
+        advances: b.advances,
+        credits: b.credits,
+        total: b.total
+      };
+    }
+  });
+
+  // Build a single multi-path update for atomicity
+  const updates = {};
+  // 1. Create settlement record
+  updates['payroll/settlements/'+settlementId] = {
+    id: settlementId,
+    ts: settledAt,
+    date: phtDateStr(now),
+    iso: phtISO(now),
+    settledBy: staffName || 'Manager',
+    totalSettled: grandTotalOwed,
+    totalWages,
+    totalTips,
+    totalAdvances,
+    totalCredits,
+    staffCount: affectedStaffCount,
+    perStaff: perStaffSnapshot
+  };
+  // 2. Mark settledThrough for each affected staff (so wages/tips up to NOW are closed)
+  Object.keys(perStaffSnapshot).forEach(sid=>{
+    updates['payroll/settledThrough/'+sid] = settledAt;
+  });
+  // 3. Mark each advance/credit as settled
+  Object.values(perStaff).forEach(b=>{
+    b.advIds.forEach(advId=>{
+      updates['payroll/adv/'+advId+'/settledAt'] = settledAt;
+      updates['payroll/adv/'+advId+'/settlementId'] = settlementId;
+    });
+    b.crIds.forEach(crId=>{
+      updates['payroll/credits/'+crId+'/settledAt'] = settledAt;
+      updates['payroll/credits/'+crId+'/settlementId'] = settlementId;
+    });
+  });
+
+  await update(ref(db), updates);
+  toast('💰 Pay Day settled: '+fmt(grandTotalOwed)+' across '+affectedStaffCount+' staff');
+};
+
+window.payUndoSettlement = async function(id){
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+  const s = paySettlements[id]; if(!s) return;
+  if(!confirm('Undo this settlement?\\n\\nDate: '+(s.date||'?')+'\\nAmount: '+fmt(s.totalSettled||0)+'\\n\\nAll wages/tips/advances/credits from this pay-day event will become OUTSTANDING again.\\n\\nProceed?')) return;
+  const updates = {};
+  // Un-settle all advances/credits tied to this settlement
+  Object.entries(payAdv).forEach(([advId,a])=>{
+    if(a.settlementId === id){
+      updates['payroll/adv/'+advId+'/settledAt'] = null;
+      updates['payroll/adv/'+advId+'/settlementId'] = null;
+    }
+  });
+  Object.entries(payCredits).forEach(([crId,c])=>{
+    if(c.settlementId === id){
+      updates['payroll/credits/'+crId+'/settledAt'] = null;
+      updates['payroll/credits/'+crId+'/settlementId'] = null;
+    }
+  });
+  // Restore each staff's settledThrough to the PREVIOUS pay-day (if any), else delete
+  Object.keys(s.perStaff||{}).forEach(sid=>{
+    // Find the most recent OTHER settlement that included this staff
+    let prevTs = 0;
+    Object.entries(paySettlements).forEach(([otherId, other])=>{
+      if(otherId === id) return; // skip the one we're undoing
+      if(other.perStaff && other.perStaff[sid] && (other.ts||0) > prevTs){
+        prevTs = other.ts||0;
+      }
+    });
+    updates['payroll/settledThrough/'+sid] = prevTs > 0 ? prevTs : null;
+  });
+  // Remove the settlement record itself
+  updates['payroll/settlements/'+id] = null;
+  await update(ref(db), updates);
+  toast('↩️ Settlement undone — balances restored');
+};
+
 function payActiveStaffList(){
   return Object.entries(payStaff)
     .filter(([,s])=>s.active!==false)
@@ -2877,16 +3431,22 @@ function renderPay(){
   const al = $('payAdvList');
   if(al){
     const advs = Object.entries(payAdv).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
-    if($('advCountLbl')) $('advCountLbl').textContent = advs.length+' record'+(advs.length!==1?'s':'')+' • Total: '+fmt(advs.reduce((s,[,a])=>s+(a.amt||0),0));
+    const outstandingTotal = advs.filter(([,a])=>!a.settledAt).reduce((s,[,a])=>s+(a.amt||0),0);
+    const settledTotal = advs.filter(([,a])=>a.settledAt).reduce((s,[,a])=>s+(a.amt||0),0);
+    if($('advCountLbl')) $('advCountLbl').textContent = advs.length+' record'+(advs.length!==1?'s':'')+' • Outstanding: '+fmt(outstandingTotal)+(settledTotal>0?' • Settled: '+fmt(settledTotal):'');
     al.innerHTML = advs.length
       ? advs.slice(0,200).map(([id,a])=>{
           const s = payStaff[a.staffId];
           const sname = s?s.name:'(removed)';
           const dStr = a.date || (a.ts?new Date(a.ts).toISOString().slice(0,10):'—');
-          return `<div class="pay-adv-row" style="margin-bottom:5px;">
-            <div><div class="av-name">${sname}</div>${a.note?'<div style="font-size:9px;color:var(--muted);">'+a.note+'</div>':''}</div>
+          const settled = !!a.settledAt;
+          return `<div class="pay-adv-row" style="margin-bottom:5px;${settled?'opacity:0.55;':''}">
+            <div>
+              <div class="av-name">${sname} ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>
+              ${a.note?'<div style="font-size:9px;color:var(--muted);">'+a.note+'</div>':''}
+            </div>
             <div class="av-date">${dStr}</div>
-            <div class="av-amt">-${fmt(a.amt||0)}</div>
+            <div class="av-amt" style="${settled?'text-decoration:line-through;':''}">-${fmt(a.amt||0)}</div>
             <div class="pay-del" onclick="payDelAdvance('${id}')" title="Delete">✕</div>
           </div>`;
         }).join('')
@@ -2903,7 +3463,9 @@ function renderPay(){
   const cl = $('payCrList');
   if(cl){
     const credits = Object.entries(payCredits).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
-    if($('crCountLbl')) $('crCountLbl').textContent = credits.length+' record'+(credits.length!==1?'s':'')+' • Total: '+fmt(credits.reduce((s,[,c])=>s+(c.amt||0),0));
+    const outstandingCr = credits.filter(([,c])=>!c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
+    const settledCr = credits.filter(([,c])=>c.settledAt).reduce((s,[,c])=>s+(c.amt||0),0);
+    if($('crCountLbl')) $('crCountLbl').textContent = credits.length+' record'+(credits.length!==1?'s':'')+' • Outstanding: '+fmt(outstandingCr)+(settledCr>0?' • Settled: '+fmt(settledCr):'');
     cl.innerHTML = credits.length
       ? credits.slice(0,200).map(([id,c])=>{
           // Resolve staff name from staffId (newer records) OR fall back to old .name field
@@ -2911,10 +3473,14 @@ function renderPay(){
           if(c.staffId && payStaff[c.staffId]) sname = payStaff[c.staffId].name;
           else if(c.name) sname = c.name;
           const dStr = c.date || (c.ts?new Date(c.ts).toISOString().slice(0,10):'—');
-          return `<div class="pay-adv-row" style="margin-bottom:5px;">
-            <div><div class="av-name">${sname}</div>${c.note?'<div style="font-size:9px;color:var(--muted);">'+c.note+'</div>':''}</div>
+          const settled = !!c.settledAt;
+          return `<div class="pay-adv-row" style="margin-bottom:5px;${settled?'opacity:0.55;':''}">
+            <div>
+              <div class="av-name">${sname} ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>
+              ${c.note?'<div style="font-size:9px;color:var(--muted);">'+c.note+'</div>':''}
+            </div>
             <div class="av-date">${dStr}</div>
-            <div class="av-amt">-${fmt(c.amt||0)}</div>
+            <div class="av-amt" style="${settled?'text-decoration:line-through;':''}">-${fmt(c.amt||0)}</div>
             <div class="pay-del" onclick="payDelCredit('${id}')" title="Delete">✕</div>
           </div>`;
         }).join('')
@@ -2951,14 +3517,20 @@ function renderPaySummary(){
   });
   Object.entries(payAttend).forEach(([date, dayObj])=>{
     if(date<fromISO||date>toISO) return;
+    // Compute this day's timestamp (PHT noon for stable comparison)
+    const dayTs = new Date(date+'T12:00:00+08:00').getTime();
     Object.entries(dayObj||{}).forEach(([sid,code])=>{
       if(!breakdown[sid]) breakdown[sid] = {name:'(removed)',rate:0,days:0,halfdays:0,absents:0,wages:0,advances:0,credits:0,tips:0,owed:0,active:false};
+      // Skip if this attendance was already settled in a previous Pay Day
+      const settledTs = paySettledThrough[sid] || 0;
+      if(dayTs <= settledTs) return;
       if(code==='P') breakdown[sid].days++;
       else if(code==='H') breakdown[sid].halfdays++;
       else if(code==='A') breakdown[sid].absents++;
     });
   });
   Object.values(payAdv).forEach(a=>{
+    if(a.settledAt) return; // skip settled — they're closed out
     const d = a.date || (a.ts?new Date(a.ts).toISOString().slice(0,10):'');
     if(d<fromISO||d>toISO) return;
     if(!breakdown[a.staffId]) return;
@@ -2966,6 +3538,7 @@ function renderPaySummary(){
   });
   // Tally store credits per staff (uses staffId for newer records, name match for old)
   Object.values(payCredits).forEach(c=>{
+    if(c.settledAt) return; // skip settled
     const d = c.date || (c.ts?new Date(c.ts).toISOString().slice(0,10):'');
     if(d<fromISO||d>toISO) return;
     let sid = c.staffId;
@@ -2991,6 +3564,7 @@ function renderPaySummary(){
   });
   Object.entries(tipsByDate).forEach(([date, totalTipsToday])=>{
     if(!totalTipsToday) return;
+    const dayTs = new Date(date+'T12:00:00+08:00').getTime();
     const dayAttend = payAttend[date] || {};
     // Build shares: P=1, H=0.5, A=0
     const shares = {};
@@ -3008,6 +3582,9 @@ function renderPaySummary(){
     const perShare = totalTipsToday / totalShares;
     Object.entries(shares).forEach(([sid, s])=>{
       if(!breakdown[sid]) breakdown[sid] = {name:'(removed)',rate:0,days:0,halfdays:0,absents:0,wages:0,advances:0,credits:0,tips:0,owed:0,active:false};
+      // Skip if these tips were paid out in a previous Pay Day for this staff
+      const settledTs = paySettledThrough[sid] || 0;
+      if(dayTs <= settledTs) return;
       breakdown[sid].tips += perShare * s;
     });
   });
@@ -3063,6 +3640,7 @@ function renderPaySummary(){
   });
   // Aggregate advances by day
   Object.values(payAdv).forEach(a=>{
+    if(a.settledAt) return; // settled — already paid out
     const iso = a.date || (a.ts?isoFromTs(a.ts):'');
     if(!iso || iso<fromISO || iso>toISO) return;
     if(!dailyMap[iso]) dailyMap[iso] = {cash:0, expenses:0, advances:0};
@@ -3151,7 +3729,876 @@ function renderPaySummary(){
       </tbody>
     `;
   }
+
+  // === SETTLEMENT CARDS (manager only) ===
+  const isMgr = staffRole === 'manager';
+  const settleCard = $('paySettleCard');
+  const histCard = $('paySettleHistCard');
+  if(settleCard) settleCard.style.display = isMgr ? 'flex' : 'none';
+  if(histCard) histCard.style.display = isMgr ? 'flex' : 'none';
+
+  // Render Settlement History
+  const histList = $('paySettleList');
+  if(histList && isMgr){
+    const settlements = Object.entries(paySettlements).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+    const lbl = $('paySettleCountLbl');
+    if(lbl){
+      const totalAllTime = settlements.reduce((s,[,x])=>s+(x.totalSettled||0),0);
+      lbl.textContent = settlements.length+' pay day'+(settlements.length!==1?'s':'')+' • Total settled: '+fmt(totalAllTime);
+    }
+    histList.innerHTML = settlements.length
+      ? settlements.map(([id,s])=>{
+          const perStaffTxt = Object.values(s.perStaff||{})
+            .sort((a,b)=>(b.total||0)-(a.total||0))
+            .map(p=>p.name+': '+fmt(p.total||0))
+            .join(' • ');
+          const breakdown = [];
+          if(s.totalWages>0) breakdown.push(fmt(s.totalWages)+' wages');
+          if(s.totalTips>0) breakdown.push(fmt(s.totalTips)+' tips');
+          if(s.totalAdvances>0) breakdown.push('−'+fmt(s.totalAdvances)+' adv');
+          if(s.totalCredits>0) breakdown.push('−'+fmt(s.totalCredits)+' cr');
+          const breakdownTxt = breakdown.join(' • ');
+          return `<div class="pay-adv-row" style="grid-template-columns:1fr auto auto;gap:6px;border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.04);">
+            <div>
+              <div style="font-weight:700;font-size:12px;color:var(--success);">💰 ${s.date||'?'} • ${s.staffCount||0} staff</div>
+              ${breakdownTxt?'<div style="font-size:10px;color:var(--accent);margin-top:2px;">'+breakdownTxt+'</div>':''}
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">${perStaffTxt}</div>
+              <div style="font-size:9px;color:var(--muted);">by ${s.settledBy||'?'}</div>
+            </div>
+            <div class="av-amt" style="color:var(--success);">${fmt(s.totalSettled||0)}</div>
+            <span class="pay-del" onclick="payUndoSettlement('${id}')" title="Undo this settlement" style="color:var(--accent);">↩️</span>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--muted);text-align:center;padding:18px;font-size:12px;">No settlements yet. Click the Pay Day button above when you pay your staff.</div>';
+  }
 }
+
+
+/* ══ STORE TAB — Drinks/Chips Mini POS ══ */
+let storeProducts = {};   // {id: {name, cost, price, stock, lowAt, ts}}
+let storeSales = {};      // {id: {items, total, cash, ts, date, staff}}
+let storeRestocks = {};   // {id: {productId, qty, unitCost, ts, date, staff}}
+let storeCart = [];       // [{productId, name, price, qty}]
+let storeActiveTab = 'sell';
+let storeMode = null;     // 'customer' | 'staff_cash' | 'staff_credit'
+let storeModeStaffId = null;  // for staff_cash & staff_credit
+let storePendingMode = null;  // before staff picker confirmation
+let storeSellDateISO = phtISO(new Date());  // backdate for manager use (defaults today PHT)
+
+onValue(ref(db,'store/products'),snap=>{
+  storeProducts = snap.exists()?snap.val():{};
+  if($('pg-store')&&$('pg-store').classList.contains('on')) renderStore();
+  updateStoreLowBadge();
+},()=>{});
+onValue(ref(db,'store/sales'),snap=>{
+  storeSales = snap.exists()?snap.val():{};
+  if($('pg-store')&&$('pg-store').classList.contains('on')) renderStore();
+},()=>{});
+onValue(ref(db,'store/restocks'),snap=>{
+  storeRestocks = snap.exists()?snap.val():{};
+  if($('pg-store')&&$('pg-store').classList.contains('on')) renderStore();
+},()=>{});
+
+window.storeTab = function(name, btn){
+  // Guard: Products and Restock are manager-only
+  if((name==='prod'||name==='restock') && staffRole!=='manager'){
+    toast('Manager only','var(--danger)');
+    return;
+  }
+  storeActiveTab = name;
+  ['sell','prod','restock','credit','rep'].forEach(t=>{
+    const id='storePane'+t.charAt(0).toUpperCase()+t.slice(1);
+    const el=$(id);
+    if(el) el.style.display = (t===name)?'block':'none';
+  });
+  document.querySelectorAll('#stTabSell,#stTabProd,#stTabRestock,#stTabCredit,#stTabRep').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderStore();
+};
+
+/* ── ADD/EDIT/DELETE PRODUCTS ── */
+window.storeAddProduct = async function(){
+  const name=($('stNewName').value||'').trim();
+  const cost=parseFloat($('stNewCost').value)||0;
+  const price=parseFloat($('stNewPrice').value)||0;
+  const staffPrice=parseFloat($('stNewStaffPrice').value)||price; // default = customer price
+  const stock=parseInt($('stNewStock').value)||0;
+  const lowAt=parseInt($('stNewLow').value)||5;
+  if(!name){alert('Enter a product name');return;}
+  if(price<=0){alert('Enter a customer selling price');return;}
+  const id='p'+Date.now();
+  await set(ref(db,'store/products/'+id),{name,cost,price,staffPrice,stock,lowAt,ts:Date.now()});
+  $('stNewName').value=''; $('stNewCost').value=''; $('stNewPrice').value=''; $('stNewStaffPrice').value=''; $('stNewStock').value='0'; $('stNewLow').value='5';
+  toast('✅ '+name+' added');
+};
+window.storeDelProduct = async function(id){
+  const p=storeProducts[id]; if(!p)return;
+  if(!confirm('Delete '+p.name+'?\n(Sales history will keep their data.)')) return;
+  await remove(ref(db,'store/products/'+id));
+  toast(p.name+' deleted');
+};
+window.storeUpdateProd = async function(id, field, val){
+  if(!storeProducts[id]) return;
+  let v;
+  if(field==='name') v=String(val).trim();
+  else v = parseFloat(val)||0;
+  await update(ref(db,'store/products/'+id),{[field]:v});
+};
+
+/* ── CART / SELL ── */
+window.storeAddToCart = function(id){
+  if(!storeMode){ toast('Pick a sale type first','var(--danger)'); return; }
+  const p = storeProducts[id]; if(!p) return;
+  if((p.stock||0) <= 0){ toast('Out of stock','var(--danger)'); return; }
+  const useStaffPrice = (storeMode==='staff_cash' || storeMode==='staff_credit');
+  const unitPrice = useStaffPrice ? (p.staffPrice||p.price||0) : (p.price||0);
+  const existing = storeCart.find(c=>c.productId===id);
+  if(existing){
+    if(existing.qty+1 > (p.stock||0)){ toast('Not enough stock','var(--danger)'); return; }
+    existing.qty++;
+  } else {
+    storeCart.push({productId:id, name:p.name, price:unitPrice, qty:1});
+  }
+  renderStore();
+};
+window.storeCartInc = function(id){
+  const p = storeProducts[id]; if(!p) return;
+  const c = storeCart.find(x=>x.productId===id); if(!c) return;
+  if(c.qty+1 > (p.stock||0)){ toast('Not enough stock','var(--danger)'); return; }
+  c.qty++; renderStore();
+};
+window.storeCartDec = function(id){
+  const c = storeCart.find(x=>x.productId===id); if(!c) return;
+  c.qty--;
+  if(c.qty<=0) storeCart = storeCart.filter(x=>x.productId!==id);
+  renderStore();
+};
+window.storeCartRemove = function(id){
+  storeCart = storeCart.filter(x=>x.productId!==id);
+  renderStore();
+};
+
+/* ── MODE SELECTION ── */
+window.storeSetMode = function(mode){
+  storeMode = mode;
+  storeModeStaffId = null;
+  storeCart = [];
+  renderStoreUI();
+};
+window.storeChooseStaff = function(modeKind){
+  // modeKind = 'cash' or 'credit'
+  storePendingMode = modeKind;
+  // Populate staff dropdown
+  const sel = $('storeStaffPicker');
+  const active = Object.entries(payStaff||{})
+    .filter(([,s])=>s.active!==false)
+    .sort((a,b)=>(a[1].ts||0)-(b[1].ts||0));
+  if(sel){
+    sel.innerHTML = active.length
+      ? '<option value="">— Choose staff —</option>' + active.map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('')
+      : '<option value="">(no staff in Payroll)</option>';
+  }
+  if($('storeStaffPickerType')) $('storeStaffPickerType').textContent = '— '+(modeKind==='cash'?'Staff Cash':'Staff Credit');
+  // Show picker, hide other cards
+  $('storeModeCard').style.display='none';
+  $('storeStaffPickerCard').style.display='flex';
+};
+window.storeConfirmStaff = function(){
+  const sid = ($('storeStaffPicker')||{value:''}).value;
+  if(!sid){ alert('Pick a staff'); return; }
+  storeModeStaffId = sid;
+  storeMode = (storePendingMode==='cash') ? 'staff_cash' : 'staff_credit';
+  storePendingMode = null;
+  storeCart = [];
+  renderStoreUI();
+};
+window.storeCancelMode = function(){
+  storeMode = null;
+  storeModeStaffId = null;
+  storePendingMode = null;
+  storeCart = [];
+  renderStoreUI();
+};
+
+/* ── BACKDATED SALES (Manager only) ── */
+window.storeSellDateToday = function(){
+  storeSellDateISO = phtISO(new Date());
+  const el = $('storeSellDate'); if(el) el.value = storeSellDateISO;
+  storeUpdateBackdateLbl();
+};
+window.storeUpdateBackdateLbl = function(){
+  const el = $('storeSellDate');
+  if(el){
+    storeSellDateISO = el.value || phtISO(new Date());
+  }
+  const lbl = $('storeBackdateLbl');
+  if(lbl){
+    const today = phtISO(new Date());
+    if(storeSellDateISO === today){
+      lbl.textContent = '✅ Today (current PHT)';
+      lbl.style.color = 'var(--success)';
+    } else {
+      const d = new Date(storeSellDateISO+'T12:00:00');
+      lbl.textContent = '⚠️ Backdated to '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      lbl.style.color = 'var(--accent)';
+    }
+  }
+};
+
+/* Render which Sell-pane cards are visible based on current mode */
+function renderStoreUI(){
+  const modeCard = $('storeModeCard');
+  const banner = $('storeModeBanner');
+  const picker = $('storeStaffPickerCard');
+  const products = $('storeProductsCard');
+  // Backdate card — manager only
+  const bdCard = $('storeBackdateCard');
+  const sellDateInput = $('storeSellDate');
+  if(bdCard){
+    if(staffRole === 'manager'){
+      bdCard.style.display = 'block';
+      // Ensure input shows current value
+      if(sellDateInput && !sellDateInput.value) sellDateInput.value = storeSellDateISO;
+      storeUpdateBackdateLbl();
+    } else {
+      bdCard.style.display = 'none';
+      // Force cashiers to today's PHT date
+      storeSellDateISO = phtISO(new Date());
+    }
+  }
+  if(!modeCard) return;
+  if(!storeMode){
+    // No mode picked yet
+    modeCard.style.display = picker && picker.style.display==='flex' ? 'none' : 'block';
+    if(banner) banner.style.display='none';
+    if(products) products.style.display='none';
+    const cc=$('storeCartCard'); if(cc) cc.style.display='none';
+  } else {
+    // Mode active
+    if(picker) picker.style.display='none';
+    modeCard.style.display='none';
+    if(banner) banner.style.display='block';
+    if(products) products.style.display='flex';
+    // Banner content
+    const icons = { customer:'🛒', staff_cash:'👤', staff_credit:'🧾' };
+    const labels = { customer:'Customer Cash Sale', staff_cash:'Staff Cash Sale', staff_credit:'Staff Credit (charged to payroll)' };
+    if($('storeModeIcon')) $('storeModeIcon').textContent = icons[storeMode]||'';
+    if($('storeModeLabel')) $('storeModeLabel').textContent = labels[storeMode]||'';
+    if($('storeModeStaff')){
+      const sn = storeModeStaffId && payStaff[storeModeStaffId] ? payStaff[storeModeStaffId].name : '';
+      $('storeModeStaff').textContent = sn ? 'For: '+sn : 'Customer';
+    }
+    // Confirm button label
+    const cb = $('storeConfirmBtn');
+    if(cb){
+      if(storeMode==='customer') cb.textContent='💵 Complete Customer Sale';
+      else if(storeMode==='staff_cash') cb.textContent='💵 Complete Staff Cash Sale';
+      else if(storeMode==='staff_credit') cb.textContent='🧾 Charge to Staff Credit';
+    }
+  }
+  renderStore();
+}
+
+window.storeConfirmSale = async function(){
+  if(!storeMode){ toast('Pick a sale type first','var(--danger)'); return; }
+  if(!storeCart.length){ toast('Cart is empty','var(--danger)'); return; }
+  if((storeMode==='staff_cash'||storeMode==='staff_credit') && !storeModeStaffId){
+    toast('Pick a staff first','var(--danger)'); return;
+  }
+
+  // ── STOCK GUARD: Final check before committing the sale ──
+  // Catches edge cases like simultaneous sales, manual stock adjustments, etc.
+  const oversold = [];
+  storeCart.forEach(c=>{
+    const stock = (storeProducts[c.productId]||{}).stock || 0;
+    if(c.qty > stock){
+      oversold.push({name: c.name, requested: c.qty, available: stock});
+    }
+  });
+  if(oversold.length){
+    const msg = oversold.map(o=>'• '+o.name+': '+o.requested+' requested, only '+o.available+' in stock').join('\\n');
+    alert('⚠️ Cannot complete sale — not enough stock:\\n\\n'+msg+'\\n\\nAdjust the cart qty and try again.');
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+    return;
+  }
+
+  const total = storeCart.reduce((s,c)=>s+c.price*c.qty,0);
+
+  // ── DATE/TIME LOGIC ──
+  // Manager: can backdate. Cashier: always today PHT (force-overridden in renderStoreUI).
+  const todayISO = phtISO(new Date());
+  const useISO = (staffRole==='manager') ? (storeSellDateISO || todayISO) : todayISO;
+  // For backdated sale: use the picked date's noon time (so timestamps fall in that day cleanly)
+  // For today: use the actual current time
+  let saleTs, saleDateStr, saleTimeStr;
+  if(useISO === todayISO){
+    const now = new Date();
+    saleTs = now.getTime();
+    saleDateStr = phtDateStr(now);
+    saleTimeStr = phtTimeStr(now);
+  } else {
+    // Backdated — use noon PHT on that date so phtISO returns the picked date
+    // Build local Date at the picked PHT date, noon (12:00 PHT = 04:00 UTC)
+    const d = new Date(useISO+'T12:00:00+08:00');  // explicitly PHT noon
+    saleTs = d.getTime();
+    saleDateStr = phtDateStr(d);
+    saleTimeStr = phtTimeStr(d);
+  }
+
+  const id = 'ss'+Date.now();
+  const buyerName = (storeMode==='customer') ? 'Customer' : (payStaff[storeModeStaffId]||{}).name || 'Staff';
+  // Save sale record
+  await set(ref(db,'store/sales/'+id),{
+    id,
+    items: storeCart.map(c=>({productId:c.productId, name:c.name, price:c.price, qty:c.qty, cost:(storeProducts[c.productId]||{}).cost||0})),
+    total,
+    mode: storeMode,
+    payment: (storeMode==='staff_credit') ? 'credit' : 'cash',
+    buyerStaffId: storeModeStaffId || null,
+    buyerName,
+    date: saleDateStr, time: saleTimeStr,
+    backdated: (useISO !== todayISO),
+    staff: staffName, ts: saleTs
+  });
+  // Deduct stock
+  const updates = {};
+  storeCart.forEach(c=>{
+    const cur = (storeProducts[c.productId]||{}).stock||0;
+    updates['store/products/'+c.productId+'/stock'] = Math.max(cur - c.qty, 0);
+  });
+  await update(ref(db), updates);
+  // If staff credit → auto-create payroll/credits entry linked to staff
+  if(storeMode==='staff_credit' && storeModeStaffId){
+    const itemsTxt = storeCart.map(c=>c.name+' ×'+c.qty).join(', ');
+    const crId = 'c'+Date.now();
+    await set(ref(db,'payroll/credits/'+crId),{
+      staffId: storeModeStaffId,
+      amt: total,
+      note: 'Store: '+itemsTxt,
+      source: 'store',
+      storeSaleId: id,
+      date: useISO,
+      ts: saleTs
+    });
+  }
+  storeCart = [];
+  const tag = storeMode==='customer'?'Customer'
+            : storeMode==='staff_cash'?'Staff cash ('+buyerName+')'
+            : 'Staff credit ('+buyerName+')';
+  const dateTag = (useISO !== todayISO) ? ' on '+useISO : '';
+  toast('✅ '+tag+' sale ₱'+total.toFixed(2)+dateTag+' recorded');
+  // Reset mode for next sale
+  storeMode = null; storeModeStaffId = null;
+  renderStoreUI();
+};
+
+/* ── RESTOCK ── */
+window.storeAddRestock = async function(){
+  const pid = $('stRsProd').value;
+  const qty = parseInt($('stRsQty').value)||0;
+  const cost = parseFloat($('stRsCost').value)||0;
+  if(!pid){alert('Select a product');return;}
+  if(qty<=0){alert('Enter qty added');return;}
+  const p = storeProducts[pid]; if(!p) return;
+  const id = 'rs'+Date.now();
+  const now = new Date();
+  await set(ref(db,'store/restocks/'+id),{
+    id, productId:pid, productName:p.name,
+    qty, unitCost: cost>0?cost:(p.cost||0),
+    date: phtDateStr(now), ts: now.getTime(), staff: staffName
+  });
+  // Update stock + optionally cost
+  const updates = {};
+  updates['store/products/'+pid+'/stock'] = (p.stock||0) + qty;
+  if(cost > 0) updates['store/products/'+pid+'/cost'] = cost;
+  await update(ref(db), updates);
+  $('stRsQty').value=''; $('stRsCost').value='';
+  toast('🔄 Restocked '+p.name+' +'+qty);
+};
+window.storeDelRestock = async function(id){
+  const r = storeRestocks[id]; if(!r) return;
+  if(!confirm('Delete this restock log?\n(Does NOT reverse the stock change — adjust manually if needed.)')) return;
+  await remove(ref(db,'store/restocks/'+id));
+};
+
+/* ── DELETE SALE (with stock restore) ── */
+window.storeDelSale = async function(id){
+  const s = storeSales[id]; if(!s) return;
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+  if(!confirm('Delete this sale & restore stock?'+(s.payment==='credit'?'\nAlso removes the linked payroll credit.':''))) return;
+  const updates = {};
+  (s.items||[]).forEach(it=>{
+    if(storeProducts[it.productId]){
+      const cur = storeProducts[it.productId].stock||0;
+      updates['store/products/'+it.productId+'/stock'] = cur + (it.qty||0);
+    }
+  });
+  updates['store/sales/'+id] = null;
+  // Also remove the linked payroll credit if this was a staff credit
+  if(s.payment==='credit'){
+    const matchCr = Object.entries(payCredits||{}).find(([,c])=>c.storeSaleId===id);
+    if(matchCr) updates['payroll/credits/'+matchCr[0]] = null;
+  }
+  await update(ref(db), updates);
+  toast('Sale deleted, stock restored'+(s.payment==='credit'?' & credit removed':''));
+};
+
+/* ── RENDER ── */
+
+/* ── CASH COLLECTION (Manager — money taken from drawer for restocking) ── */
+let storeCashCollects = {};  // {id: {amt, cashier, note, ts, date, takenBy}}
+onValue(ref(db,'store/cashCollects'),snap=>{
+  storeCashCollects = snap.exists()?snap.val():{};
+  if($('pg-store')&&$('pg-store').classList.contains('on')) renderStore();
+},()=>{});
+
+window.storeOpenCashCollect = function(){
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+  $('ccAmt').value = '';
+  $('ccNote').value = '';
+  // Auto-detect cashier on duty = the staff currently logged in
+  $('ccCashier').value = staffName || '(unknown)';
+  $('cashCollectModal').classList.add('on');
+};
+window.storeSaveCashCollect = async function(){
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+  const amt = parseFloat($('ccAmt').value)||0;
+  const note = ($('ccNote').value||'').trim();
+  const cashier = ($('ccCashier').value||'').trim() || staffName;
+  if(amt<=0){ alert('Enter an amount'); return; }
+  const id = 'cc'+Date.now();
+  const now = new Date();
+  await set(ref(db,'store/cashCollects/'+id),{
+    id, amt, cashier, note,
+    takenBy: staffName,
+    date: phtDateStr(now),
+    iso: phtISO(now),
+    ts: now.getTime()
+  });
+  closeModal('cashCollectModal');
+  toast('💰 Cash Collection ₱'+amt.toFixed(2)+' recorded');
+};
+window.storeDelCashCollect = async function(id){
+  if(staffRole!=='manager'){ toast('Manager only','var(--danger)'); return; }
+  if(!confirm('Delete this cash collection?')) return;
+  await remove(ref(db,'store/cashCollects/'+id));
+  toast('Cash collection deleted');
+};
+
+function updateStoreLowBadge(){
+  const lows = Object.values(storeProducts).filter(p=>(p.stock||0)<=(p.lowAt||5) && (p.stock||0)>0).length;
+  const oos = Object.values(storeProducts).filter(p=>(p.stock||0)<=0).length;
+  const total = lows + oos;
+  const a = $('storeLowAlert'); const c = $('storeLowCount');
+  if(a && c){
+    if(total > 0){ a.style.display='inline-flex'; c.textContent = total; }
+    else { a.style.display='none'; }
+  }
+}
+
+function renderStore(){
+  updateStoreLowBadge();
+  const search = (($('storeProdSearch')||{value:''}).value||'').toLowerCase().trim();
+  const all = Object.entries(storeProducts).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+
+  // ── SELL pane: product grid (price shown depends on active mode) ──
+  const grid = $('storeProdGrid');
+  if(grid){
+    const filtered = search ? all.filter(([,p])=>(p.name||'').toLowerCase().includes(search)) : all;
+    const useStaffPrice = (storeMode==='staff_cash' || storeMode==='staff_credit');
+    grid.innerHTML = filtered.length
+      ? filtered.map(([id,p])=>{
+          const stock = p.stock||0;
+          const low = stock>0 && stock<=(p.lowAt||5);
+          const oos = stock<=0;
+          const cust = p.price||0;
+          const staff = p.staffPrice||p.price||0;
+          const shown = useStaffPrice ? staff : cust;
+          const altTxt = useStaffPrice
+            ? (cust!==staff?'<div style="font-size:9px;color:var(--muted);">Cust: '+fmt(cust)+'</div>':'')
+            : (staff!==cust?'<div style="font-size:9px;color:var(--muted);">Staff: '+fmt(staff)+'</div>':'');
+          const margin = shown-(p.cost||0);
+          return `<div class="store-prod ${oos?'oos':low?'low':''}" onclick="${oos?'':"storeAddToCart('"+id+"')"}">
+            ${oos?'<span class="store-prod-badge oos">OUT</span>':low?'<span class="store-prod-badge low">LOW</span>':''}
+            <div class="store-prod-name">${p.name}</div>
+            <div class="store-prod-price">${fmt(shown)}</div>
+            ${altTxt}
+            <div class="store-prod-stock ${oos?'oos':low?'low':''}">Stock: ${stock}</div>
+            ${margin>0?'<div class="store-prod-margin">+'+fmt(margin)+' profit</div>':''}
+          </div>`;
+        }).join('')
+      : '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:22px;font-size:12px;">'+(search?'No products match.':'No products yet. Add some in the Products tab.')+'</div>';
+  }
+  // Cart panel
+  const cartCard = $('storeCartCard');
+  const cartList = $('storeCartList');
+  const cartTot = $('storeCartTotal');
+  if(cartCard && cartList && cartTot){
+    if(storeCart.length){
+      cartCard.style.display = 'flex';
+      cartList.innerHTML = storeCart.map(c=>{
+        const subtotal = c.price*c.qty;
+        return `<div class="store-cart-item">
+          <div class="ci-name">${c.name} <span style="color:var(--muted);font-size:10px;">@ ${fmt(c.price)}</span></div>
+          <div class="ci-qty">
+            <button onclick="storeCartDec('${c.productId}')">−</button>
+            <span style="min-width:20px;text-align:center;font-weight:700;">${c.qty}</span>
+            <button onclick="storeCartInc('${c.productId}')">+</button>
+          </div>
+          <div class="ci-amt">${fmt(subtotal)}</div>
+          <span class="ci-del" onclick="storeCartRemove('${c.productId}')">✕</span>
+        </div>`;
+      }).join('');
+      cartTot.textContent = fmt(storeCart.reduce((s,c)=>s+c.price*c.qty,0));
+    } else {
+      cartCard.style.display = 'none';
+    }
+  }
+
+  // ── PRODUCTS pane: full list ──
+  const pl = $('storeProdList');
+  if(pl){
+    if($('stProdCountLbl')) $('stProdCountLbl').textContent = all.length+' product'+(all.length!==1?'s':'');
+    pl.innerHTML = all.length
+      ? all.map(([id,p])=>{
+          const stock=p.stock||0; const low=stock>0&&stock<=(p.lowAt||5); const oos=stock<=0;
+          return `<div class="store-prodlist-row ${oos?'oos':low?'low':''}">
+            <input type="text" value="${p.name||''}" onchange="storeUpdateProd('${id}','name',this.value)" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;font-weight:600;outline:none;">
+            <input type="number" value="${p.cost||0}" step="0.5" onchange="storeUpdateProd('${id}','cost',this.value)" class="num" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;outline:none;">
+            <input type="number" value="${p.price||0}" step="0.5" onchange="storeUpdateProd('${id}','price',this.value)" class="num" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--accent);font-size:11px;font-weight:700;outline:none;" title="Customer Price">
+            <input type="number" value="${p.staffPrice||p.price||0}" step="0.5" onchange="storeUpdateProd('${id}','staffPrice',this.value)" class="num" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--accent2);font-size:11px;font-weight:700;outline:none;" title="Staff Price">
+            <input type="number" value="${stock}" onchange="storeUpdateProd('${id}','stock',this.value)" class="num" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:${oos?'var(--danger)':low?'var(--accent)':'var(--text)'};font-size:11px;font-weight:${oos||low?'700':'400'};outline:none;">
+            <input type="number" value="${p.lowAt||5}" onchange="storeUpdateProd('${id}','lowAt',this.value)" class="num" style="padding:5px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:11px;outline:none;">
+            <span class="pl-del" onclick="storeDelProduct('${id}')" title="Delete">✕</span>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No products yet.</div>';
+  }
+
+  // ── RESTOCK pane: dropdown + history ──
+  const rsSel = $('stRsProd');
+  if(rsSel){
+    rsSel.innerHTML = all.length
+      ? '<option value="">— Choose product —</option>' + all.map(([id,p])=>`<option value="${id}">${p.name} (stock: ${p.stock||0})</option>`).join('')
+      : '<option value="">(no products yet)</option>';
+  }
+  const rl = $('storeRestockList');
+  if(rl){
+    const rs = Object.entries(storeRestocks).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+    if($('stRsCountLbl')) $('stRsCountLbl').textContent = rs.length+' record'+(rs.length!==1?'s':'');
+    rl.innerHTML = rs.length
+      ? rs.slice(0,200).map(([id,r])=>`<div class="store-restock-row">
+          <div><b>${r.productName||'(deleted)'}</b><div class="rs-date">${r.date||''} ${r.staff?'• '+r.staff:''}</div></div>
+          <div class="num" style="color:var(--success);font-family:'DM Mono',monospace;text-align:right;">+${r.qty||0}</div>
+          <div class="num" style="font-family:'DM Mono',monospace;text-align:right;color:var(--muted);">@ ${fmt(r.unitCost||0)}</div>
+          <span class="pl-del" onclick="storeDelRestock('${id}')" title="Delete log">✕</span>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No restocks logged.</div>';
+  }
+
+  // ── CREDIT pane ──
+  renderStoreCredit();
+
+  // ── REPORT pane ──
+  renderStoreReport();
+}
+
+function renderStoreCredit(){
+  // Only show/hide custom date inputs based on period selection
+  const period = ($('stCrFilterPeriod')||{value:'all'}).value;
+  const fromEl = $('stCrDateFrom'), toEl = $('stCrDateTo');
+  if(fromEl && toEl){
+    const customMode = (period==='custom');
+    fromEl.style.display = customMode ? '' : 'none';
+    toEl.style.display = customMode ? '' : 'none';
+  }
+
+  // Populate staff filter dropdown (active staff + any staff who have credits)
+  // FIX: only rebuild when the staff list actually changes — preserves user selection
+  const staffSel = $('stCrFilterStaff');
+  if(staffSel){
+    const staffWithCreditIds = new Set();
+    Object.values(storeSales).forEach(s=>{
+      if(s.mode==='staff_credit' && s.buyerStaffId) staffWithCreditIds.add(s.buyerStaffId);
+    });
+    // Merge active staff + any historical staff who had credits
+    const allRelevantIds = new Set([
+      ...Object.entries(payStaff||{}).filter(([,s])=>s.active!==false).map(([id])=>id),
+      ...staffWithCreditIds
+    ]);
+    const opts = Array.from(allRelevantIds).map(id=>{
+      const s = (payStaff||{})[id];
+      return {id, name: s ? s.name : '(removed staff)'};
+    }).sort((a,b)=>a.name.localeCompare(b.name));
+    // Build a signature to detect changes; only rebuild if list changed
+    const sig = opts.map(o=>o.id+':'+o.name).join('|');
+    if(staffSel.dataset.sig !== sig){
+      const currentValue = staffSel.value;
+      staffSel.innerHTML = '<option value="">All Staff</option>' + opts.map(o=>`<option value="${o.id}">${o.name}</option>`).join('');
+      staffSel.dataset.sig = sig;
+      // Restore previous selection if still valid; otherwise keep "All Staff"
+      if(currentValue && opts.some(o=>o.id===currentValue)){
+        staffSel.value = currentValue;
+      }
+    }
+  }
+
+  // Build period date range
+  const nowP = toPHT(new Date());
+  function _loc(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  let fromISO='1970-01-01', toISO='2999-12-31';
+  if(period==='today'){
+    fromISO = _loc(nowP); toISO = _loc(nowP);
+  } else if(period==='week'){
+    const w = new Date(nowP); w.setDate(nowP.getDate()-6); w.setHours(0,0,0,0);
+    fromISO = _loc(w); toISO = _loc(nowP);
+  } else if(period==='month'){
+    fromISO = nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
+    toISO = _loc(nowP);
+  } else if(period==='custom'){
+    fromISO = (fromEl && fromEl.value) ? fromEl.value : '1970-01-01';
+    toISO = (toEl && toEl.value) ? toEl.value : '2999-12-31';
+  }
+
+  // ── OUTSTANDING TOTALS PER STAFF (all-time, not filtered — these are unpaid balances) ──
+  // A sale's credit is "outstanding" until its linked payroll credit is settled.
+  // Build a quick lookup: storeSaleId -> settledAt status from payCredits
+  const settledSaleIds = new Set();
+  Object.values(payCredits).forEach(c=>{
+    if(c.settledAt && c.storeSaleId) settledSaleIds.add(c.storeSaleId);
+  });
+  const outstanding = {}; // staffId -> {name, total}
+  Object.values(storeSales).forEach(s=>{
+    if(s.mode !== 'staff_credit') return;
+    if(settledSaleIds.has(s.id)) return; // settled — excluded
+    const sid = s.buyerStaffId; if(!sid) return;
+    if(!outstanding[sid]){
+      const sName = (payStaff[sid]||{}).name || s.buyerName || '(removed)';
+      outstanding[sid] = { name:sName, total:0 };
+    }
+    outstanding[sid].total += (s.total||0);
+  });
+  const totalsEl = $('storeCreditTotals');
+  if(totalsEl){
+    const rows = Object.entries(outstanding).sort((a,b)=>b[1].total - a[1].total);
+    totalsEl.innerHTML = rows.length
+      ? rows.map(([sid,o])=>`<div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);">
+          <div class="pay-sum-lbl">${o.name}</div>
+          <div class="pay-sum-val" style="color:var(--danger);">${fmt(o.total)}</div>
+        </div>`).join('')
+      : '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:14px;font-size:12px;">No outstanding credits.</div>';
+  }
+
+  // ── FILTERED CREDIT LIST ──
+  const filterStaffId = (staffSel && staffSel.value) || '';
+  const credits = Object.entries(storeSales)
+    .filter(([,s])=>{
+      if(s.mode !== 'staff_credit') return false;
+      if(filterStaffId && s.buyerStaffId !== filterStaffId) return false;
+      const iso = s.ts ? phtISO(s.ts) : '';
+      return iso>=fromISO && iso<=toISO;
+    })
+    .sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+
+  const totalFiltered = credits.reduce((s,[,c])=>s+(c.total||0),0);
+
+  const lbl = $('storeCreditCountLbl');
+  if(lbl){
+    const periodTxt = period==='all'?'All time': period==='custom'?(fromISO+' → '+toISO) : ('This '+period);
+    const staffTxt = filterStaffId ? ((payStaff[filterStaffId]||{}).name || '(removed)') : 'All staff';
+    lbl.textContent = credits.length+' credit'+(credits.length!==1?'s':'')+' • '+staffTxt+' • '+periodTxt+' • Total: '+fmt(totalFiltered);
+  }
+
+  const listEl = $('storeCreditList');
+  if(listEl){
+    listEl.innerHTML = credits.length
+      ? credits.slice(0,300).map(([id,c])=>{
+          const itemsTxt = (c.items||[]).map(it=>it.name+' ×'+it.qty).join(', ');
+          const sName = (payStaff[c.buyerStaffId]||{}).name || c.buyerName || '(removed)';
+          const mgr = staffRole==='manager';
+          return `<div class="store-restock-row" style="grid-template-columns:1.5fr 1fr 1fr auto;">
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <b style="font-size:12px;">${sName}</b>
+                <span style="background:rgba(252,92,125,.15);color:var(--danger);padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.3px;">🧾 CREDIT</span>
+              </div>
+              <div style="font-size:11px;color:var(--text);margin-top:2px;">${itemsTxt}</div>
+              <div class="rs-date">${c.date||''} ${c.time||''} ${c.staff?'• by '+c.staff:''}</div>
+            </div>
+            <div class="num" style="color:var(--danger);font-family:'DM Mono',monospace;text-align:right;font-weight:700;">${fmt(c.total||0)}</div>
+            <div></div>
+            ${mgr?`<span class="pl-del" onclick="storeDelSale('${id}')" title="Delete (manager only)">✕</span>`:'<span></span>'}
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No credits match the current filter.</div>';
+  }
+}
+
+function renderStoreReport(){
+  const period = ($('stRepPeriod')||{value:'month'}).value;
+  const nowP = toPHT(new Date());
+  let fromISO, toISO;
+  function _loc(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  if(period==='today'){
+    fromISO = _loc(nowP); toISO = _loc(nowP);
+  } else if(period==='week'){
+    const w = new Date(nowP); w.setDate(nowP.getDate()-6); w.setHours(0,0,0,0);
+    fromISO = _loc(w); toISO = _loc(nowP);
+  } else if(period==='month'){
+    fromISO = nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
+    toISO = _loc(nowP);
+  } else {
+    fromISO='1970-01-01'; toISO='2999-12-31';
+  }
+
+  // Filter sales
+  const sales = Object.entries(storeSales).filter(([,s])=>{
+    const iso = s.ts ? phtISO(s.ts) : '';
+    return iso>=fromISO && iso<=toISO;
+  }).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+
+  // Filter cash collections in same period
+  const collects = Object.entries(storeCashCollects).filter(([,c])=>{
+    const iso = c.iso || (c.ts?phtISO(c.ts):'');
+    return iso>=fromISO && iso<=toISO;
+  }).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const totalCashCollected = collects.reduce((s,[,c])=>s+(c.amt||0),0);
+
+  let totalRev=0, totalCost=0, totalUnits=0;
+  let cashIn=0, creditAmt=0;
+  const byProduct = {}; // productId -> {name, qty, revenue, cost, profit}
+  sales.forEach(([,s])=>{
+    totalRev += (s.total||0);
+    // Track cash vs credit separately
+    if(s.mode==='staff_credit' || s.payment==='credit'){
+      creditAmt += (s.total||0);
+    } else {
+      cashIn += (s.total||0);
+    }
+    (s.items||[]).forEach(it=>{
+      const qty = it.qty||0;
+      const lineRev = (it.price||0)*qty;
+      const lineCost = (it.cost||0)*qty;
+      totalCost += lineCost;
+      totalUnits += qty;
+      const key = it.productId || it.name;
+      if(!byProduct[key]) byProduct[key] = {name:it.name||'(unknown)', qty:0, revenue:0, cost:0, profit:0};
+      byProduct[key].qty += qty;
+      byProduct[key].revenue += lineRev;
+      byProduct[key].cost += lineCost;
+      byProduct[key].profit += (lineRev - lineCost);
+    });
+  });
+  const totalProfit = totalRev - totalCost;
+  const margin = totalRev>0 ? (totalProfit/totalRev*100) : 0;
+
+  const cashOnHand = cashIn - totalCashCollected;
+  const sg = $('storeSumGrid');
+  if(sg){
+    sg.innerHTML = `
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Sales Count</div><div class="pay-sum-val">${sales.length}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Units Sold</div><div class="pay-sum-val">${totalUnits}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Revenue</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(totalRev)}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Cost</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCost)}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">Profit</div><div class="pay-sum-val" style="color:var(--success);">${fmt(totalProfit)}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Margin</div><div class="pay-sum-val">${margin.toFixed(1)}%</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Cash Sales</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(cashIn)}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Credit Sales</div><div class="pay-sum-val" style="color:var(--danger);">${fmt(creditAmt)}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="pay-sum-lbl">💰 Cash Collected by Mgr</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCashCollected)}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Cash on Hand</div><div class="pay-sum-val" style="color:${cashOnHand>=0?'var(--accent)':'var(--danger)'};">${fmt(cashOnHand)}</div></div>
+    `;
+  }
+
+  // Cash Collection history (manager only)
+  const cl = $('storeCashCollectList');
+  if(cl){
+    if($('stCashCountLbl')) $('stCashCountLbl').textContent = collects.length+' collection'+(collects.length!==1?'s':'')+' • '+fmt(totalCashCollected);
+    cl.innerHTML = collects.length
+      ? collects.slice(0,200).map(([id,c])=>`<div class="store-restock-row" style="grid-template-columns:1.5fr 1fr 1fr auto;">
+          <div>
+            <div style="font-weight:600;font-size:11px;">Taken by: <b>${c.takenBy||'(unknown)'}</b></div>
+            ${c.cashier?'<div style="font-size:10px;color:var(--muted);">From cashier: '+c.cashier+'</div>':''}
+            ${c.note?'<div style="font-size:10px;color:var(--text);">'+c.note+'</div>':''}
+            <div class="rs-date">${c.date||''}</div>
+          </div>
+          <div class="num" style="color:var(--danger);font-family:'DM Mono',monospace;text-align:right;font-weight:700;">-${fmt(c.amt||0)}</div>
+          <div></div>
+          <span class="pl-del" onclick="storeDelCashCollect('${id}')" title="Delete">✕</span>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No cash collections in this period.</div>';
+  }
+
+  // Sales history
+  const sl = $('storeSalesList');
+  if(sl){
+    if($('stSalesCountLbl')) $('stSalesCountLbl').textContent = sales.length+' sale'+(sales.length!==1?'s':'')+' • '+fmt(totalRev);
+    sl.innerHTML = sales.length
+      ? sales.slice(0,200).map(([id,s])=>{
+          const itemsTxt = (s.items||[]).map(it=>it.name+' ×'+it.qty).join(', ');
+          // Resolve buyer name + colored badge
+          let buyer = s.buyerName || 'Customer';
+          // For older records or staff sales where buyerStaffId may exist, prefer the live name from payStaff
+          if(s.buyerStaffId && payStaff && payStaff[s.buyerStaffId]) buyer = payStaff[s.buyerStaffId].name;
+          let badge = '';
+          if(s.mode==='customer'){
+            badge = '<span style="background:rgba(79,209,197,.15);color:var(--accent2);padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.3px;">🛒 CUSTOMER</span>';
+          } else if(s.mode==='staff_cash'){
+            badge = '<span style="background:rgba(240,180,41,.15);color:var(--accent);padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.3px;">👤 STAFF CASH</span>';
+          } else if(s.mode==='staff_credit'){
+            badge = '<span style="background:rgba(252,92,125,.15);color:var(--danger);padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.3px;">🧾 STAFF CREDIT</span>';
+          } else {
+            // Legacy sale with no mode
+            badge = '<span style="background:rgba(160,160,160,.15);color:var(--muted);padding:1px 7px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.3px;">CASH</span>';
+          }
+          return `<div class="store-restock-row" style="grid-template-columns:1.5fr 1fr 1fr auto;">
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <b style="font-size:12px;">${buyer}</b>
+                ${badge}
+              </div>
+              <div style="font-size:11px;color:var(--text);margin-top:2px;">${itemsTxt}</div>
+              <div class="rs-date">${s.date||''} ${s.time||''} ${s.staff?'• by '+s.staff:''}</div>
+            </div>
+            <div class="num" style="color:${s.mode==='staff_credit'?'var(--danger)':'var(--success)'};font-family:'DM Mono',monospace;text-align:right;font-weight:700;">${fmt(s.total||0)}</div>
+            <div></div>
+            <span class="pl-del" onclick="storeDelSale('${id}')" title="Delete (manager only)">✕</span>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No sales in this period.</div>';
+  }
+
+  // Profit by product
+  const pt = $('storeProfitTable');
+  if(pt){
+    const rows = Object.values(byProduct).sort((a,b)=>b.profit-a.profit);
+    pt.innerHTML = `
+      <thead><tr>
+        <th style="text-align:left;">Product</th>
+        <th class="num">Qty</th>
+        <th class="num">Revenue</th>
+        <th class="num">Cost</th>
+        <th class="num">Profit</th>
+        <th class="num">Margin</th>
+      </tr></thead>
+      <tbody>
+      ${rows.length?rows.map(r=>{
+        const m = r.revenue>0?(r.profit/r.revenue*100):0;
+        return `<tr>
+          <td style="text-align:left;"><b>${r.name}</b></td>
+          <td class="num">${r.qty}</td>
+          <td class="num" style="color:var(--accent);">${fmt(r.revenue)}</td>
+          <td class="num" style="color:var(--danger);">-${fmt(r.cost)}</td>
+          <td class="num" style="color:${r.profit>=0?'var(--success)':'var(--danger)'};font-weight:700;">${fmt(r.profit)}</td>
+          <td class="num">${m.toFixed(1)}%</td>
+        </tr>`;
+      }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px;">No sales data.</td></tr>'}
+      </tbody>
+    `;
+  }
+}
+
+/* Show low-stock badge globally every 10s in case user is on another tab */
+setInterval(updateStoreLowBadge, 10000);
 
 </script>
 </body>
