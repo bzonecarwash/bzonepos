@@ -1066,6 +1066,7 @@ tr:hover td{background:var(--card);}
         <button class="dqb" id="payTabAdv" onclick="payTab('adv',this)" style="padding:5px 12px;">💵 Advances</button>
         <button class="dqb" id="payTabCr"  onclick="payTab('cr',this)"  style="padding:5px 12px;">🧾 Store Credits</button>
         <button class="dqb" id="payTabSum" onclick="payTab('sum',this)" style="padding:5px 12px;">📊 Summary</button>
+        <button class="dqb" id="payTabDet" onclick="payTab('det',this)" style="padding:5px 12px;">🔍 Details</button>
       </div>
     </div>
 
@@ -1168,6 +1169,67 @@ tr:hover td{background:var(--card);}
         <div class="pay-card" id="paySettleHistCard" style="display:none;">
           <div class="pay-card-title">📜 Settlement History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="paySettleCountLbl">—</span></div>
           <div id="paySettleList" style="display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+      </div>
+
+      <!-- DETAILS TAB (Manager only) — per-staff payslip detail -->
+      <div id="payPaneDet" class="pay-pane" style="display:none;">
+        <div class="pay-card">
+          <div class="pay-card-title">🔍 Staff Detail View
+            <select id="payDetStaff" onchange="renderPay()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;max-width:55%;"></select>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;">From</span>
+              <input type="date" id="payDetFrom" onchange="renderPay()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;color-scheme:dark;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;">To</span>
+              <input type="date" id="payDetTo" onchange="renderPay()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;color-scheme:dark;">
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <button class="dqb" onclick="payDetRange('month')" style="padding:5px 10px;font-size:10px;">This Month</button>
+              <button class="dqb" onclick="payDetRange('week')" style="padding:5px 10px;font-size:10px;">This Week</button>
+              <button class="dqb" onclick="payDetRange('all')" style="padding:5px 10px;font-size:10px;">All Time</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pay-card" id="payDetHeaderCard" style="background:linear-gradient(135deg,rgba(240,180,41,.10),rgba(79,209,197,.06));border-color:rgba(240,180,41,.35);">
+          <div id="payDetHeader"></div>
+        </div>
+
+        <div class="pay-sum-grid" id="payDetCards"></div>
+
+        <div class="pay-card" id="payDetNetBanner" style="border-color:rgba(72,187,120,.4);background:rgba(72,187,120,.06);flex-direction:row;align-items:center;justify-content:space-between;"></div>
+
+        <div class="pay-card">
+          <div class="pay-card-title">🧮 Pay Computation</div>
+          <table class="pay-detail-table" id="payDetComputation"></table>
+        </div>
+
+        <div class="pay-card">
+          <div class="pay-card-title">📋 Attendance Log <span style="font-size:10px;color:var(--muted);font-weight:500;" id="payDetAttCount">—</span></div>
+          <div class="pay-daily-scroll">
+            <table class="pay-detail-table" id="payDetAttTable"></table>
+          </div>
+        </div>
+
+        <div class="pay-card">
+          <div class="pay-card-title">💵 Cash Advances <span style="font-size:10px;color:var(--muted);font-weight:500;" id="payDetAdvCount">—</span></div>
+          <div id="payDetAdvList" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+
+        <div class="pay-card">
+          <div class="pay-card-title">🧾 Store Credits <span style="font-size:10px;color:var(--muted);font-weight:500;" id="payDetCrCount">—</span></div>
+          <div id="payDetCrList" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
+
+        <div class="pay-card">
+          <div class="pay-card-title">💝 Tips Received (per day) <span style="font-size:10px;color:var(--muted);font-weight:500;" id="payDetTipCount">—</span></div>
+          <div class="pay-daily-scroll">
+            <table class="pay-detail-table" id="payDetTipTable"></table>
+          </div>
         </div>
       </div>
     </div>
@@ -3073,11 +3135,11 @@ window.payDateToday = function(){
 };
 window.payTab = function(name, btn){
   payActiveTab = name;
-  ['att','adv','cr','sum'].forEach(t=>{
+  ['att','adv','cr','sum','det'].forEach(t=>{
     const p = $('payPane'+t.charAt(0).toUpperCase()+t.slice(1));
     if(p) p.style.display = (t===name)?'block':'none';
   });
-  document.querySelectorAll('#payTabAtt,#payTabAdv,#payTabCr,#payTabSum').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('#payTabAtt,#payTabAdv,#payTabCr,#payTabSum,#payTabDet').forEach(b=>b.classList.remove('on'));
   if(btn) btn.classList.add('on');
   renderPay();
 };
@@ -3576,6 +3638,237 @@ function renderPay(){
 
   // === SUMMARY PANE ===
   renderPaySummary();
+  // === DETAILS PANE ===
+  renderPayDetails();
+}
+
+window.payDetRange = function(period){
+  const nowP = toPHT(new Date());
+  const _loc = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  if(period==='week'){
+    const w=new Date(nowP); w.setDate(nowP.getDate()-6);
+    if($('payDetFrom')) $('payDetFrom').value=_loc(w);
+    if($('payDetTo')) $('payDetTo').value=_loc(nowP);
+  } else if(period==='all'){
+    if($('payDetFrom')) $('payDetFrom').value='1970-01-01';
+    if($('payDetTo')) $('payDetTo').value=_loc(nowP);
+  } else { // month
+    if($('payDetFrom')) $('payDetFrom').value=nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
+    if($('payDetTo')) $('payDetTo').value=_loc(nowP);
+  }
+  renderPay();
+};
+
+function renderPayDetails(){
+  const sel = $('payDetStaff');
+  if(!sel) return;
+  // Build staff dropdown (active first, then removed), preserving current selection
+  const prevVal = sel.value;
+  const ordered = Object.entries(payStaff).slice().sort((a,b)=>{
+    const aA=a[1].active!==false, bA=b[1].active!==false;
+    if(aA!==bA) return aA?-1:1;
+    return (a[1].name||'').localeCompare(b[1].name||'');
+  });
+  sel.innerHTML = ordered.length
+    ? ordered.map(([id,s])=>`<option value="${id}">${s.name||'(unnamed)'}${s.active===false?' (removed)':''}</option>`).join('')
+    : '<option value="">(no staff yet)</option>';
+  if(prevVal && payStaff[prevVal]) sel.value = prevVal;
+  const sid = sel.value;
+
+  // Default date range to month-to-date the first time the tab is opened
+  const nowP = toPHT(new Date());
+  const _loc = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  if($('payDetFrom') && !$('payDetFrom').value) $('payDetFrom').value = nowP.getFullYear()+'-'+String(nowP.getMonth()+1).padStart(2,'0')+'-01';
+  if($('payDetTo') && !$('payDetTo').value) $('payDetTo').value = _loc(nowP);
+
+  let fromISO = ($('payDetFrom')||{}).value || '1970-01-01';
+  let toISO   = ($('payDetTo')||{}).value   || '2999-12-31';
+  if(fromISO>toISO){ const t=fromISO; fromISO=toISO; toISO=t; }
+
+  const staff = sid ? payStaff[sid] : null;
+  const rate  = staff ? (staff.rate||0) : 0;
+  const sssDeduct = staff ? (staff.sss||0) : 0; // optional future per-staff SSS field; 0 if absent
+
+  // ── Attendance over range (this staff only) ──
+  let days=0, half=0, absent=0;
+  const attRows = [];
+  Object.entries(payAttend).forEach(([date,dayObj])=>{
+    if(date<fromISO||date>toISO) return;
+    const code = (dayObj||{})[sid];
+    if(code===undefined) return;
+    if(code==='P') days++; else if(code==='H') half++; else if(code==='A') absent++;
+    attRows.push({iso:date, code});
+  });
+  attRows.sort((a,b)=>b.iso.localeCompare(a.iso));
+
+  // ── Cash advances over range ──
+  const advRows = Object.entries(payAdv).filter(([,a])=>{
+    if(a.staffId!==sid) return false;
+    const d = a.date || (a.ts?phtISO(a.ts):'');
+    return d>=fromISO && d<=toISO;
+  }).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const advTotal = advRows.reduce((s,[,a])=>s+(a.amt||0),0);
+
+  // ── Store credits over range (match staffId; fall back to legacy name match) ──
+  const crRows = Object.entries(payCredits).filter(([,c])=>{
+    let cid = c.staffId;
+    if(!cid && c.name && staff && c.name===staff.name) cid = sid;
+    if(cid!==sid) return false;
+    const d = c.date || (c.ts?phtISO(c.ts):'');
+    return d>=fromISO && d<=toISO;
+  }).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const crTotal = crRows.reduce((s,[,c])=>s+(c.amt||0),0);
+
+  // ── Tips per day (share-based: P=1, H=0.5, A=0) ──
+  const tipsByDate = {};
+  Object.values(txs).forEach(t=>{
+    if(!t.ts || !t.tip) return;
+    const iso = phtISO(t.ts);
+    if(iso<fromISO||iso>toISO) return;
+    tipsByDate[iso] = (tipsByDate[iso]||0) + (t.tip||0);
+  });
+  let tipTotal = 0;
+  const tipRows = [];
+  Object.entries(tipsByDate).forEach(([date, totalToday])=>{
+    if(!totalToday) return;
+    const dayAttend = payAttend[date] || {};
+    let totalShares=0, myShare=0;
+    Object.entries(dayAttend).forEach(([id,code])=>{
+      const sh = code==='P'?1 : code==='H'?0.5 : 0;
+      if(sh>0){ totalShares+=sh; if(id===sid) myShare=sh; }
+    });
+    if(totalShares===0 || myShare===0) return;
+    const perShare = totalToday/totalShares;
+    const amount = perShare*myShare;
+    tipTotal += amount;
+    tipRows.push({iso:date, myShare, totalShares, amount, totalToday});
+  });
+  tipRows.sort((a,b)=>b.iso.localeCompare(a.iso));
+
+  // ── Pay computation ──
+  const salary = days*rate + half*rate*0.5;
+  const gross  = salary + tipTotal;
+  const net    = gross - advTotal - crTotal - sssDeduct;
+
+  // ── Header band ──
+  const fmtRange = (fromISO==='1970-01-01'?'All time':fromISO) + ' → ' + (toISO==='2999-12-31'?'now':toISO);
+  const hdr = $('payDetHeader');
+  if(hdr){
+    if(!sid || !staff){
+      hdr.innerHTML = '<div style="color:var(--muted);font-size:12px;">No staff selected.</div>';
+    } else {
+      hdr.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="width:46px;height:46px;border-radius:50%;background:var(--accent);color:#0d0f14;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;flex-shrink:0;">${(staff.name||'?').charAt(0).toUpperCase()}</div>
+          <div style="flex:1;min-width:140px;">
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text);">${staff.name||'(unnamed)'}${staff.active===false?' <span style="font-size:10px;color:var(--muted);font-weight:500;">(removed)</span>':''}</div>
+            <div style="font-size:11px;color:var(--muted);">Staff · ₱${rate.toFixed(2)}/day</div>
+            <div style="font-size:11px;color:var(--accent);font-family:'DM Mono',monospace;margin-top:2px;">${fmtRange}</div>
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Summary cards ──
+  const cards = $('payDetCards');
+  if(cards){
+    cards.innerHTML = `
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Salary</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(salary)}</div><div style="font-size:9px;color:var(--muted);">${days}P · ${half}½ · ${absent}A</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">💝 Tips</div><div class="pay-sum-val" style="color:var(--accent2);">${fmt(tipTotal)}</div><div style="font-size:9px;color:var(--muted);">${tipRows.length} day${tipRows.length!==1?'s':''}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);"><div class="pay-sum-lbl">Deductions</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(advTotal+crTotal+sssDeduct)}</div><div style="font-size:9px;color:var(--muted);">CA · SSS · Store</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">Gross Pay</div><div class="pay-sum-val" style="color:var(--success);">${fmt(gross)}</div></div>
+    `;
+  }
+
+  // ── Net pay banner ──
+  const banner = $('payDetNetBanner');
+  if(banner){
+    banner.innerHTML = `
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700;">Net Pay (take-home)</div>
+      <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:800;color:${net>=0?'var(--success)':'var(--danger)'};">${fmt(net)}</div>`;
+  }
+
+  // ── Pay computation table ──
+  const comp = $('payDetComputation');
+  if(comp){
+    comp.innerHTML = `
+      <tbody>
+        <tr><td>Salary</td><td class="num" style="color:var(--accent);">${fmt(salary)}</td></tr>
+        <tr><td>Tips</td><td class="num" style="color:var(--accent2);">${fmt(tipTotal)}</td></tr>
+        <tr style="font-weight:700;"><td>Gross Pay</td><td class="num">${fmt(gross)}</td></tr>
+        <tr><td>Less: Cash Advances</td><td class="num" style="color:var(--danger);">-${fmt(advTotal)}</td></tr>
+        <tr><td>Less: SSS</td><td class="num" style="color:var(--danger);">-${fmt(sssDeduct)}</td></tr>
+        <tr><td>Less: Store Credits</td><td class="num" style="color:var(--danger);">-${fmt(crTotal)}</td></tr>
+        <tr style="font-weight:800;"><td style="border-top:2px solid var(--border);padding-top:8px;">NET PAY</td><td class="num" style="border-top:2px solid var(--border);padding-top:8px;color:${net>=0?'var(--success)':'var(--danger)'};font-size:14px;">${fmt(net)}</td></tr>
+      </tbody>`;
+  }
+
+  // ── Attendance log ──
+  if($('payDetAttCount')) $('payDetAttCount').textContent = attRows.length+' day'+(attRows.length!==1?'s':'')+' logged';
+  const attT = $('payDetAttTable');
+  if(attT){
+    const badge = c => c==='P'?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;">✅ PRESENT</span>'
+      : c==='H'?'<span style="background:rgba(246,173,85,.15);color:var(--warn);padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;">🕐 HALF-DAY</span>'
+      : c==='A'?'<span style="background:rgba(252,92,125,.15);color:var(--danger);padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;">❌ ABSENT</span>'
+      : '<span style="color:var(--muted);font-size:10px;">—</span>';
+    attT.innerHTML = `
+      <thead><tr><th>Date</th><th style="text-align:right;">Status</th></tr></thead>
+      <tbody>
+      ${attRows.length?attRows.map(r=>{
+        const d = new Date(r.iso+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'2-digit'});
+        return `<tr><td>${d}</td><td style="text-align:right;">${badge(r.code)}</td></tr>`;
+      }).join(''):'<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:16px;">No attendance records in this range.</td></tr>'}
+      </tbody>`;
+  }
+
+  // ── Cash advances list ──
+  if($('payDetAdvCount')) $('payDetAdvCount').textContent = advRows.length+' record'+(advRows.length!==1?'s':'')+' • '+fmt(advTotal);
+  const advL = $('payDetAdvList');
+  if(advL){
+    advL.innerHTML = advRows.length
+      ? advRows.map(([id,a])=>{
+          const dStr = a.date || (a.ts?phtISO(a.ts):'—');
+          const settled = !!a.settledAt;
+          return `<div class="pay-adv-row"${settled?' style="opacity:.55;"':''}>
+            <div><div class="av-name">Advance ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>${a.note?'<div style="font-size:9px;color:var(--muted);">'+a.note+'</div>':''}</div>
+            <div class="av-date">${dStr}</div>
+            <div class="av-amt"${settled?' style="text-decoration:line-through;"':''}>-${fmt(a.amt||0)}</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--muted);text-align:center;padding:16px;font-size:12px;">No advances in this range.</div>';
+  }
+
+  // ── Store credits list ──
+  if($('payDetCrCount')) $('payDetCrCount').textContent = crRows.length+' record'+(crRows.length!==1?'s':'')+' • '+fmt(crTotal);
+  const crL = $('payDetCrList');
+  if(crL){
+    crL.innerHTML = crRows.length
+      ? crRows.map(([id,c])=>{
+          const dStr = c.date || (c.ts?phtISO(c.ts):'—');
+          const settled = !!c.settledAt;
+          const items = (c.items||[]).map(it=>it.name+' ×'+it.qty).join(', ');
+          return `<div class="pay-adv-row"${settled?' style="opacity:.55;"':''}>
+            <div><div class="av-name">${items||'Store credit'} ${settled?'<span style="background:rgba(72,187,120,.15);color:var(--success);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px;">✓ SETTLED</span>':''}</div>${c.note?'<div style="font-size:9px;color:var(--muted);">'+c.note+'</div>':''}</div>
+            <div class="av-date">${dStr}</div>
+            <div class="av-amt"${settled?' style="text-decoration:line-through;"':''}>-${fmt(c.amt||0)}</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--muted);text-align:center;padding:16px;font-size:12px;">No store credits in this range.</div>';
+  }
+
+  // ── Tips per-day table ──
+  if($('payDetTipCount')) $('payDetTipCount').textContent = tipRows.length+' day'+(tipRows.length!==1?'s':'')+' • '+fmt(tipTotal);
+  const tipT = $('payDetTipTable');
+  if(tipT){
+    tipT.innerHTML = `
+      <thead><tr><th>Date</th><th class="num">Pool</th><th class="num">Share</th><th class="num">Received</th></tr></thead>
+      <tbody>
+      ${tipRows.length?tipRows.map(r=>{
+        const d = new Date(r.iso+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});
+        return `<tr><td>${d}</td><td class="num" style="color:var(--muted);">${fmt(r.totalToday)}</td><td class="num" style="color:var(--muted);">${r.myShare}/${r.totalShares}</td><td class="num" style="color:var(--accent2);font-weight:700;">${fmt(r.amount)}</td></tr>`;
+      }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;">No tips received in this range.</td></tr>'}
+      </tbody>`;
+  }
 }
 
 function renderPaySummary(){
