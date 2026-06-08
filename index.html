@@ -4368,8 +4368,16 @@ function renderStoreUI(){
   }
   if(!modeCard) return;
   if(!storeMode){
-    // No mode picked yet
-    modeCard.style.display = picker && picker.style.display==='flex' ? 'none' : 'block';
+    // No sale type active. Two sub-states:
+    //  - storePendingMode set  → user is on the staff picker (keep picker, hide menu)
+    //  - storePendingMode null → menu state, e.g. after Cancel (show menu, hide picker)
+    if(storePendingMode){
+      if(picker) picker.style.display='flex';
+      modeCard.style.display='none';
+    } else {
+      if(picker) picker.style.display='none';
+      modeCard.style.display='block';
+    }
     if(banner) banner.style.display='none';
     if(products) products.style.display='none';
     const cc=$('storeCartCard'); if(cc) cc.style.display='none';
