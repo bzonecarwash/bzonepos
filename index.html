@@ -1508,6 +1508,33 @@ tr:hover td{background:var(--card);}
   </div>
 </div>
 
+<!-- ADD SERVICE TO ACTIVE JOB MODAL -->
+<div class="overlay" id="addJobSvcModal">
+  <div class="modal">
+    <div class="modal-title">➕ Add Service to <span id="addJobSvcPlate" style="color:var(--accent);"></span></div>
+    <div class="modal-scroll"><div class="modal-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add a service to this in-progress job. Services are filtered to this vehicle's size category. The job total updates automatically.</div>
+      <div class="fg"><div class="fl">Vehicle Category</div>
+        <div id="addJobSvcCatLabel" class="fi" style="display:flex;align-items:center;font-weight:700;color:var(--accent);background:var(--card);cursor:default;"></div>
+      </div>
+      <div class="fg"><div class="fl">Pick a Service</div>
+        <select class="fi" id="addJobSvcProd" onchange="addJobSvcProdChanged()"></select>
+      </div>
+      <div class="fg"><div class="fl">Quantity</div>
+        <input class="fi" type="number" id="addJobSvcQty" value="1" min="1" style="font-family:'DM Mono',monospace;">
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);margin:6px 0;">— or enter a custom service —</div>
+      <div class="fg"><div class="fl">Custom Service Name</div>
+        <input class="fi" id="addJobSvcName" placeholder="e.g. Engine Wash (leave blank to use picker)">
+      </div>
+      <div class="fg"><div class="fl">Custom Price (₱)</div>
+        <input class="fi" type="number" id="addJobSvcPrice" placeholder="0.00" min="0" style="font-family:'DM Mono',monospace;font-weight:700;border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05);">
+      </div>
+    </div></div>
+    <div class="modal-ft"><button class="btn-cancel" onclick="closeModal('addJobSvcModal')">Cancel</button><button class="btn-ok" onclick="confirmAddJobService()">Add to Job</button></div>
+  </div>
+</div>
+
 <!-- EDIT TRANSACTION MODAL -->
 <div class="overlay" id="editTxModal">
   <div class="modal">
@@ -2078,6 +2105,11 @@ window.confirmLogIn = async function(){
     timeOut:null, timeOutTs:null,
     services:cart.map(c=>c.name+' x'+c.qty).join(', '),
     servicesList:cart.map(c=>({key:c.key,name:c.name,qty:c.qty,price:c.price})),
+    category:(function(){ // size category the car was logged under (most common among services)
+      const counts={}; cart.forEach(c=>{ const cc=prods[c.key]&&prods[c.key].cat; if(cc) counts[cc]=(counts[cc]||0)+1; });
+      let best=null,bestN=0; for(const k in counts){ if(counts[k]>bestN){best=k;bestN=counts[k];} }
+      return best||null;
+    })(),
     payment:null,        // payment not yet collected
     total:grossTotal,    // GROSS (before discount)
     discount:dApplied,   // discount entered in POS
@@ -2534,6 +2566,93 @@ window.confirmExtraService = function(){
   toast('✨ '+name+' added to order');
 };
 
+/* ══ ADD SERVICE TO AN ALREADY ACTIVE (in-progress) JOB ══ */
+let _addJobSvcKey = null;
+let _addJobSvcCat = null;
+// Derive the vehicle's size category from the job's existing services
+// (each service references a product whose .cat is the size: Small/Medium/etc).
+function _deriveJobCat(j){
+  const list = Array.isArray(j.servicesList) ? j.servicesList : [];
+  for(const it of list){
+    if(it && it.key && prods[it.key] && prods[it.key].cat) return prods[it.key].cat;
+  }
+  return null;
+}
+// Fill the service picker with only the products in the chosen category.
+function _fillAddJobSvcProducts(cat){
+  const sel = $('addJobSvcProd'); if(!sel) return;
+  const items = Object.entries(prods||{})
+    .filter(([,p]) => cat==='__all__' ? true : ((p.cat||'') === cat))
+    .sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+  sel.innerHTML = '<option value="">— Select a service —</option>' +
+    (items.length
+      ? items.map(([id,p])=>`<option value="${id}">${(p.em?p.em+' ':'')}${p.name||'(unnamed)'} — ₱${(p.price||0).toLocaleString()}</option>`).join('')
+      : '<option value="" disabled>(no services in this category)</option>');
+}
+window.openAddJobService = function(key){
+  const j = jobs[key];
+  if(!j){ toast('Job not found','var(--danger)'); return; }
+  _addJobSvcKey = key;
+  if($('addJobSvcPlate')) $('addJobSvcPlate').textContent = j.plate||'—';
+  // Category is LOCKED to whatever the car was logged under. Prefer the value stored
+  // on the job at login; fall back to deriving it from the existing services (older jobs).
+  const cats = [...new Set(Object.values(prods||{}).map(p=>p.cat).filter(Boolean))];
+  let cat = (j.category && cats.includes(j.category)) ? j.category : _deriveJobCat(j);
+  _addJobSvcCat = cat || null;
+  if($('addJobSvcCatLabel')){
+    $('addJobSvcCatLabel').textContent = cat ? cat : 'All services (no size on file)';
+  }
+  _fillAddJobSvcProducts(cat || '__all__');
+  // Reset fields
+  if($('addJobSvcQty')) $('addJobSvcQty').value = '1';
+  if($('addJobSvcName')) $('addJobSvcName').value = '';
+  if($('addJobSvcPrice')) $('addJobSvcPrice').value = '';
+  $('addJobSvcModal').classList.add('on');
+};
+window.addJobSvcProdChanged = function(){
+  // When a product is picked, clear the custom fields to avoid ambiguity
+  const v = ($('addJobSvcProd')||{value:''}).value;
+  if(v){ if($('addJobSvcName')) $('addJobSvcName').value=''; if($('addJobSvcPrice')) $('addJobSvcPrice').value=''; }
+};
+window.confirmAddJobService = async function(){
+  const key = _addJobSvcKey;
+  const j = key ? jobs[key] : null;
+  if(!j){ toast('Job not found','var(--danger)'); return; }
+  const qty = Math.max(1, parseInt(($('addJobSvcQty')||{value:'1'}).value,10) || 1);
+  const customName = (($('addJobSvcName')||{value:''}).value||'').trim();
+  const customPrice = parseFloat(($('addJobSvcPrice')||{value:''}).value);
+  let item;
+  if(customName){
+    if(!(customPrice>0)){ toast('Enter a price for the custom service','var(--danger)'); return; }
+    item = { key:'__extra__'+Date.now(), name:'✨ '+customName, qty, price:customPrice };
+  } else {
+    const pid = ($('addJobSvcProd')||{value:''}).value;
+    if(!pid || !prods[pid]){ toast('Pick a service or enter a custom one','var(--danger)'); return; }
+    const p = prods[pid];
+    item = { key:pid, name:p.name||'Service', qty, price:(p.price||0) };
+  }
+  // Build the new servicesList + display string + total. Guard older jobs with no servicesList.
+  const hadList = Array.isArray(j.servicesList) && j.servicesList.length>0;
+  const list = Array.isArray(j.servicesList) ? j.servicesList.slice() : [];
+  list.push(item);
+  const servicesStr = hadList
+    ? list.map(c=>c.name+' x'+(c.qty||1)).join(', ')
+    : ((j.services && j.services!=='—') ? j.services + ', ' : '') + item.name + ' x' + item.qty;
+  const newTotal = (j.total||0) + item.price*item.qty;
+  const updates = {};
+  updates['jobs/'+key+'/servicesList'] = list;
+  updates['jobs/'+key+'/services'] = servicesStr;
+  updates['jobs/'+key+'/total'] = newTotal;
+  try{
+    await update(ref(db), updates);
+    closeModal('addJobSvcModal');
+    _addJobSvcKey = null;
+    toast('➕ '+item.name+' added to '+(j.plate||'job'));
+  }catch(e){
+    toast('Could not save: '+(e&&e.message?e.message:'error'),'var(--danger)');
+  }
+};
+
 /* ══ TIP — override closePay ══ */
 window.closePay = function(){
   $('payModal').classList.remove('on'); activeJobKey=null;
@@ -2818,7 +2937,8 @@ window._newRenderJobs = function(){
     const visitBadge=visitCount<=1?'<span style="font-size:10px;background:rgba(72,187,120,.12);color:var(--success);padding:1px 7px;border-radius:6px;font-weight:600;">🆕 New customer</span>':visitCount>=5?'<span style="font-size:10px;background:rgba(240,180,41,.12);color:var(--accent);padding:1px 7px;border-radius:6px;font-weight:600;">⭐ '+visitCount+' visits</span>':'<span style="font-size:10px;background:rgba(79,209,197,.1);color:var(--accent2);padding:1px 7px;border-radius:6px;font-weight:600;">🔁 '+visitCount+' visits</span>';
     const badge=done?'<span class="job-status-badge badge-done">✓ Paid & Done</span>':isOverdue?'<span class="job-overdue-badge">⚠️ '+elapsedStr+' — OVERDUE</span>':'<span class="job-status-badge badge-progress">🔧 '+(elapsedStr?elapsedStr+' elapsed':'In Progress')+'</span>';
     const actionBtn=done?'<span style="font-size:11px;color:var(--muted)">Out: '+(j.timeOut||'—')+'</span>':'<button class="complete-btn" style="background:var(--accent);color:#0d0f14;font-size:13px;padding:9px 18px;font-weight:700;max-width:220px;" onclick="openPayForJob(\''+key+'\')">💰 Collect Payment</button>';
-    return '<div class="job-card '+(done?'completed':'in-progress')+(isOverdue?' overdue':'')+'"><div class="job-head"><div class="job-plate">'+(j.plate||'—')+'</div><div class="job-bay">Bay '+(j.bay||'—')+'</div></div>'+(j.carModel?'<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">'+j.carModel+'</div>':'')+'<div style="margin-bottom:4px;">'+visitBadge+'</div><div class="job-services">'+(j.services||'—')+'</div><div class="job-times"><span class="job-time-in">⏱ In: '+(j.timeIn||'—')+'</span>'+(done?'<span class="job-time-out">✓ Out: '+(j.timeOut||'—')+'</span>':'<span style="color:var(--muted);font-size:11px">Awaiting payment...</span>')+'</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)"><span>👤 '+(j.staff||'')+'</span>'+badge+'</div><div class="job-footer"><div class="job-total">'+fmt(j.total)+'</div>'+actionBtn+'</div></div>';
+    const addBtn=done?'':'<button class="complete-btn" style="background:transparent;border:1px solid var(--accent2);color:var(--accent2);font-size:12px;padding:9px 14px;font-weight:700;" onclick="openAddJobService(\''+key+'\')">➕ Add Service</button>';
+    return '<div class="job-card '+(done?'completed':'in-progress')+(isOverdue?' overdue':'')+'"><div class="job-head"><div class="job-plate">'+(j.plate||'—')+'</div><div class="job-bay">Bay '+(j.bay||'—')+'</div></div>'+(j.carModel?'<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">'+j.carModel+'</div>':'')+'<div style="margin-bottom:4px;">'+visitBadge+'</div><div class="job-services">'+(j.services||'—')+'</div><div class="job-times"><span class="job-time-in">⏱ In: '+(j.timeIn||'—')+'</span>'+(done?'<span class="job-time-out">✓ Out: '+(j.timeOut||'—')+'</span>':'<span style="color:var(--muted);font-size:11px">Awaiting payment...</span>')+'</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)"><span>👤 '+(j.staff||'')+'</span>'+badge+'</div><div class="job-footer"><div class="job-total">'+fmt(j.total)+'</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">'+addBtn+actionBtn+'</div></div></div>';
   }).join('');
 };
 
