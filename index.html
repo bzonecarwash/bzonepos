@@ -3662,17 +3662,26 @@ window.payDetRange = function(period){
 function renderPayDetails(){
   const sel = $('payDetStaff');
   if(!sel) return;
-  // Build staff dropdown (active first, then removed), preserving current selection
+  // Build staff dropdown (active first, then removed), preserving current selection.
+  // IMPORTANT: only rebuild the <option> nodes when the staff list actually changes.
+  // Rebuilding innerHTML on every render clobbers the user's new selection during the
+  // select's own change event (flaky on mobile), so the detail view wouldn't refresh.
   const prevVal = sel.value;
   const ordered = Object.entries(payStaff).slice().sort((a,b)=>{
     const aA=a[1].active!==false, bA=b[1].active!==false;
     if(aA!==bA) return aA?-1:1;
     return (a[1].name||'').localeCompare(b[1].name||'');
   });
-  sel.innerHTML = ordered.length
-    ? ordered.map(([id,s])=>`<option value="${id}">${s.name||'(unnamed)'}${s.active===false?' (removed)':''}</option>`).join('')
-    : '<option value="">(no staff yet)</option>';
-  if(prevVal && payStaff[prevVal]) sel.value = prevVal;
+  const sig = ordered.map(([id,s])=>id+':'+(s.name||'')+':'+(s.active!==false?'1':'0')).join('|');
+  if(sel.dataset.sig !== sig){
+    sel.innerHTML = ordered.length
+      ? ordered.map(([id,s])=>`<option value="${id}">${s.name||'(unnamed)'}${s.active===false?' (removed)':''}</option>`).join('')
+      : '<option value="">(no staff yet)</option>';
+    sel.dataset.sig = sig;
+    // After a rebuild the browser resets the selection, so restore the prior value if it still exists.
+    if(prevVal && payStaff[prevVal]) sel.value = prevVal;
+    else if(ordered.length) sel.value = ordered[0][0];
+  }
   const sid = sel.value;
 
   // Default date range to month-to-date the first time the tab is opened
