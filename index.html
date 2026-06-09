@@ -982,7 +982,14 @@ tr:hover td{background:var(--card);}
     <!-- flex:1 section — header + filters fixed, table scrolls -->
     <div class="rep-sec">
 
-      <div class="rep-hd">Transaction History</div>
+      <div class="rep-hd" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span>Transaction History</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Monthly Report</label>
+          <input type="month" id="repMonth" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;color-scheme:dark;">
+          <button onclick="generateMonthlyReport(this)" style="font-size:11px;font-weight:700;background:var(--success,#48bb78);color:#0d0f14;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">📊 Generate Excel</button>
+        </span>
+      </div>
 
       <!-- Fixed: filter + summary -->
       <div class="rep-filters">
@@ -2440,7 +2447,107 @@ function getFilteredTx(){
   }
   return list;
 }
+// ── Monthly Excel report ─────────────────────────────────────────────
+// Lazily load SheetJS only when first needed (keeps initial load light).
+function ensureXLSX(){
+  return new Promise((resolve,reject)=>{
+    if(window.XLSX) return resolve();
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>resolve();
+    s.onerror=()=>reject(new Error('XLSX load failed'));
+    document.head.appendChild(s);
+  });
+}
+// Match a record to a PHT calendar month ('YYYY-MM') using its timestamp.
+function _inPHTMonth(rec, ym){ return rec && rec.ts && phtISO(new Date(rec.ts)).slice(0,7)===ym; }
+function _monthName(ym){
+  try{ return new Date(ym+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+  catch(e){ return ym; }
+}
+window.generateMonthlyReport = async function(btn){
+  const ym = ($('repMonth')&&$('repMonth').value) || phtISO(new Date()).slice(0,7);
+  if(!ym){ toast('Pick a month first','var(--danger)'); return; }
+  const net = t=>Math.max((t.total||0)-(t.discount||0),0);
+  const monthTx = Object.values(txs).filter(t=>_inPHTMonth(t,ym)).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(!monthTx.length){ toast('No transactions for '+_monthName(ym),'var(--danger)'); return; }
+  const monthExp = Object.values(expenses||{}).filter(e=>_inPHTMonth(e,ym)).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  // Summary (mirrors the on-screen cards)
+  const gross = monthTx.reduce((s,t)=>s+(t.total||0),0);
+  const disc  = monthTx.reduce((s,t)=>s+(t.discount||0),0);
+  const rev   = monthTx.reduce((s,t)=>s+net(t),0);
+  const cash  = monthTx.filter(t=>t.payment==='cash').reduce((s,t)=>s+net(t),0);
+  const gcash = monthTx.filter(t=>t.payment==='gcash').reduce((s,t)=>s+net(t),0);
+  const tips  = monthTx.reduce((s,t)=>s+(t.tip||0),0);
+  const expTotal = monthExp.reduce((s,e)=>s+(e.amount||0),0);
+  const profit = rev - expTotal;
+  const sums = {gross,disc,rev,cash,gcash,tips,expTotal,profit};
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Building…'; }
+  try{
+    await ensureXLSX();
+    const XLSX = window.XLSX;
+    const wb = XLSX.utils.book_new();
+    // Summary sheet
+    const ws1 = XLSX.utils.aoa_to_sheet([
+      ['BZONE Carwash — Monthly Sales Report'],
+      ['Month', _monthName(ym)],
+      ['Generated', new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'})+' PHT'],
+      [],
+      ['Transactions', monthTx.length],
+      ['Gross Sales', gross],
+      ['Discounts', disc],
+      ['Net Sales (after discount)', rev],
+      ['Cash', cash],
+      ['GCash', gcash],
+      ['Tips (not in sales)', tips],
+      ['Expenses', expTotal],
+      ['Net Profit (Net Sales − Expenses)', profit]
+    ]);
+    ws1['!cols']=[{wch:34},{wch:26}];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+    // Transactions sheet
+    const txHeader=['#','Date','Time In','Time Out','Car Model','Plate','Bay','Services','Payment','Gross','Discount','Net','Tip','Staff'];
+    const txRows=monthTx.map((t,i)=>[i+1, t.date||(t.ts?phtISO(new Date(t.ts)):''), t.timeIn||'', t.timeOut||'', t.carModel||'', t.plate||'', t.bay||'', t.items||t.services||'', (t.payment||'').toUpperCase(), t.total||0, t.discount||0, net(t), t.tip||0, t.staff||'']);
+    txRows.push([]); txRows.push(['','','','','','','','','TOTALS', gross, disc, rev, tips, '']);
+    const ws2=XLSX.utils.aoa_to_sheet([txHeader,...txRows]);
+    ws2['!cols']=[{wch:5},{wch:11},{wch:11},{wch:11},{wch:16},{wch:12},{wch:7},{wch:28},{wch:9},{wch:11},{wch:10},{wch:11},{wch:9},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Transactions');
+    // Expenses sheet (only if there are any)
+    if(monthExp.length){
+      const exHeader=['Date','Category','Description','Amount','Staff'];
+      const exRows=monthExp.map(e=>[ e.date||(e.ts?phtISO(new Date(e.ts)):''), e.cat||'', e.desc||'', e.amount||0, e.staff||'' ]);
+      exRows.push([]); exRows.push(['','','TOTAL', expTotal, '']);
+      const ws3=XLSX.utils.aoa_to_sheet([exHeader,...exRows]);
+      ws3['!cols']=[{wch:11},{wch:16},{wch:30},{wch:12},{wch:12}];
+      XLSX.utils.book_append_sheet(wb, ws3, 'Expenses');
+    }
+    XLSX.writeFile(wb, 'BZONE_Sales_'+ym+'.xlsx');
+    toast('📊 Downloaded BZONE_Sales_'+ym+'.xlsx');
+  }catch(e){
+    // Fallback: CSV (still opens in Excel) if the library can't load
+    _downloadMonthlyCSV(ym, monthTx, sums, net);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='📊 Generate Excel'; }
+  }
+};
+function _downloadMonthlyCSV(ym, monthTx, sums, net){
+  const esc=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const lines=[];
+  lines.push('BZONE Carwash — Monthly Sales Report');
+  lines.push('Month,'+_monthName(ym));
+  lines.push('Net Sales,'+sums.rev,'Net Profit,'+sums.profit);
+  lines.push('');
+  lines.push(['#','Date','Time In','Time Out','Car Model','Plate','Bay','Services','Payment','Gross','Discount','Net','Tip','Staff'].join(','));
+  monthTx.forEach((t,i)=>lines.push([i+1,t.date||'',t.timeIn||'',t.timeOut||'',t.carModel||'',t.plate||'',t.bay||'',t.items||t.services||'',(t.payment||'').toUpperCase(),t.total||0,t.discount||0,net(t),t.tip||0,t.staff||''].map(esc).join(',')));
+  lines.push('');
+  lines.push(['TOTALS','','','','','','','','',sums.gross,sums.disc,sums.rev,sums.tips,''].join(','));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='BZONE_Sales_'+ym+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('Saved as CSV (Excel library unavailable) — opens in Excel','var(--accent)');
+}
 function renderRep(){
+  if($('repMonth') && !$('repMonth').value) $('repMonth').value = phtISO(new Date()).slice(0,7);
   const list=Object.values(txs).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const filtered=getFilteredTx();
   const today=phtDateStr(new Date());
