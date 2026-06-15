@@ -1434,6 +1434,10 @@ tr:hover td{background:var(--card);}
           <div class="store-card-title">💰 Cash Collection History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stCashCountLbl">—</span></div>
           <div id="storeCashCollectList" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
         </div>
+        <div class="store-card" id="storeCreditsCollectedHistCard" style="display:none;">
+          <div class="store-card-title">🧾 Credits Collected History (Pay Day) <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stCreditsCollectedCountLbl">—</span></div>
+          <div id="storeCreditsCollectedList" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+        </div>
         <div class="store-card">
           <div class="store-card-title">Sales History <span style="font-size:10px;color:var(--muted);font-weight:500;" id="stSalesCountLbl">—</span></div>
           <div id="storeSalesList" style="display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;padding-right:4px;"></div>
@@ -3131,6 +3135,7 @@ function _showMgrTabs(){
   const str=$('stTabRestock'); if(str) str.style.display=staffRole==='manager'?'':'none';
   const ccb=$('stCashCollectBtn'); if(ccb) ccb.style.display=staffRole==='manager'?'':'none';
   const cch=$('storeCashCollectHistCard'); if(cch) cch.style.display=staffRole==='manager'?'':'none';
+  const ccch=$('storeCreditsCollectedHistCard'); if(ccch) ccch.style.display=staffRole==='manager'?'':'none';
 }
 document.addEventListener('DOMContentLoaded',()=>{ setTimeout(_showMgrTabs,100); setTimeout(_showMgrTabs,500); setTimeout(_showMgrTabs,1500); });
 _showMgrTabs();
@@ -3373,6 +3378,8 @@ onValue(ref(db,'payroll/adv'),snap=>{
 onValue(ref(db,'payroll/credits'),snap=>{
   payCredits = snap.exists()?snap.val():{};
   if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
+  // Pay Day settlement changes how much credit is collected → refresh Store report
+  if($('pg-store')&&$('pg-store').classList.contains('on') && typeof renderStoreReport==='function') renderStoreReport();
 },()=>{});
 
 onValue(ref(db,'payroll/settlements'),snap=>{
@@ -3533,6 +3540,7 @@ window.payRunSettlement = async function(){
   }
 
   // Tally NEW (un-settled) attendance per staff
+  let maxSettledDayTs = 0;
   Object.entries(payAttend).forEach(([date, dayObj])=>{
     const dayTs = new Date(date+'T12:00:00+08:00').getTime();
     Object.entries(dayObj||{}).forEach(([sid,code])=>{
@@ -3542,6 +3550,7 @@ window.payRunSettlement = async function(){
       const b = ensure(sid);
       if(code==='P') b.days++;
       else if(code==='H') b.halfdays++;
+      if(dayTs > maxSettledDayTs) maxSettledDayTs = dayTs; // remember the latest day included
     });
   });
 
@@ -3634,6 +3643,11 @@ window.payRunSettlement = async function(){
   summary += 'Total Advances: −'+fmt(totalAdvances)+'\\n';
   summary += 'Total Credits:  −'+fmt(totalCredits)+'\\n';
   summary += 'TOTAL NET OWED: '+fmt(grandTotalOwed)+'\\n';
+  // Effective settle-through cutoff: end of today, or the latest day you've marked
+  // attendance for (covers paying early after advancing attendance) — whichever is later.
+  const endOfTodayTs = new Date(phtISO(new Date())+'T23:59:59.999+08:00').getTime();
+  const settleCutoff = Math.max(endOfTodayTs, maxSettledDayTs);
+  summary += '\\n📅 Settles ALL wages through: '+phtDateStr(new Date(settleCutoff))+'\\n';
   summary += '\\nAll records will be PRESERVED in history.\\nThis can be UNDONE if needed.\\n\\nProceed?';
   if(!confirm(summary)) return;
 
@@ -3664,6 +3678,7 @@ window.payRunSettlement = async function(){
   updates['payroll/settlements/'+settlementId] = {
     id: settlementId,
     ts: settledAt,
+    settledThroughTs: settleCutoff,
     date: phtDateStr(now),
     iso: phtISO(now),
     settledBy: staffName || 'Manager',
@@ -3675,9 +3690,9 @@ window.payRunSettlement = async function(){
     staffCount: affectedStaffCount,
     perStaff: perStaffSnapshot
   };
-  // 2. Mark settledThrough for each affected staff (so wages/tips up to NOW are closed)
+  // 2. Mark settledThrough for each affected staff (so wages/tips up to end of today are closed)
   Object.keys(perStaffSnapshot).forEach(sid=>{
-    updates['payroll/settledThrough/'+sid] = settledAt;
+    updates['payroll/settledThrough/'+sid] = settleCutoff;
   });
   // 3. Mark each advance/credit as settled
   Object.values(perStaff).forEach(b=>{
@@ -3715,15 +3730,17 @@ window.payUndoSettlement = async function(id){
   });
   // Restore each staff's settledThrough to the PREVIOUS pay-day (if any), else delete
   Object.keys(s.perStaff||{}).forEach(sid=>{
-    // Find the most recent OTHER settlement that included this staff
-    let prevTs = 0;
+    // Find the most recent OTHER settlement that included this staff, and restore to
+    // that settlement's effective cutoff (end-of-day), not just its click time.
+    let prevClickTs = 0, prevCutoff = 0;
     Object.entries(paySettlements).forEach(([otherId, other])=>{
       if(otherId === id) return; // skip the one we're undoing
-      if(other.perStaff && other.perStaff[sid] && (other.ts||0) > prevTs){
-        prevTs = other.ts||0;
+      if(other.perStaff && other.perStaff[sid] && (other.ts||0) > prevClickTs){
+        prevClickTs = other.ts||0;
+        prevCutoff = other.settledThroughTs || other.ts || 0;
       }
     });
-    updates['payroll/settledThrough/'+sid] = prevTs > 0 ? prevTs : null;
+    updates['payroll/settledThrough/'+sid] = prevCutoff > 0 ? prevCutoff : null;
   });
   // Remove the settlement record itself
   updates['payroll/settlements/'+id] = null;
@@ -5173,6 +5190,31 @@ function renderStoreReport(){
   }).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
   const totalCashCollected = collects.reduce((s,[,c])=>s+(c.amt||0),0);
 
+  // Store credits COLLECTED via Pay Day within this period. When a staff store-credit
+  // is settled (deducted from wages on Pay Day), that money effectively returns to the
+  // store drawer — so it adds to Cash on Hand. Matched by settledAt date.
+  let creditsCollected = 0;
+  const creditsCollectedList = [];
+  Object.entries(payCredits||{}).forEach(([cid,c])=>{
+    if(!c) return;
+    const isStore = c.source==='store' || !!c.storeSaleId;
+    if(!isStore || !c.settledAt) return;
+    const iso = phtISO(c.settledAt);
+    if(iso>=fromISO && iso<=toISO){
+      creditsCollected += (c.amt||0);
+      creditsCollectedList.push({
+        id: cid,
+        staff: (payStaff[c.staffId]||{}).name || c.name || '(unknown)',
+        note: c.note || '',
+        collectedISO: iso,
+        purchaseDate: c.date || '',
+        amt: c.amt||0,
+        settledAt: c.settledAt
+      });
+    }
+  });
+  creditsCollectedList.sort((a,b)=>(b.settledAt||0)-(a.settledAt||0));
+
   let totalRev=0, totalCost=0, totalUnits=0;
   let cashIn=0, creditAmt=0;
   const byProduct = {}; // productId -> {name, qty, revenue, cost, profit}
@@ -5201,7 +5243,7 @@ function renderStoreReport(){
   const totalProfit = totalRev - totalCost;
   const margin = totalRev>0 ? (totalProfit/totalRev*100) : 0;
 
-  const cashOnHand = cashIn - totalCashCollected;
+  const cashOnHand = cashIn + creditsCollected - totalCashCollected;
   const sg = $('storeSumGrid');
   if(sg){
     sg.innerHTML = `
@@ -5214,6 +5256,7 @@ function renderStoreReport(){
       <div class="pay-sum-card"><div class="pay-sum-lbl">Cash Sales</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(cashIn)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Credit Sales</div><div class="pay-sum-val" style="color:var(--danger);">${fmt(creditAmt)}</div></div>
       <div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="pay-sum-lbl">💰 Cash Collected by Mgr</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCashCollected)}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">🧾 Credits Collected (Pay Day)</div><div class="pay-sum-val" style="color:var(--success);">+${fmt(creditsCollected)}</div></div>
       <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Cash on Hand</div><div class="pay-sum-val" style="color:${cashOnHand>=0?'var(--accent)':'var(--danger)'};">${fmt(cashOnHand)}</div></div>
     `;
   }
@@ -5235,6 +5278,24 @@ function renderStoreReport(){
           <span class="pl-del" onclick="storeDelCashCollect('${id}')" title="Delete">✕</span>
         </div>`).join('')
       : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No cash collections in this period.</div>';
+  }
+
+  // Credits Collected history (manager only) — store credits settled at Pay Day
+  const ccl = $('storeCreditsCollectedList');
+  if(ccl){
+    if($('stCreditsCollectedCountLbl')) $('stCreditsCollectedCountLbl').textContent = creditsCollectedList.length+' credit'+(creditsCollectedList.length!==1?'s':'')+' • '+fmt(creditsCollected);
+    ccl.innerHTML = creditsCollectedList.length
+      ? creditsCollectedList.slice(0,200).map(c=>`<div class="store-restock-row" style="grid-template-columns:1.5fr 1fr 1fr auto;">
+          <div>
+            <div style="font-weight:600;font-size:11px;">Staff: <b>${c.staff}</b></div>
+            ${c.note?'<div style="font-size:10px;color:var(--text);">'+c.note+'</div>':''}
+            <div class="rs-date">Collected ${c.collectedISO}${c.purchaseDate&&c.purchaseDate!==c.collectedISO?' • bought '+c.purchaseDate:''}</div>
+          </div>
+          <div class="num" style="color:var(--success);font-family:'DM Mono',monospace;text-align:right;font-weight:700;">+${fmt(c.amt)}</div>
+          <div></div>
+          <div></div>
+        </div>`).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:18px;font-size:12px;">No credits collected in this period.</div>';
   }
 
   // Sales history
