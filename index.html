@@ -1513,6 +1513,15 @@ tr:hover td{background:var(--card);}
   </div>
 </div>
 
+<!-- CUSTOMER VISIT HISTORY MODAL -->
+<div class="overlay" id="custHistModal">
+  <div class="modal">
+    <div class="modal-title">🚗 <span id="custHistPlate"></span> — Visit History</div>
+    <div class="modal-scroll"><div class="modal-body" id="custHistBody"></div></div>
+    <div class="modal-ft"><button class="btn-ok" onclick="closeModal('custHistModal')">Close</button></div>
+  </div>
+</div>
+
 <!-- ADD SERVICE TO ACTIVE JOB MODAL -->
 <div class="overlay" id="addJobSvcModal">
   <div class="modal">
@@ -3065,8 +3074,9 @@ function buildCustomerData(){
     const raw=(r.plate||'').trim(); if(!raw)return;
     const key=normalizePlate(raw),disp=formatPlate(raw);
     const date=r.date||'',ts=r.ts||r.timeInTs||0,model=r.carModel||r.model||'',items=r.items||r.services||'',spent=r.total||0;
-    if(!C[key]) C[key]={plate:disp,model,visits:0,totalSpent:0,firstVisit:date,firstTs:ts,lastVisit:date,lastTs:ts,services:{}};
+    if(!C[key]) C[key]={key,plate:disp,model,visits:0,totalSpent:0,firstVisit:date,firstTs:ts,lastVisit:date,lastTs:ts,services:{},visitsList:[]};
     const c=C[key]; c.visits++; c.totalSpent+=spent;
+    c.visitsList.push({date,ts,items,total:(r.total||0),discount:(r.discount||0),tip:(r.tip||0),payment:r.payment||'',staff:r.staff||'',inProgress:!!(r.status&&r.status!=='completed')});
     if(ts>0&&ts<(c.firstTs||Infinity)){c.firstTs=ts;c.firstVisit=date;}
     if(ts>(c.lastTs||0)){c.lastTs=ts;c.lastVisit=date;if(model)c.model=model;c.plate=disp;}
     items.split(',').forEach(s=>{const v=s.trim().replace(/\s*x\d+.*$/i,'').replace(/\(.*\)/,'').trim();if(v)c.services[v]=(c.services[v]||0)+1;});
@@ -3083,6 +3093,7 @@ function getVisitCount(plate){
 window.renderCust = function(){
   if(staffRole!=='manager')return;
   const customers=buildCustomerData();
+  window._custData = customers;
   const list=Object.values(customers);
   const q=(($('custSearch')||{value:''}).value||'').toLowerCase();
   const filtered=q?list.filter(c=>c.plate.toLowerCase().includes(q)||(c.model||'').toLowerCase().includes(q)):list;
@@ -3094,8 +3105,33 @@ window.renderCust = function(){
     const topSvc=Object.entries(c.services).sort((a,b)=>b[1]-a[1])[0];
     const topStr=topSvc?topSvc[0]:'—';
     const badge=c.visits===1?'<span class="visit-badge visit-new">🆕 New</span>':c.visits>=5?'<span class="visit-badge visit-vip">⭐ VIP</span>':'<span class="visit-badge visit-ret">🔁 Regular</span>';
-    return '<div class="cust-card"><div class="cust-card-top"><div><div class="cust-plate">'+c.plate+'</div><div class="cust-model">'+(c.model||'—')+'</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+badge+'<span style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--accent)">'+c.visits+' visit'+(c.visits!==1?'s':'')+'</span></div></div><div style="height:1px;background:var(--border);margin:4px 0;"></div><div class="cust-card-bot"><div class="cust-stat"><div class="cust-stat-lbl">First Visit</div><div class="cust-stat-val">'+(c.firstVisit||'—')+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Last Visit</div><div class="cust-stat-val" style="color:var(--accent2)">'+(c.lastVisit||'—')+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Top Service</div><div class="cust-stat-val" style="font-size:11px">'+topStr+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Total Spent</div><div class="cust-stat-val" style="color:var(--success)">'+fmt(c.totalSpent)+'</div></div></div></div>';
+    return '<div class="cust-card" style="cursor:pointer;" onclick="showCustHistory(\''+c.key+'\')" title="Tap to see each visit & amount charged"><div class="cust-card-top"><div><div class="cust-plate">'+c.plate+'</div><div class="cust-model">'+(c.model||'—')+'</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+badge+'<span style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--accent)">'+c.visits+' visit'+(c.visits!==1?'s':'')+'</span></div></div><div style="height:1px;background:var(--border);margin:4px 0;"></div><div class="cust-card-bot"><div class="cust-stat"><div class="cust-stat-lbl">First Visit</div><div class="cust-stat-val">'+(c.firstVisit||'—')+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Last Visit</div><div class="cust-stat-val" style="color:var(--accent2)">'+(c.lastVisit||'—')+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Top Service</div><div class="cust-stat-val" style="font-size:11px">'+topStr+'</div></div><div class="cust-stat"><div class="cust-stat-lbl">Total Spent</div><div class="cust-stat-val" style="color:var(--success)">'+fmt(c.totalSpent)+'</div></div></div></div>';
   }).join('');
+};
+window.showCustHistory = function(key){
+  const c = (window._custData||{})[key];
+  if(!c){ toast('No history found','var(--danger)'); return; }
+  if($('custHistPlate')) $('custHistPlate').textContent = c.plate + (c.model?(' \u00b7 '+c.model):'');
+  const visits = (c.visitsList||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let grossSum=0, discSum=0, netSum=0;
+  const rows = visits.map(v=>{
+    const net = Math.max((v.total||0)-(v.discount||0),0);
+    grossSum+=(v.total||0); discSum+=(v.discount||0); netSum+=net;
+    const svc = (v.items||'').trim() || '\u2014';
+    const pay = (v.payment||'').toUpperCase();
+    return '<div style="display:flex;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
+      + '<div style="min-width:0;"><div style="font-size:12px;font-weight:600;">'+(v.date||'\u2014')+(v.inProgress?' <span style=\"color:var(--accent);font-size:9px;\">(in progress)</span>':'')+'</div>'
+      + '<div style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;">'+svc+(pay?' \u00b7 '+pay:'')+(v.staff?' \u00b7 '+v.staff:'')+'</div></div>'
+      + '<div style="text-align:right;white-space:nowrap;"><div style="font-family:\'DM Mono\',monospace;font-weight:700;color:var(--success);">'+fmt(net)+'</div>'
+      + (v.discount>0?'<div style="font-size:9px;color:var(--muted);">gross '+fmt(v.total)+' \u2212 disc '+fmt(v.discount)+'</div>':'')
+      + (v.tip>0?'<div style="font-size:9px;color:var(--accent2);">tip '+fmt(v.tip)+'</div>':'')
+      + '</div></div>';
+  }).join('');
+  const summary = '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:2px 2px 10px;flex-wrap:wrap;gap:4px;">'
+    + '<span>'+visits.length+' visit'+(visits.length!==1?'s':'')+'</span>'
+    + '<span>Gross '+fmt(grossSum)+(discSum>0?' \u00b7 Disc '+fmt(discSum):'')+' \u00b7 <b style="color:var(--success);">Paid '+fmt(netSum)+'</b></span></div>';
+  if($('custHistBody')) $('custHistBody').innerHTML = summary + (rows||'<div style="text-align:center;color:var(--muted);padding:18px;">No visits.</div>');
+  $('custHistModal').classList.add('on');
 };
 
 /* ══ JOBS FILTER + OVERDUE ══ */
