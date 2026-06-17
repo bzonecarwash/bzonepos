@@ -3914,6 +3914,7 @@ function payShowCashierDetailView(){
   window._payDetSid = me ? me[0] : null;
   renderPayDetails();
 }
+window.renderPay = renderPay; // expose so inline onchange handlers (date range, period) work in module scope
 function renderPay(){
   if(staffRole!=='manager'){ payShowCashierDetailView(); return; }
   payShowManagerControls();
