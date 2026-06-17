@@ -5415,7 +5415,8 @@ function renderStoreReport(){
   const totalProfit = totalRev - totalCost;
   const margin = totalRev>0 ? (totalProfit/totalRev*100) : 0;
 
-  const cashOnHand = cashIn + creditsCollected - totalCashCollected;
+  const physicalCash = cashIn - totalCashCollected;        // actual bills that should be in the drawer
+  const cashOnHand = physicalCash + creditsCollected;       // bookkeeping total incl. wage-deducted credits
   const sg = $('storeSumGrid');
   if(sg){
     sg.innerHTML = `
@@ -5428,8 +5429,9 @@ function renderStoreReport(){
       <div class="pay-sum-card"><div class="pay-sum-lbl">Cash Sales</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(cashIn)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Credit Sales</div><div class="pay-sum-val" style="color:var(--danger);">${fmt(creditAmt)}</div></div>
       <div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="pay-sum-lbl">💰 Cash Collected by Mgr</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCashCollected)}</div></div>
-      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">🧾 Credits Collected (Pay Day)</div><div class="pay-sum-val" style="color:var(--success);">+${fmt(creditsCollected)}</div></div>
-      <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Cash on Hand</div><div class="pay-sum-val" style="color:${cashOnHand>=0?'var(--accent)':'var(--danger)'};">${fmt(cashOnHand)}</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Physical Drawer Cash</div><div class="pay-sum-val" style="color:${physicalCash>=0?'var(--accent)':'var(--danger)'};">${fmt(physicalCash)}</div><div style="font-size:9px;color:var(--muted);">cash sales − collected</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">🧾 Credits Collected</div><div class="pay-sum-val" style="color:var(--success);">+${fmt(creditsCollected)}</div><div style="font-size:9px;color:var(--muted);">via wages · not in drawer</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(79,209,197,.35);background:rgba(79,209,197,.06);"><div class="pay-sum-lbl">📒 Total incl. Credits</div><div class="pay-sum-val" style="color:${cashOnHand>=0?'var(--accent2)':'var(--danger)'};">${fmt(cashOnHand)}</div><div style="font-size:9px;color:var(--muted);">drawer + credits (books)</div></div>
     `;
   }
 
