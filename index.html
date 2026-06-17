@@ -1470,23 +1470,17 @@ tr:hover td{background:var(--card);}
       </div>
       <div class="sc">
         <div class="sc-title">Staff &amp; Roles</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6;display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
-            <span><span class="rbadge rmgr" style="margin-right:6px">MGR</span>Boss B</span>
-            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
+        <div id="setUsersList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="setAddUserBox" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Add User</div>
+          <div class="fg"><div class="fl">Name</div><input class="fi" id="newUserName" placeholder="e.g. Kevin"></div>
+          <div class="fg"><div class="fl">Role</div>
+            <select class="fi" id="newUserRole"><option value="cashier">Cashier</option><option value="manager">Manager</option></select>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
-            <span><span class="rbadge rcash" style="margin-right:6px">STAFF</span>Julius</span>
-            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">
-            <span><span class="rbadge rcash" style="margin-right:6px">STAFF</span>Angelo</span>
-            <span style="font-family:'DM Mono',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>
-          </div>
-          <div style="padding:8px 10px;background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.2);border-radius:7px;font-size:10px;color:var(--muted)">
-            🔒 PINs are hidden for security.<br>To change PINs, edit <b>STAFF_LIST</b> in the source file.
-          </div>
+          <div class="fg"><div class="fl">4-digit PIN</div><input class="fi" id="newUserPin" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" style="font-family:'DM Mono',monospace;letter-spacing:4px;"></div>
+          <button class="btn-ok" style="width:100%;margin-top:4px;" onclick="addPosUser()">➕ Add User</button>
         </div>
+        <div id="setUsersLock" style="display:none;padding:8px 10px;background:rgba(252,92,125,.07);border:1px solid rgba(252,92,125,.2);border-radius:7px;font-size:10px;color:var(--muted);margin-top:8px;">🔒 Only managers can add or remove users.</div>
       </div>
       <div class="sc" id="dataCard">
         <div class="sc-title">Data</div>
@@ -1786,12 +1780,73 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* STAFF */
-const STAFF_LIST = [
-  {value:'Julius|cashier|2283', name:'Julius', role:'cashier', pin:'2283'},
-  {value:'BossB|manager|1007',  name:'Boss B', role:'manager', pin:'1007'},
-  {value:'Angelo|cashier|3382', name:'Angelo', role:'cashier', pin:'3382'},
+/* STAFF — built-in defaults (always available) + custom users added by managers (stored in Firebase posUsers) */
+const DEFAULT_STAFF = [
+  {value:'Julius|cashier|2283', name:'Julius', role:'cashier', pin:'2283', builtin:true},
+  {value:'BossB|manager|1007',  name:'Boss B', role:'manager', pin:'1007', builtin:true},
+  {value:'Angelo|cashier|3382', name:'Angelo', role:'cashier', pin:'3382', builtin:true},
 ];
+let posUsers = {};                       // {uid:{name,role,pin,ts}}
+let STAFF_LIST = DEFAULT_STAFF.slice();   // effective accounts = defaults + customs
+function rebuildStaffList(){
+  const names = new Set(DEFAULT_STAFF.map(s=>(s.name||'').toLowerCase()));
+  const customs = Object.entries(posUsers||{})
+    .sort((a,b)=>(a[1].ts||0)-(b[1].ts||0))
+    .filter(([,u])=>u && u.name && !names.has(u.name.toLowerCase()))
+    .map(([uid,u])=>({ value:u.name+'|'+u.role+'|'+u.pin, name:u.name, role:(u.role==='manager'?'manager':'cashier'), pin:String(u.pin), uid }));
+  STAFF_LIST = DEFAULT_STAFF.concat(customs);
+  // Keep the on-duty cashier dropdown in sync (preserve current selection)
+  const sel = $('staffSel');
+  if(sel){
+    const prev = sel.value;
+    sel.innerHTML = STAFF_LIST.map(s=>`<option value="${s.value}">${s.name}${s.role==='manager'?' ⭐':''}</option>`).join('');
+    if(STAFF_LIST.some(s=>s.value===prev)) sel.value = prev;
+  }
+  if($('loginScreen') && !$('loginScreen').classList.contains('hidden')) renderLoginStaffList();
+  if(typeof renderSetUsers==='function') renderSetUsers();
+}
+function renderSetUsers(){
+  const box = $('setUsersList'); if(!box) return;
+  const isMgr = staffRole==='manager';
+  box.innerHTML = STAFF_LIST.map(s=>{
+    const roleBadge = s.role==='manager'
+      ? '<span class="rbadge rmgr" style="margin-right:6px">MGR</span>'
+      : '<span class="rbadge rcash" style="margin-right:6px">STAFF</span>';
+    const right = s.builtin
+      ? '<span style="font-size:9px;color:var(--muted);">built-in</span>'
+      : (isMgr ? '<span class="pl-del" onclick="delPosUser(\''+s.uid+'\')" title="Remove user">✕</span>' : '<span style="font-size:9px;color:var(--muted);">added</span>');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">'
+      + '<span>'+roleBadge+s.name+'</span>'
+      + '<span style="display:flex;align-items:center;gap:10px;"><span style="font-family:\'DM Mono\',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>'+right+'</span>'
+      + '</div>';
+  }).join('');
+  if($('setAddUserBox')) $('setAddUserBox').style.display = isMgr ? 'block' : 'none';
+  if($('setUsersLock')) $('setUsersLock').style.display = isMgr ? 'none' : 'block';
+}
+window.addPosUser = async function(){
+  if(staffRole!=='manager'){ toast('Managers only','var(--danger)'); return; }
+  const name = ($('newUserName').value||'').trim();
+  const role = ($('newUserRole').value==='manager')?'manager':'cashier';
+  const pin = ($('newUserPin').value||'').trim();
+  if(!name){ toast('Enter a name','var(--danger)'); return; }
+  if(!/^\d{4}$/.test(pin)){ toast('PIN must be exactly 4 digits','var(--danger)'); return; }
+  if(STAFF_LIST.some(s=>(s.name||'').toLowerCase()===name.toLowerCase())){ toast('That name already exists','var(--danger)'); return; }
+  const uid = 'u'+Date.now();
+  try{
+    await set(ref(db,'posUsers/'+uid), { name, role, pin, ts: Date.now() });
+    $('newUserName').value=''; $('newUserPin').value=''; $('newUserRole').value='cashier';
+    toast('✅ Added '+name+' ('+role+')');
+  }catch(e){ toast('Could not add user: '+(e&&e.message?e.message:'error'),'var(--danger)'); }
+};
+window.delPosUser = async function(uid){
+  if(staffRole!=='manager'){ toast('Managers only','var(--danger)'); return; }
+  const u = posUsers[uid]; if(!u) return;
+  if(!confirm('Remove user "'+u.name+'"? They will no longer be able to log in.')) return;
+  try{
+    await remove(ref(db,'posUsers/'+uid));
+    toast('Removed '+u.name);
+  }catch(e){ toast('Could not remove: '+(e&&e.message?e.message:'error'),'var(--danger)'); }
+};
 
 /* STATE */
 let S = {storeName:'Bzone Carwash',storeAddr:'',currency:'₱',tax:0,maxDisc:50};
@@ -1915,6 +1970,10 @@ window.cancelPin = function(){
 function updateDots(){for(let i=0;i<4;i++) $('pd'+i).className='pd'+(i<pinBuffer.length?' filled':'');}
 
 /* FIREBASE LISTENERS */
+onValue(ref(db,'posUsers'),snap=>{
+  posUsers = snap.exists()?snap.val():{};
+  rebuildStaffList();
+},()=>{});
 onValue(ref(db,'settings'),snap=>{
   syncStatus('live');
   if(snap.exists()) S=Object.assign(S,snap.val());
@@ -3146,16 +3205,19 @@ setInterval(_showMgrTabs,2000);
 let _loginStaff = null;
 let _loginPinBuf = '';
 
-function showLoginScreen(){
-  $('loginScreen').classList.remove('hidden');
-  $('loginPinArea').style.display='none';
-  // Build staff list
+function renderLoginStaffList(){
   const list = $('loginStaffList');
+  if(!list) return;
   list.innerHTML = STAFF_LIST.map(s=>{
     const isMgr = s.role==='manager';
     const badge = isMgr ? '<span class="rbadge rmgr">MANAGER</span>' : '<span class="rbadge rcash">CASHIER</span>';
     return '<div class="login-staff-item" onclick="selectLoginStaff(\''+s.name+'\')"><span class="login-staff-name">'+s.name+(isMgr?' ⭐':'')+'</span>'+badge+'</div>';
   }).join('');
+}
+function showLoginScreen(){
+  $('loginScreen').classList.remove('hidden');
+  $('loginPinArea').style.display='none';
+  renderLoginStaffList();
   _loginPinBuf=''; updateLoginDots();
 }
 
@@ -3320,6 +3382,7 @@ onValue(ref(db,'dashboardConfig/expenses'), snap => {
 const _origGoPage = window.goPage;
 window.goPage = function(id, btn){
   _origGoPage.call(this, id, btn);
+  if (id === 'set' && typeof renderSetUsers === 'function') renderSetUsers();
   if (id === 'dash') {
     // Give the iframe a moment to load if first time
     setTimeout(sendDashboardData, 300);
