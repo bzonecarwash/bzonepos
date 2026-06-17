@@ -2857,9 +2857,15 @@ window.closePay = function(){
 };
 
 /* ══ CONFIRM PAY WITH TIP ══ */
+let _payBusy = false;
 window.confirmPay = async function(){
+  if(_payBusy) return;                         // a submit is already in flight — ignore double-taps
   if(!activeJobKey){toast('No job selected','var(--danger)');return;}
   const j=jobs[activeJobKey]; if(!j)return;
+  if(j.status==='completed'){                  // already paid (e.g. a second tap after the first finished)
+    toast('That job was already paid — no duplicate created.','var(--danger)');
+    window.closePay(); return;
+  }
   // Apply discount
   const origTotal = (window._payOrigTotal != null ? window._payOrigTotal : j.total);
   let disc = parseFloat(($('payDiscInput')||{value:'0'}).value) || 0;
@@ -2869,17 +2875,26 @@ window.confirmPay = async function(){
   if(payMethod==='cash'){const recv=parseFloat($('cashIn').value)||0;if(recv<finalTotal){alert('Cash received is not enough!');return;}}
   const tip=parseFloat(($('tipInput')||{value:'0'}).value)||0;
   const now=new Date(); const timeOut=phtTimeStr(now);
-  const txRef=push(ref(db,'transactions')); const updates={};
-  updates['jobs/'+activeJobKey+'/status']='completed';
-  updates['jobs/'+activeJobKey+'/timeOut']=timeOut;
-  updates['jobs/'+activeJobKey+'/timeOutTs']=now.getTime();
-  updates['jobs/'+activeJobKey+'/payment']=payMethod;
-  updates['jobs/'+activeJobKey+'/total']=origTotal;
-  if(disc>0) updates['jobs/'+activeJobKey+'/discount']=disc;
-  updates['transactions/'+txRef.key]={id:txRef.key,plate:j.plate,bay:j.bay,carModel:j.carModel||'',timeIn:j.timeIn,timeOut,date:j.date||phtDateStr(now),items:j.services,payment:payMethod,total:origTotal,discount:disc,tip,staff:staffName,ts:now.getTime()};
-  await update(ref(db),updates);
-  window.closePay();
-  toast('✅ Payment collected! '+(j.plate||'')+' checked out'+(disc>0?' | Disc: '+fmt(disc):'')+(tip>0?' | Tip: '+fmt(tip):''));
+  _payBusy = true;
+  const _btn=$('confirmPayBtn'); if(_btn){ _btn.disabled=true; _btn.textContent='Processing…'; }
+  try{
+    const txRef=push(ref(db,'transactions')); const updates={};
+    updates['jobs/'+activeJobKey+'/status']='completed';
+    updates['jobs/'+activeJobKey+'/timeOut']=timeOut;
+    updates['jobs/'+activeJobKey+'/timeOutTs']=now.getTime();
+    updates['jobs/'+activeJobKey+'/payment']=payMethod;
+    updates['jobs/'+activeJobKey+'/total']=origTotal;
+    if(disc>0) updates['jobs/'+activeJobKey+'/discount']=disc;
+    updates['transactions/'+txRef.key]={id:txRef.key,plate:j.plate,bay:j.bay,carModel:j.carModel||'',timeIn:j.timeIn,timeOut,date:j.date||phtDateStr(now),items:j.services,payment:payMethod,total:origTotal,discount:disc,tip,staff:staffName,ts:now.getTime()};
+    await update(ref(db),updates);
+    window.closePay();
+    toast('✅ Payment collected! '+(j.plate||'')+' checked out'+(disc>0?' | Disc: '+fmt(disc):'')+(tip>0?' | Tip: '+fmt(tip):''));
+  }catch(e){
+    toast('Could not collect payment: '+(e&&e.message?e.message:'error'),'var(--danger)');
+  }finally{
+    _payBusy=false;
+    if(_btn){ _btn.disabled=false; _btn.textContent='Confirm Payment ✓'; }
+  }
 };
 
 /* ══ EXPENSES STATE ══ */
