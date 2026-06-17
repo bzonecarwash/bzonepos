@@ -1787,14 +1787,20 @@ const DEFAULT_STAFF = [
   {value:'Angelo|cashier|3382', name:'Angelo', role:'cashier', pin:'3382', builtin:true},
 ];
 let posUsers = {};                       // {uid:{name,role,pin,ts}}
+let posPinOverrides = {};                // {builtinName: newPin} — lets managers change built-in PINs
 let STAFF_LIST = DEFAULT_STAFF.slice();   // effective accounts = defaults + customs
 function rebuildStaffList(){
   const names = new Set(DEFAULT_STAFF.map(s=>(s.name||'').toLowerCase()));
+  // Apply any PIN overrides to the built-in accounts (value/id stays stable; only PIN changes)
+  const defaults = DEFAULT_STAFF.map(s=>{
+    const ov = posPinOverrides[s.name];
+    return ov ? {...s, pin:String(ov)} : s;
+  });
   const customs = Object.entries(posUsers||{})
     .sort((a,b)=>(a[1].ts||0)-(b[1].ts||0))
     .filter(([,u])=>u && u.name && !names.has(u.name.toLowerCase()))
     .map(([uid,u])=>({ value:u.name+'|'+u.role+'|'+u.pin, name:u.name, role:(u.role==='manager'?'manager':'cashier'), pin:String(u.pin), uid }));
-  STAFF_LIST = DEFAULT_STAFF.concat(customs);
+  STAFF_LIST = defaults.concat(customs);
   // Keep the on-duty cashier dropdown in sync (preserve current selection)
   const sel = $('staffSel');
   if(sel){
@@ -1812,9 +1818,12 @@ function renderSetUsers(){
     const roleBadge = s.role==='manager'
       ? '<span class="rbadge rmgr" style="margin-right:6px">MGR</span>'
       : '<span class="rbadge rcash" style="margin-right:6px">STAFF</span>';
+    const editBtn = isMgr
+      ? '<span class="pl-del" style="color:var(--accent2);" onclick="changeUserPin(\''+(s.builtin?'builtin':'custom')+'\',\''+(s.builtin?s.name:s.uid)+'\')" title="Change PIN">✎</span>'
+      : '';
     const right = s.builtin
-      ? '<span style="font-size:9px;color:var(--muted);">built-in</span>'
-      : (isMgr ? '<span class="pl-del" onclick="delPosUser(\''+s.uid+'\')" title="Remove user">✕</span>' : '<span style="font-size:9px;color:var(--muted);">added</span>');
+      ? editBtn + '<span style="font-size:9px;color:var(--muted);">built-in</span>'
+      : (isMgr ? editBtn + '<span class="pl-del" onclick="delPosUser(\''+s.uid+'\')" title="Remove user">✕</span>' : '<span style="font-size:9px;color:var(--muted);">added</span>');
     return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);padding:8px 10px;border-radius:8px;">'
       + '<span>'+roleBadge+s.name+'</span>'
       + '<span style="display:flex;align-items:center;gap:10px;"><span style="font-family:\'DM Mono\',monospace;letter-spacing:4px;color:var(--muted);font-size:18px">••••</span>'+right+'</span>'
@@ -1846,6 +1855,19 @@ window.delPosUser = async function(uid){
     await remove(ref(db,'posUsers/'+uid));
     toast('Removed '+u.name);
   }catch(e){ toast('Could not remove: '+(e&&e.message?e.message:'error'),'var(--danger)'); }
+};
+window.changeUserPin = async function(kind, id){
+  if(staffRole!=='manager'){ toast('Managers only','var(--danger)'); return; }
+  let label = id;
+  if(kind==='custom'){ const u=posUsers[id]; if(!u){ toast('User not found','var(--danger)'); return; } label=u.name; }
+  const pin = (prompt('Enter a new 4-digit PIN for '+label+':')||'').trim();
+  if(pin==='') return; // cancelled
+  if(!/^\d{4}$/.test(pin)){ toast('PIN must be exactly 4 digits','var(--danger)'); return; }
+  try{
+    if(kind==='builtin') await set(ref(db,'posPinOverrides/'+id), pin); // id = built-in name
+    else await set(ref(db,'posUsers/'+id+'/pin'), pin);                 // id = uid
+    toast('✅ PIN updated for '+label);
+  }catch(e){ toast('Could not update PIN: '+(e&&e.message?e.message:'error'),'var(--danger)'); }
 };
 
 /* STATE */
@@ -1972,6 +1994,10 @@ function updateDots(){for(let i=0;i<4;i++) $('pd'+i).className='pd'+(i<pinBuffer
 /* FIREBASE LISTENERS */
 onValue(ref(db,'posUsers'),snap=>{
   posUsers = snap.exists()?snap.val():{};
+  rebuildStaffList();
+},()=>{});
+onValue(ref(db,'posPinOverrides'),snap=>{
+  posPinOverrides = snap.exists()?snap.val():{};
   rebuildStaffList();
 },()=>{});
 onValue(ref(db,'settings'),snap=>{
