@@ -2518,7 +2518,9 @@ window.factoryReset=async function(){
 let dateFilter='all'; window.dateFilter='all';
 window.setDateFilter=function(mode,btn){
   dateFilter=mode; window.dateFilter=mode;
-  if(btn){document.querySelectorAll('.dqb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+  // Only clear/highlight the Reports quick-filter buttons (not other .dqb buttons elsewhere)
+  document.querySelectorAll('.date-filter-btns .dqb').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');  // custom range (from date inputs) leaves none highlighted
   renderRep();
 };
 function getFilteredTx(){
@@ -2538,8 +2540,7 @@ function getFilteredTx(){
     const from=$('dateFrom').value, to=$('dateTo').value;
     return list.filter(t=>{
       if(!t.ts)return true;
-      const d=new Date(t.ts);
-      const ds=d.toISOString().slice(0,10);
+      const ds=phtISO(t.ts); // compare by Philippine date so early-AM PHT isn't bucketed to the previous UTC day
       return(!from||ds>=from)&&(!to||ds<=to);
     });
   }
@@ -2680,7 +2681,7 @@ function renderRep(){
     const from=$('dateFrom')?.value, to=$('dateTo')?.value;
     fExp=allExp.filter(e=>{
       if(!e.ts)return true;
-      const ds=new Date(e.ts).toISOString().slice(0,10);
+      const ds=phtISO(e.ts); // PHT date, consistent with how dates are recorded/displayed
       return(!from||ds>=from)&&(!to||ds<=to);
     });
   }
