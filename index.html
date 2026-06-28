@@ -3578,6 +3578,11 @@ window.payUpdateRate = async function(id, val){
   const r = parseFloat(val)||0;
   await update(ref(db,'payroll/staff/'+id),{rate:r});
 };
+window.payUpdateSss = async function(id, val){
+  if(staffRole!=='manager') return;
+  const v = Math.max(0, parseFloat(val)||0);
+  await update(ref(db,'payroll/staff/'+id),{sss:v});
+};
 window.payMark = async function(id, code){
   if(staffRole!=='manager') return;
   // Toggle off if same code clicked twice
@@ -3939,6 +3944,7 @@ function renderPay(){
             <div>
               <div class="pay-staff-name">${s.name}</div>
               <div class="pay-staff-sub">Rate: ₱${(s.rate||0).toFixed(0)}/day ${code==='P'?'• ✅ Present':code==='A'?'• ❌ Absent':code==='H'?'• 🕐 Half-day':''}</div>
+              <div class="pay-staff-sub" style="margin-top:3px;display:flex;align-items:center;gap:4px;">SSS/mo: ₱<input type="number" min="0" value="${s.sss||0}" onchange="payUpdateSss('${id}', this.value)" title="Monthly SSS deduction (taken once per month)" style="width:64px;font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:5px;font-family:'DM Mono',monospace;"></div>
             </div>
             <input type="number" class="pay-rate-input" value="${s.rate||0}" onchange="payUpdateRate('${id}', this.value)" title="Daily rate">
             <div class="pay-att">
@@ -4158,7 +4164,17 @@ function renderPayDetails(){
 
   const staff = sid ? payStaff[sid] : null;
   const rate  = staff ? (staff.rate||0) : 0;
-  const sssDeduct = staff ? (staff.sss||0) : 0; // optional future per-staff SSS field; 0 if absent
+  // SSS: fixed monthly amount, deducted ONCE per month — on the 2nd cutoff (16th onward).
+  // Count distinct months in the viewed range that include a day on/after the 16th.
+  const sssMonthly = staff ? (staff.sss||0) : 0;
+  let _sssMonths = 0;
+  if(sssMonthly>0){
+    const _seen = new Set();
+    let _d = new Date(fromISO+'T00:00:00'); const _end = new Date(toISO+'T00:00:00'); let _g=0;
+    while(_d<=_end && _g<3660){ if(_d.getDate()>=16) _seen.add(_d.getFullYear()+'-'+(_d.getMonth()+1)); _d.setDate(_d.getDate()+1); _g++; }
+    _sssMonths = _seen.size;
+  }
+  const sssDeduct = sssMonthly * _sssMonths;
 
   // ── Attendance over range (this staff only) ──
   let days=0, half=0, absent=0;
@@ -4268,7 +4284,7 @@ function renderPayDetails(){
         <tr><td>Tips</td><td class="num" style="color:var(--accent2);">${fmt(tipTotal)}</td></tr>
         <tr style="font-weight:700;"><td>Gross Pay</td><td class="num">${fmt(gross)}</td></tr>
         <tr><td>Less: Cash Advances</td><td class="num" style="color:var(--danger);">-${fmt(advTotal)}</td></tr>
-        <tr><td>Less: SSS</td><td class="num" style="color:var(--danger);">-${fmt(sssDeduct)}</td></tr>
+        <tr><td>Less: SSS${sssMonthly>0?' <span style="font-size:9px;color:var(--muted);">('+fmt(sssMonthly)+'/mo'+(_sssMonths!==1?' × '+_sssMonths:'')+')</span>':''}</td><td class="num" style="color:var(--danger);">-${fmt(sssDeduct)}</td></tr>
         <tr><td>Less: Store Credits</td><td class="num" style="color:var(--danger);">-${fmt(crTotal)}</td></tr>
         <tr style="font-weight:800;"><td style="border-top:2px solid var(--border);padding-top:8px;">NET PAY</td><td class="num" style="border-top:2px solid var(--border);padding-top:8px;color:${net>=0?'var(--success)':'var(--danger)'};font-size:14px;">${fmt(net)}</td></tr>
       </tbody>`;
