@@ -3487,6 +3487,7 @@ let payAdv = {};        // {advId: {staffId, amt, date, note, ts, settledAt?}}
 let payCredits = {};    // {crId: {name, amt, date, note, ts, settledAt?}}
 let paySettlements = {};// {sid: {ts, settledBy, totalSettled, perStaff:{staffId:{name,advances,credits,total}}}}
 let paySettledThrough = {}; // {staffId: lastSettlementTs}
+let paySssMonths = {};  // {staffId: {'YYYY-MM': settlementId}} — months SSS already deducted (once-per-month lock)
 let payCurrentDate = phtISO(new Date());
 let payActiveTab = 'att';
 
@@ -3530,6 +3531,11 @@ onValue(ref(db,'payroll/settlements'),snap=>{
 
 onValue(ref(db,'payroll/settledThrough'),snap=>{
   paySettledThrough = snap.exists()?snap.val():{};
+  if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
+},()=>{});
+
+onValue(ref(db,'payroll/sssMonths'),snap=>{
+  paySssMonths = snap.exists()?snap.val():{};
   if($('pg-pay')&&$('pg-pay').classList.contains('on')) renderPay();
 },()=>{});
 
@@ -3696,6 +3702,12 @@ window.payRunSettlement = async function(){
       const b = ensure(sid);
       if(code==='P') b.days++;
       else if(code==='H') b.halfdays++;
+      // SSS once a month on the 2nd cutoff: flag months with a worked day on/after the 16th being settled now
+      if((code==='P'||code==='H') && (+date.slice(8,10))>=16){
+        const _ym = date.slice(0,7);
+        if(!(paySssMonths[sid] && paySssMonths[sid][_ym]))
+          (b._sssM || (b._sssM=new Set())).add(_ym);
+      }
       if(dayTs > maxSettledDayTs) maxSettledDayTs = dayTs; // remember the latest day included
     });
   });
@@ -3752,16 +3764,19 @@ window.payRunSettlement = async function(){
   });
 
   // Compute wages + net owed per staff
-  let grandTotalOwed = 0, totalWages = 0, totalTips = 0, totalAdvances = 0, totalCredits = 0, affectedStaffCount = 0;
-  Object.values(perStaff).forEach(b=>{
+  let grandTotalOwed = 0, totalWages = 0, totalTips = 0, totalAdvances = 0, totalCredits = 0, totalSss = 0, affectedStaffCount = 0;
+  Object.entries(perStaff).forEach(([sid,b])=>{
     b.wages = b.days * b.rate + b.halfdays * b.rate * 0.5;
-    b.total = b.wages + b.tips - b.advances - b.credits;
-    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0){
+    const sssMonthly = (payStaff[sid]||{}).sss || 0;
+    b.sss = sssMonthly * (b._sssM ? b._sssM.size : 0); // once per settled 2nd-cutoff month
+    b.total = b.wages + b.tips - b.advances - b.credits - b.sss;
+    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0 || b.sss>0){
       grandTotalOwed += b.total;
       totalWages += b.wages;
       totalTips += b.tips;
       totalAdvances += b.advances;
       totalCredits += b.credits;
+      totalSss += b.sss;
       affectedStaffCount++;
     }
   });
@@ -3781,6 +3796,7 @@ window.payRunSettlement = async function(){
     if(b.tips>0) parts.push(fmt(b.tips)+' tips');
     if(b.advances>0) parts.push('−'+fmt(b.advances)+' adv');
     if(b.credits>0) parts.push('−'+fmt(b.credits)+' cr');
+    if(b.sss>0) parts.push('−'+fmt(b.sss)+' sss');
     summary += '   ('+parts.join(' + ').replace(/\\+ −/g,'− ')+')\\n';
   });
   summary += '\\n━━━━━━━━━━━━━━━━━━━━━━\\n';
@@ -3788,6 +3804,7 @@ window.payRunSettlement = async function(){
   summary += 'Total Tips:     +'+fmt(totalTips)+'\\n';
   summary += 'Total Advances: −'+fmt(totalAdvances)+'\\n';
   summary += 'Total Credits:  −'+fmt(totalCredits)+'\\n';
+  summary += 'Total SSS:      −'+fmt(totalSss)+'\\n';
   summary += 'TOTAL NET OWED: '+fmt(grandTotalOwed)+'\\n';
   // Effective settle-through cutoff: end of today, or the latest day you've marked
   // attendance for (covers paying early after advancing attendance) — whichever is later.
@@ -3804,7 +3821,7 @@ window.payRunSettlement = async function(){
   // Snapshot perStaff data (full breakdown for audit)
   const perStaffSnapshot = {};
   Object.entries(perStaff).forEach(([sid,b])=>{
-    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0){
+    if(b.wages>0 || b.tips>0 || b.advances>0 || b.credits>0 || b.sss>0){
       perStaffSnapshot[sid] = {
         name: b.name,
         days: b.days,
@@ -3813,6 +3830,7 @@ window.payRunSettlement = async function(){
         tips: b.tips,
         advances: b.advances,
         credits: b.credits,
+        sss: b.sss||0,
         total: b.total
       };
     }
@@ -3833,6 +3851,7 @@ window.payRunSettlement = async function(){
     totalTips,
     totalAdvances,
     totalCredits,
+    totalSss,
     staffCount: affectedStaffCount,
     perStaff: perStaffSnapshot
   };
@@ -3850,6 +3869,10 @@ window.payRunSettlement = async function(){
       updates['payroll/credits/'+crId+'/settledAt'] = settledAt;
       updates['payroll/credits/'+crId+'/settlementId'] = settlementId;
     });
+  });
+  // 4. Lock the SSS months deducted in this settlement (so SSS is never taken twice in a month)
+  Object.entries(perStaff).forEach(([sid,b])=>{
+    if(b._sssM) b._sssM.forEach(ym=>{ updates['payroll/sssMonths/'+sid+'/'+ym] = settlementId; });
   });
 
   await update(ref(db), updates);
@@ -3873,6 +3896,12 @@ window.payUndoSettlement = async function(id){
       updates['payroll/credits/'+crId+'/settledAt'] = null;
       updates['payroll/credits/'+crId+'/settlementId'] = null;
     }
+  });
+  // Release any SSS month-locks set by this settlement (so SSS becomes owed again)
+  Object.entries(paySssMonths).forEach(([sid,months])=>{
+    Object.entries(months||{}).forEach(([ym,settId])=>{
+      if(settId === id) updates['payroll/sssMonths/'+sid+'/'+ym] = null;
+    });
   });
   // Restore each staff's settledThrough to the PREVIOUS pay-day (if any), else delete
   Object.keys(s.perStaff||{}).forEach(sid=>{
@@ -4171,7 +4200,13 @@ function renderPayDetails(){
   if(sssMonthly>0){
     const _seen = new Set();
     let _d = new Date(fromISO+'T00:00:00'); const _end = new Date(toISO+'T00:00:00'); let _g=0;
-    while(_d<=_end && _g<3660){ if(_d.getDate()>=16) _seen.add(_d.getFullYear()+'-'+(_d.getMonth()+1)); _d.setDate(_d.getDate()+1); _g++; }
+    while(_d<=_end && _g<3660){
+      if(_d.getDate()>=16){
+        const _ym = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0');
+        if(!(paySssMonths[sid] && paySssMonths[sid][_ym])) _seen.add(_ym); // skip months already deducted at pay day
+      }
+      _d.setDate(_d.getDate()+1); _g++;
+    }
     _sssMonths = _seen.size;
   }
   const sssDeduct = sssMonthly * _sssMonths;
@@ -4394,6 +4429,12 @@ function renderPaySummary(){
       if(code==='P') breakdown[sid].days++;
       else if(code==='H') breakdown[sid].halfdays++;
       else if(code==='A') breakdown[sid].absents++;
+      // SSS is due once a month, on the 2nd cutoff: flag months with an unsettled worked day on/after the 16th
+      if((code==='P'||code==='H') && (+date.slice(8,10))>=16){
+        const _ym = date.slice(0,7);
+        if(!(paySssMonths[sid] && paySssMonths[sid][_ym]))
+          (breakdown[sid]._sssM || (breakdown[sid]._sssM=new Set())).add(_ym);
+      }
     });
   });
   Object.values(payAdv).forEach(a=>{
@@ -4456,11 +4497,13 @@ function renderPaySummary(){
     });
   });
 
-  let totalWages=0, totalAdv=0, totalCr=0, totalTips=0, totalOwed=0, totalDays=0, totalHalf=0, totalAbs=0;
-  Object.values(breakdown).forEach(b=>{
+  let totalWages=0, totalAdv=0, totalCr=0, totalTips=0, totalSss=0, totalOwed=0, totalDays=0, totalHalf=0, totalAbs=0;
+  Object.entries(breakdown).forEach(([id,b])=>{
     b.wages = b.days*b.rate + b.halfdays*b.rate*0.5;
-    b.owed  = b.wages + b.tips - b.advances - b.credits;
-    totalWages += b.wages; totalAdv += b.advances; totalCr += b.credits; totalTips += b.tips; totalOwed += b.owed;
+    const sssMonthly = (payStaff[id]||{}).sss || 0;
+    b.sss = sssMonthly * (b._sssM ? b._sssM.size : 0); // once per unsettled 2nd-cutoff month
+    b.owed  = b.wages + b.tips - b.advances - b.credits - b.sss;
+    totalWages += b.wages; totalAdv += b.advances; totalCr += b.credits; totalTips += b.tips; totalSss += b.sss; totalOwed += b.owed;
     totalDays += b.days; totalHalf += b.halfdays; totalAbs += b.absents;
   });
   // (totalCr already computed per-staff above)
@@ -4473,6 +4516,7 @@ function renderPaySummary(){
       <div class="pay-sum-card"><div class="pay-sum-lbl">💝 Total Tips</div><div class="pay-sum-val" style="color:var(--accent);">+${fmt(totalTips)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Total Advances</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalAdv)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Total Store Credits</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCr)}</div></div>
+      <div class="pay-sum-card"><div class="pay-sum-lbl">Total SSS</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalSss)}</div></div>
       <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">Net Wages Owed</div><div class="pay-sum-val" style="color:var(--success);">${fmt(totalOwed)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Days Worked</div><div class="pay-sum-val">${totalDays} <span style="font-size:10px;color:var(--muted);font-weight:500;">+ ${totalHalf} half</span></div></div>
     `;
@@ -4566,7 +4610,7 @@ function renderPaySummary(){
   const bd = $('payBreakdown');
   if(bd){
     const rows = Object.entries(breakdown)
-      .filter(([,b])=>b.days+b.halfdays+b.absents+b.advances+b.credits+b.tips>0 || b.active)
+      .filter(([,b])=>b.days+b.halfdays+b.absents+b.advances+b.credits+b.tips+b.sss>0 || b.active)
       .sort((a,b)=> (b[1].active?1:0)-(a[1].active?1:0) || b[1].owed-a[1].owed);
     bd.innerHTML = `
       <thead><tr>
@@ -4578,6 +4622,7 @@ function renderPaySummary(){
         <th class="num">Wages</th>
         <th class="num">Advances</th>
         <th class="num">Credits</th>
+        <th class="num">SSS</th>
         <th class="num">Tips 💝</th>
         <th class="num">Owed</th>
       </tr></thead>
@@ -4592,10 +4637,11 @@ function renderPaySummary(){
           <td class="num" style="color:var(--accent);">${fmt(b.wages)}</td>
           <td class="num" style="color:var(--danger);">${b.advances?'-'+fmt(b.advances):'—'}</td>
           <td class="num" style="color:var(--danger);">${b.credits?'-'+fmt(b.credits):'—'}</td>
+          <td class="num" style="color:var(--danger);">${b.sss?'-'+fmt(b.sss):'—'}</td>
           <td class="num" style="color:var(--accent);">${b.tips?'+'+fmt(b.tips):'—'}</td>
           <td class="num" style="color:${b.owed>=0?'var(--success)':'var(--danger)'};font-weight:700;">${fmt(b.owed)}</td>
         </tr>`).join('')
-        : '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:18px;">No data for this period.</td></tr>'}
+        : '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:18px;">No data for this period.</td></tr>'}
       </tbody>
     `;
   }
@@ -4627,6 +4673,7 @@ function renderPaySummary(){
           if(s.totalTips>0) breakdown.push(fmt(s.totalTips)+' tips');
           if(s.totalAdvances>0) breakdown.push('−'+fmt(s.totalAdvances)+' adv');
           if(s.totalCredits>0) breakdown.push('−'+fmt(s.totalCredits)+' cr');
+          if(s.totalSss>0) breakdown.push('−'+fmt(s.totalSss)+' sss');
           const breakdownTxt = breakdown.join(' • ');
           return `<div class="pay-adv-row" style="grid-template-columns:1fr auto auto;gap:6px;border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.04);">
             <div>
