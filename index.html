@@ -1412,6 +1412,7 @@ tr:hover td{background:var(--card);}
           <div class="store-card-title">Store Summary
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
               <button id="stCashCollectBtn" onclick="storeOpenCashCollect()" style="display:none;padding:5px 12px;background:rgba(252,92,125,.1);border:1px solid rgba(252,92,125,.4);color:var(--danger);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">💰 Cash Collection</button>
+              <button id="stExportBtn" onclick="exportStoreDrawer(this)" style="display:none;padding:5px 12px;background:var(--success,#48bb78);color:#0d0f14;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📊 Export Drawer Excel</button>
               <select id="stRepPeriod" onchange="storeRepPeriodChanged()" style="font-size:11px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;cursor:pointer;">
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
@@ -2629,6 +2630,74 @@ window.generateMonthlyReport = async function(btn){
     if(btn){ btn.disabled=false; btn.textContent='📊 Generate Excel'; }
   }
 };
+window.exportStoreDrawer = async function(btn){
+  if(staffRole!=='manager'){ toast('Managers only','var(--danger)'); return; }
+  // ALL-TIME store data (the drawer is a running balance)
+  const salesAll = Object.values(storeSales).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const cashSalesRows = [], creditSaleRows = [];
+  let allCashIn=0, allCreditSales=0;
+  salesAll.forEach(s=>{
+    const isCredit = (s.mode==='staff_credit' || s.payment==='credit');
+    const items = (s.items||[]).map(it=>(it.name||'')+' x'+(it.qty||0)).join(', ');
+    const row = [ s.ts?phtISO(s.ts):'', s.time||'', items, (s.total||0), s.staff||'', s.buyerName||'' ];
+    if(isCredit){ allCreditSales+=(s.total||0); creditSaleRows.push(row); }
+    else { allCashIn+=(s.total||0); cashSalesRows.push(row); }
+  });
+  const collectsAll = Object.values(storeCashCollects).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  let allCashCollected=0;
+  const wRows = collectsAll.map(c=>{ allCashCollected+=(c.amt||0); return [ c.iso||(c.ts?phtISO(c.ts):''), c.note||'', (c.amt||0), c.takenBy||c.cashier||'' ]; });
+  let allCreditsCollected=0;
+  const ccRows=[];
+  Object.values(payCredits||{}).forEach(c=>{
+    if(!c) return; const isStore = c.source==='store' || !!c.storeSaleId; if(!isStore || !c.settledAt) return;
+    allCreditsCollected += (c.amt||0);
+    ccRows.push([ phtISO(c.settledAt), (payStaff[c.staffId]||{}).name||c.name||'', c.note||'', (c.amt||0), c.date||'' ]);
+  });
+  ccRows.sort((a,b)=>a[0]<b[0]?-1:1);
+  const drawer = allCashIn + allCreditsCollected - allCashCollected;
+
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Building…'; }
+  try{
+    await ensureXLSX();
+    const XLSX = window.XLSX;
+    const wb = XLSX.utils.book_new();
+    // Reconciliation summary
+    const ws0 = XLSX.utils.aoa_to_sheet([
+      ['BZONE Store — Cash Drawer Reconciliation (All Time)'],
+      ['Generated', new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'})+' PHT'],
+      [],
+      ['(+) Total Cash Sales', allCashIn],
+      ['(+) Total Credits Collected (kept in drawer)', allCreditsCollected],
+      ['(−) Total Cash Collected by Mgr (withdrawals)', allCashCollected],
+      ['= CASH ON HAND (DRAWER) — should be in drawer', drawer],
+      [],
+      ['Physical count (fill in)', ''],
+      ['Difference (physical − recorded)', ''],
+      [],
+      ['(memo) Total Credit Sales (unpaid+collected)', allCreditSales]
+    ]);
+    ws0['!cols']=[{wch:46},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, ws0, 'Reconciliation');
+    // Cash sales
+    const cs=[['Date','Time','Items','Amount','Staff','Customer'], ...cashSalesRows, [], ['','','TOTAL', allCashIn,'','']];
+    const wsc=XLSX.utils.aoa_to_sheet(cs); wsc['!cols']=[{wch:11},{wch:9},{wch:34},{wch:11},{wch:12},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsc, 'Cash Sales');
+    // Withdrawals
+    const ww=[['Date','Note / Purpose','Amount','Taken By'], ...wRows, [], ['','TOTAL', allCashCollected,'']];
+    const wsw=XLSX.utils.aoa_to_sheet(ww); wsw['!cols']=[{wch:11},{wch:40},{wch:11},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsw, 'Withdrawals');
+    // Credits collected
+    const cc=[['Date Collected','Staff','Items / Note','Amount','Date Bought'], ...ccRows, [], ['','','TOTAL', allCreditsCollected,'']];
+    const wscc=XLSX.utils.aoa_to_sheet(cc); wscc['!cols']=[{wch:13},{wch:14},{wch:30},{wch:11},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wscc, 'Credits Collected');
+    XLSX.writeFile(wb, 'BZONE_Store_Drawer_'+phtISO(new Date())+'.xlsx');
+    toast('📊 Downloaded drawer reconciliation. Recorded Cash on Hand: '+fmt(drawer));
+  }catch(e){
+    toast('Could not build Excel: '+(e&&e.message?e.message:'error'),'var(--danger)');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='📊 Export Drawer Excel'; }
+  }
+};
 function _downloadMonthlyCSV(ym, monthTx, sums, net){
   const esc=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
   const lines=[];
@@ -3271,6 +3340,7 @@ function _showMgrTabs(){
   const stp=$('stTabProd'); if(stp) stp.style.display=staffRole==='manager'?'':'none';
   const str=$('stTabRestock'); if(str) str.style.display=staffRole==='manager'?'':'none';
   const ccb=$('stCashCollectBtn'); if(ccb) ccb.style.display=staffRole==='manager'?'':'none';
+  const exb=$('stExportBtn'); if(exb) exb.style.display=staffRole==='manager'?'':'none';
   const cch=$('storeCashCollectHistCard'); if(cch) cch.style.display=staffRole==='manager'?'':'none';
   const ccch=$('storeCreditsCollectedHistCard'); if(ccch) ccch.style.display=staffRole==='manager'?'':'none';
 }
@@ -5481,7 +5551,24 @@ function renderStoreReport(){
   const totalProfit = totalRev - totalCost;
   const margin = totalRev>0 ? (totalProfit/totalRev*100) : 0;
 
-  const physicalCash = cashIn - totalCashCollected;        // actual bills that should be in the drawer (credits are NOT added here)
+  // Cash on Hand (Drawer) = ALL-TIME running balance. Includes collected store credits,
+  // because settling a staff credit at payroll means you pay that much LESS in wages — so
+  // that cash stays in the drawer. This equals the physical bills staff can count.
+  let allCashIn = 0;
+  Object.values(storeSales).forEach(s=>{
+    if(s.mode==='staff_credit' || s.payment==='credit') return; // unpaid credit sales aren't cash yet
+    allCashIn += (s.total||0);
+  });
+  let allCashCollected = 0;
+  Object.values(storeCashCollects).forEach(c=>{ allCashCollected += (c.amt||0); });
+  let allCreditsCollected = 0;
+  Object.values(payCredits||{}).forEach(c=>{
+    if(!c) return;
+    const isStore = c.source==='store' || !!c.storeSaleId;
+    if(isStore && c.settledAt) allCreditsCollected += (c.amt||0); // collected = retained in drawer via reduced wages
+  });
+  const physicalCash = allCashIn + allCreditsCollected - allCashCollected; // running drawer balance (all time)
+  const periodCashFlow = cashIn - totalCashCollected;       // this period's cash in − cash out (for reference)
   const sg = $('storeSumGrid');
   if(sg){
     sg.innerHTML = `
@@ -5494,8 +5581,8 @@ function renderStoreReport(){
       <div class="pay-sum-card"><div class="pay-sum-lbl">Cash Sales</div><div class="pay-sum-val" style="color:var(--accent);">${fmt(cashIn)}</div></div>
       <div class="pay-sum-card"><div class="pay-sum-lbl">Credit Sales</div><div class="pay-sum-val" style="color:var(--danger);">${fmt(creditAmt)}</div></div>
       <div class="pay-sum-card" style="border-color:rgba(252,92,125,.3);background:rgba(252,92,125,.05);"><div class="pay-sum-lbl">💰 Cash Collected by Mgr</div><div class="pay-sum-val" style="color:var(--danger);">-${fmt(totalCashCollected)}</div></div>
-      <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Cash on Hand (Drawer)</div><div class="pay-sum-val" style="color:${physicalCash>=0?'var(--accent)':'var(--danger)'};">${fmt(physicalCash)}</div><div style="font-size:9px;color:var(--muted);">cash sales − cash taken · real bills</div></div>
-      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">🧾 Credits Collected</div><div class="pay-sum-val" style="color:var(--success);">${fmt(creditsCollected)}</div><div style="font-size:9px;color:var(--muted);">settled via payroll · NOT store cash</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.06);"><div class="pay-sum-lbl">💵 Cash on Hand (Drawer)</div><div class="pay-sum-val" style="color:${physicalCash>=0?'var(--accent)':'var(--danger)'};">${fmt(physicalCash)}</div><div style="font-size:9px;color:var(--muted);">running · cash + credits collected − withdrawals</div></div>
+      <div class="pay-sum-card" style="border-color:rgba(72,187,120,.3);background:rgba(72,187,120,.05);"><div class="pay-sum-lbl">🧾 Credits Collected</div><div class="pay-sum-val" style="color:var(--success);">${fmt(creditsCollected)}</div><div style="font-size:9px;color:var(--muted);">settled via payroll · kept in drawer</div></div>
     `;
   }
 
