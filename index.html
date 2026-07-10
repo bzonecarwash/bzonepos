@@ -2030,7 +2030,7 @@ onValue(ref(db,'transactions'),snap=>{
 
 onValue(ref(db,'jobs'),snap=>{
   jobs=snap.exists()?snap.val():{};
-  renderBayStatus(); renderJobs();
+  renderBayStatus(); renderJobs(); publishBayStatus();
 },()=>syncStatus('error'));
 
 /* SEED DEFAULT SERVICES */
@@ -2151,6 +2151,23 @@ function renderBayStatus(){
       <div class="bsi-stat">Available</div>
     </div>`;
   }).join('');
+}
+
+/* Publish a PUBLIC, minimal bay-availability snapshot for the customer website.
+   Only counts + free/busy flags are written to public/bayStatus — no sales, names, or plates. */
+let _lastBaySig = '';
+function publishBayStatus(){
+  const bays=['1','2','3','4'];
+  const flags={}; let vacant=0, occupied=0;
+  bays.forEach(b=>{
+    const busy = Object.values(jobs).some(j=>j.bay===b && j.status!=='completed');
+    flags[b] = busy ? 'busy' : 'free';
+    if(busy) occupied++; else vacant++;
+  });
+  const sig = vacant+'|'+bays.map(b=>flags[b]).join('');
+  if(sig===_lastBaySig) return; // only write when availability actually changes
+  _lastBaySig = sig;
+  try{ set(ref(db,'public/bayStatus'), { total:bays.length, vacant, occupied, bays:flags, updatedAt:Date.now() }); }catch(e){}
 }
 
 /* ── NEW FLOW ──
